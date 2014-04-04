@@ -2,35 +2,24 @@
 
 {% load static %}
 
-{% block body_block %}
+{% block above_calendar_block %}
 
 <div class="hero-unit">
-  <h1>What's Up With You?</h1>
-  This is <strong>UpDog's Calendar Page</strong>.<br />
+  <br />
+  <br />
 
-  UpDog Says: Here is the calendar page.
+  <center>
+    <h1>What's Up With You?</h1>
+  </center>
   <br />
 </div>
 
 {% endblock %}
 
-
-
-
 {% block calendar_block %}
 
 <div class="container">
-  <div class="hero-unit">
-    <h1>Bootstrap Calendar Demo</h1>
-
-    <p>Bootstrap based full view calendar. Template based.</p>
-
-<!--    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');
-      </script>-->
-    </div>
-
   <div class="page-header">
-
     <div class="pull-right form-inline">
       <div class="btn-group">
 	<button class="btn btn-primary" data-calendar-nav="prev"><< Prev</button>
@@ -45,82 +34,127 @@
 	</div>
       </div>
   </div>
+  <div class="span3">
+    <div class="row-fluid">
+      <select id="first_day" class="span12">
+	<option value="" selected="selected">First day of week language-dependant</option>
+	<option value="2">First day of week is Sunday</option>
+	<option value="1">First day of week is Monday</option>
+      </select>
+      <br>
 
-  <div class="row">
-    <div class="span9">
-      <div id="calendar"></div>
-      </div>
-    <div class="span3">
-      <div class="row-fluid">
-	<select id="first_day" class="span12">
-	  <option value="" selected="selected">First day of week language-dependant</option>
-	  <option value="2">First day of week is Sunday</option>
-	  <option value="1">First day of week is Monday</option>
-	  </select>
+      <!-- THIS IS THE CALENDAR!!! -->
+      <div id='calendar'></div>
 
-	<br>
-
-	<label class="checkbox">
-	  <input type="checkbox" value="#events-modal" id="events-in-modal"> Open events in modal window
-	  </label>
-	</div>
-
-      <h4>Events</h4>
-      <small>This list is populated with events dynamically</small>
-      <ul id="eventlist" class="nav nav-list"></ul>
-      </div>
+      <label class="checkbox">
+	<input type="checkbox" value="#events-modal" id="events-in-modal"> Open events in modal window
+      </label>
     </div>
+    
+    <h4>Events</h4>
+    <small>This list is populated with events dynamically</small>
+    <ul id="eventlist" class="nav nav-list"></ul>
+  </div>
+</div>
 
-  <div class="clearfix"></div>
-  <br><br>
-  <a href="https://github.com/Serhioromano/bootstrap-calendar/issues" class="btn btn-block btn-info">
-    <center>
-      <span class="lead">
-	Submit an issue, ask questions or give your ideas here!<br>
-	</span>
-      <small>Please do not post your "How to ..." questions in comments. use GitHub issue tracker.</small>
-      </center>
-    </a>
-  <br><br>
+<div class="clearfix"></div>
+<br><br>
+<a href="https://github.com/Serhioromano/bootstrap-calendar/issues" class="btn btn-block btn-info">
+  <center>
+    <span class="lead">
+      Submit an issue, ask questions or give your ideas here!<br>
+    </span>
+    <small>Please do not post your "How to ..." questions in comments. use GitHub issue tracker.</small>
+  </center>
+</a>
+<br><br>
 
-  <div id="disqus_thread"></div>
-  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<!-- the script to populate events in the calendar -->
+  <script>
+    
+    $(document).ready(function() {
+  
+    var date = new Date();
+    var d = date.getDate();
+    var m = date.getMonth();
+    var y = date.getFullYear();
+    
+    $('#calendar').fullCalendar({
+    header: {
+    left: 'prev,next today',
+    center: 'title',
+    right: 'month,agendaWeek,agendaDay'
+    },
+    editable: true,
+    events: [
+    {
+    title: 'All Day Event',
+    start: new Date(y, m, 1)
+    },
+    {
+    title: 'Long Event',
+    start: new Date(y, m, d-5),
+    end: new Date(y, m, d-2)
+    },
+    {
+    id: 999,
+    title: 'Repeating Event',
+    start: new Date(y, m, d-3, 16, 0),
+    allDay: false
+    },
+    {
+    id: 999,
+    title: 'Repeating Event',
+    start: new Date(y, m, d+4, 16, 0),
+    allDay: false
+    },
+    {
+    title: 'Meeting',
+    start: new Date(y, m, d, 10, 30),
+    allDay: false
+    },
+    {
+    title: 'Lunch',
+    start: new Date(y, m, d, 12, 0),
+    end: new Date(y, m, d, 14, 0),
+    allDay: false
+    },
+    {
+    title: 'Birthday Party',
+    start: new Date(y, m, d+1, 19, 0),
+    end: new Date(y, m, d+1, 22, 30),
+    allDay: false
+    },
+    {
+    title: 'Click for Google',
+    start: new Date(y, m, 28),
+    end: new Date(y, m, 29),
+    url: 'http://google.com/'
+    }
+    ]
+    });
+    
+    });
+    
+  </script>
+<!-- this is the style they use in the example html
+    <style>
+    
+    body {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 14px;
+    font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+    }
+    
+    #calendar {
+    width: 900px;
+    margin: 0 auto;
+    }
 
-  <div class="modal hide fade" id="events-modal">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-      <h3>Event</h3>
-      </div>
-    <div class="modal-body" style="height: 400px">
-      </div>
-    <div class="modal-footer">
-      <a href="#" data-dismiss="modal" class="btn">Close</a>
-      </div>
-    </div>
+  </style>
+  -->
 
-  <script src="{% static 'js/jquery.min.js' %}"></script>
-  <script src="{% static 'js/underscore-min.js' %}"></script>
-<!--  <script type="text/javascript" src="components/underscore/underscore-min.js"></script>
-  <script type="text/javascript" src="components/bootstrap2/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="components/jstimezonedetect/jstz.min.js"></script>
-  <script type="text/javascript" src="js/language/nl-NL.js"></script>
-  <script type="text/javascript" src="js/language/fr-FR.js"></script>
-  <script type="text/javascript" src="js/language/de-DE.js"></script>
-  <script type="text/javascript" src="js/language/el-GR.js"></script>
-  <script type="text/javascript" src="js/language/it-IT.js"></script>
-  <script type="text/javascript" src="js/language/pl-PL.js"></script>
-  <script type="text/javascript" src="js/language/pt-BR.js"></script>
-  <script type="text/javascript" src="js/language/es-MX.js"></script>
-  <script type="text/javascript" src="js/language/es-ES.js"></script>
-  <script type="text/javascript" src="js/language/ru-RU.js"></script>
-  <script type="text/javascript" src="js/language/sv-SE.js"></script>
-  <script type="text/javascript" src="js/language/zh-CN.js"></script>
-  <script type="text/javascript" src="js/language/cs-CZ.js"></script>
--->
-  <script src="{% static 'js/calendar.js' %}"></script>
-  <script src="{% static 'js/app.js' %}"></script>
-<!--  <script type="text/javascript" src="js/calendar.js"></script>
-  <script type="text/javascript" src="js/app.js"></script>-->
 </div>
 
 {% endblock %}
