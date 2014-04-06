@@ -34,8 +34,8 @@ class UpDogUser(models.Model):
         return
 
     def get_friends(self):
-        return self.friends.filter(
-            friend_to__from_user=self)
+        return Friendship.objects.filter(from_user=self)
+
 
     def get_downtimes_on_day(self, date):
         return self.downtime_set.filter(

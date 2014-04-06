@@ -1,0 +1,8 @@
+from django.conf.urls import patterns, url, include
+from udCalendar import views
+from django.conf import settings
+
+urlpatterns = patterns('',
+        url(r'^$', views.calendar, name='calendar'),
+        url(r'^test/$', views.test, name='test'),
+)
