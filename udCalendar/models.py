@@ -36,7 +36,6 @@ class UpDogUser(models.Model):
     def get_friends(self):
         return Friendship.objects.filter(from_user=self)
 
-
     def get_downtimes_on_day(self, date):
         return self.downtime_set.filter(
             start_time__day=date.day)
@@ -44,7 +43,7 @@ class UpDogUser(models.Model):
     def get_events_on_day(self, date):
         return self.events.filter(
             start_time__day=date.day)
-
+   
 class Friendship(models.Model):
 
     to_user = models.ForeignKey(UpDogUser, related_name='friend_to')
@@ -89,6 +88,15 @@ class Event(models.Model):
     end_time = models.DateTimeField()
     activity = models.CharField(max_length=100, null=True, blank=True)
     location = models.CharField(max_length=100, null=True, blank=True)
+
+    def add_user(self, user):
+        return self.owners.add(user)
+
+    def remove_user(self, user):
+        return self.updoguser_set.remove(user)
+
+    def get_users(self):
+        return self.updoguser_set.all()
 
     def __unicode__(self):
         return self.start_time.strftime("%Y-%m-%d %H:%M:%S")

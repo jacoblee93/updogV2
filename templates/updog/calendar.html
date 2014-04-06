@@ -70,9 +70,38 @@
 <br><br>
 
 <!-- the script to populate events in the calendar -->
+<!--<ul>
+{% if events_list %}
+{% for event in events_list %}
+<li>{{ event.start_time }}</li>
+{% endfor %}
+{% endif %}
+</ul>-->
   <script>
     
     $(document).ready(function() {
+    
+    /*console.log("here!");*/
+
+    /*var obj = jQuery.parseJSON( {{ events_list }} );*/
+
+    /*$( "li" ).each( function( index, element ) {
+    console.log( $( this ).text() );
+    });*/
+
+    /*var jquery_events = [];
+    for (var event in {{ events_list }}) {
+    var jquery_event = {
+    title: event.activity,
+    start: new Date(event.start_time.year, event.start_time.month, event.start_time.day),
+    end: new Date(event.end_time.year, event.end_time.month, event.end_time.day),
+    allDay: false
+    };
+    jquery_events.push(jquery_event);
+    }*/
+
+    
+    
   
     var date = new Date();
     var d = date.getDate();
@@ -86,7 +115,10 @@
     right: 'month,agendaWeek,agendaDay'
     },
     editable: true,
-    events: [
+
+
+
+    events: /*jquery_events*/ [
     {
     title: 'All Day Event',
     start: new Date(y, m, 1)
