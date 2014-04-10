@@ -11,6 +11,7 @@ class UpDogUser(models.Model):
     events = models.ManyToManyField('Event', related_name='owners')
     packs = models.ManyToManyField('Pack')
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=False, related_name='friend_to+')
+    location = models.CharField(max_length=100)
 
     def __unicode__(self):
         return self.user.username

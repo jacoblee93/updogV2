@@ -8,7 +8,7 @@ def populate():
     u2=add_user('sskoular', 'sonia', 'skoularikis', 'summer14', 'sskoular@princeton.edu')
     u3=add_user('tank', 'franklyn', 'darnis', 'lift', 'fdarnis@princeton.edu')
     u4=add_user('poushy', 'alex', 'pouschine', 'cloister', 'apouschine@princeton.edu')
-    u5=add_user('jacoblee', 'jacob', 'lee', 'squash', 'jacoblee@princeton.edu')
+    u5=add_user('lacobjee', 'lacob', 'jee', 'squash', 'lacobjee@princeton.edu')
 
     ud1=add_updoguser(u1, 1)
     ud2=add_updoguser(u2, 2)

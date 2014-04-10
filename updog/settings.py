@@ -57,7 +57,42 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'udCalendar',
+    'social_auth',
 )
+
+AUTHENTICATION_BACKENDS = (
+    'social_auth.backends.facebook.FacebookBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_auth.backends.pipeline.social.social_auth_user',
+    'social_auth.backends.pipeline.associate.associate_by_email',
+    'social_auth.backends.pipeline.user.get_username',
+    'social_auth.backends.pipeline.user.create_user',
+    'social_auth.backends.pipeline.social.associate_user',
+    'social_auth.backends.pipeline.social.load_extra_data',
+    'social_auth.backends.pipeline.user.update_user_details',
+    'udCalendar.pipelines.get_fbid',
+    'udCalendar.pipelines.get_location',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'social_auth.context_processors.social_auth_by_type_backends',
+)
+
+SOCIAL_AUTH_ENABLED_BACKENDS = ('facebook',)
+SOCIAL_AUTH_DEFAULT_USERNAME = 'new_facebook_user'
+
+FACEBOOK_APP_ID = '1473575562856856'
+FACEBOOK_API_SECRET = '93248303676266d92207db8a51941025'
+
+LOGIN_URL = '/calendar/login/'
+LOGIN_REDIRECT_URL = '/calendar'
+LOGIN_ERROR_URL = '/calendar/login-error/'
+
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

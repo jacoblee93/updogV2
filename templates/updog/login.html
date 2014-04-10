@@ -1,0 +1,5 @@
+{% extends 'updog/base.html' %}
+
+{% block above_calendar_block %}
+<a href="{% url 'socialauth_begin' 'facebook' %}">Login with Facebook</a>
+{% endblock %}

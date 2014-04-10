@@ -1,7 +1,8 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from udCalendar.models import UpDogUser, Friendship
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -25,11 +26,12 @@ def test(request):
 
     return render_to_response('updog/base.html', {}, context)
 
+@login_required
 # The calendar view  
 def calendar(request):
     context = RequestContext(request)
     user = UpDogUser.objects.order_by('-user')[0]
-    
+
     ## sort user's friendships from by decr. meet count
     ships_list = user.get_friends()
     ordered_ships_list = ships_list.order_by('-meeting_count')
@@ -51,3 +53,12 @@ def calendar(request):
 
     context_dict['events_list'] = events_list
     return render_to_response('updog/calendar.html', context_dict, context)
+
+def login(request):
+    context = RequestContext(request)
+    return render_to_response('updog/login.html', {}, context)
+
+@login_required
+def logout_user(request):
+    logout(request)
+    return HttpResponseRedirect('/calendar/login/')
