@@ -26,5 +26,9 @@ def get_location(backend, details, response, social_user, uid, user, *args, **kw
     data = urlopen('https://graph.facebook.com/%s?access_token=%s' % (response['id'], UserSocialAuth.objects.filter(provider='facebook', user=user).get().tokens['access_token']))
     data = data.read()
     
-    uduser.location = json.loads(data)['location']['name']
+    json_data = json.loads(data)
+    if json_data.has_key('location'):
+        if json_data['location'].has_key('name'):
+            uduser.location= json_data['location']['name']
+
     uduser.save()
