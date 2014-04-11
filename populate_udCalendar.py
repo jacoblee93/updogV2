@@ -1,12 +1,14 @@
 import os
 from django.utils import timezone
+from datetime import datetime
+from django.utils.timezone import utc
 
 def populate():
     u1=add_user('lloyd69', 'lloyd', 'lee', 'entourage', 'lloyd@princeton.edu')
     u2=add_user('sskoular', 'sonia', 'skoularikis', 'summer14', 'sskoular@princeton.edu')
     u3=add_user('tank', 'franklyn', 'darnis', 'lift', 'fdarnis@princeton.edu')
     u4=add_user('poushy', 'alex', 'pouschine', 'cloister', 'apouschine@princeton.edu')
-    u5=add_user('jacoblee', 'jacob', 'lee', 'squash', 'jacoblee@princeton.edu')
+    u5=add_user('lacobjee', 'lacob', 'jee', 'squash', 'lacobjee@princeton.edu')
 
     ud1=add_updoguser(u1, 1)
     ud2=add_updoguser(u2, 2)
@@ -22,7 +24,10 @@ def populate():
     p = add_pack('cos333', [ud1, ud2, ud3, ud4])
     p.add_user(ud5)
 
-    dt1 = add_downtime(ud1, timezone.now(), timezone.now())
+    dt1 = add_downtime(ud1, datetime(2014, 4, 8, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 8, 8, 30, 0, tzinfo=utc))
+    ev1 = add_event(datetime(2014, 4, 6, 1, 0, 0, tzinfo=utc), datetime(2014, 4, 6, 1, 30, 0, tzinfo=utc), [ud1, ud5, ud3])
+    ev2 = add_event(datetime(2014, 4, 7, 4, 30, 0, tzinfo=utc), datetime(2014, 4, 7, 7, 0, 0, tzinfo=utc), [ud1, ud2])
+    ev3 = add_event(datetime(2014, 4, 8, 4, 30, 0, tzinfo=utc), datetime(2014, 4, 8, 7, 0, 0, tzinfo=utc), [ud5])
 
 def add_user(username, firstname, lastname, password, email):
 
@@ -39,8 +44,7 @@ def add_pack(name, udUsers):
 
     pack = Pack.objects.get_or_create(name=name)[0]
     for user in udUsers:
-        pack.updoguser_set.add(user)
-
+        pack.add_user(user)
     return pack
 
 def add_downtime(user, startTime, endTime):
@@ -49,6 +53,8 @@ def add_downtime(user, startTime, endTime):
 
 def add_event(startTime, endTime, participants):
     event = Event.objects.get_or_create(start_time=startTime, end_time=endTime)[0]
+    for person in participants:
+        event.add_user(person)
     return event
 
 if __name__ == '__main__':

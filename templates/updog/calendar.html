@@ -14,9 +14,175 @@
   <br />
 </div>
 
+<script>
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+  }
+  var csrftoken = getCookie('csrftoken');
+
+  function csrfSafeMethod(method) {
+      // these HTTP methods do not require CSRF protection
+      return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  }
+  function sameOrigin(url) {
+      // test that a given url is a same-origin URL
+      // url could be relative or scheme relative or absolute
+      var host = document.location.host; // host + port
+      var protocol = document.location.protocol;
+      var sr_origin = '//' + host;
+      var origin = protocol + sr_origin;
+      // Allow absolute or scheme relative URLs to same origin
+      return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+          (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+          // or any other URL that isn't scheme relative or absolute i.e relative.
+          !(/^(\/\/|http:|https:).*/.test(url));
+  }
+  $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+          if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
+              // Send the token to same-origin, relative URLs only.
+              // Send the token only if the method warrants CSRF protection
+              // Using the CSRFToken value acquired earlier
+              xhr.setRequestHeader("X-CSRFToken", csrftoken);
+          }
+      }
+  });
+
+  $(document).ready(function() {
+    $("#testForm").submit(function(event) {
+        event.preventDefault();
+        $.ajax({
+           type: "POST",
+           url: "/calendar/test_ajax/",
+          // data: {
+ //             'arbitrary-data': 'this is arbitrary data',
+ //             'some-form-field': $("my form input:first").val(),
+ //             'background-color': $("body").css("background-color"),
+           //},
+           success: function(data) {
+
+
+              console.log( "ajax worked" );
+              
+              alert(data);
+              // This appends 
+              //$("body").append(data);
+           },
+        });
+     });
+  });
+</script>
+
+<!-- ATTEMPT TO USE AJAX TO FIND USERS
+<form action="" method="get" accept-charset="utf-8">
+  <select name="uduser" id="uduser">
+    <option value="Z">Select a user</option>
+    {% for uduser in user_list %}
+       <option value="{{ uduser.events }}">{{ uduser.user }}</option>
+    {% endfor %}
+  -->
+
+
 {% endblock %}
 
 {% block calendar_block %}
+
+
+
+<!-- http://jqueryui.com/dialog/#modal-form
+<style>
+  body { font-size: 62.5%; }
+  label, input { display:block; }
+  input.text { margin-bottom:12px; width:95%; padding: .4em; }
+  fieldset { padding:0; border:0; margin-top:25px; }
+  h1 { font-size: 1.2em; margin: .6em 0; }
+  div#users-contain { width: 350px; margin: 20px 0; }
+  div#users-contain table { margin: 1em 0; border-collapse: collapse; width: 100%; }
+  div#users-contain table td, div#users-contain table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
+  .ui-dialog .ui-state-error { padding: .3em; }
+  .validateTips { border: 1px solid transparent; padding: 0.3em; }
+</style>
+
+<script>
+  $(function() {
+     var start_time = $( "#start_time" ),
+       end_time = $( "#end_time" ),
+       activity = $( "#activity"),
+       location = $( "#location"),
+       allFields = $( [] ).add( start_time ).add( end_time ).add( activity) .add( location ),
+       tips = $( ".validateTips" )
+
+/*  function checkLength ( o, n, min, max ) {
+     if ( o.val().length > max || o.val().length < min ) {
+	   o.addClass( "ui-state-error" );
+	   updateTips( "Length of " + n + " must be between " + min + " and " + max + "." );
+	   return false;
+	} else {
+           return true;
+        }
+  }
+*/
+
+  $( "#dialog-form" ).dialog({
+     autoOpen: false,
+     height: 300,
+     weidth: 350,
+     modal: true,
+     buttons: {
+        "Add Event": function() {
+           // I DON'T KNOW WHAT THIS DOES
+           var bValid = true;
+           allFields.removeClass( "ui-state-error" );
+  
+//           bValid = bValid && checkLength
+// CAN DO A BUNCH MORE CHECKS HERE, BUT I WON'T FOR NOW...
+           if ( bValid ) {
+              $( "#users tbody" ).append( "<tr>" + "<td>" + start_time.val() + "</td>" + "<td>" + end_time.val() + "</td>" + "<td>" + activity.val() + "</td>" + "<td>" + location.val() + "</td>" + "</tr>" );
+	      $( this ).dialog( "close" );
+	   }
+        }
+        Cancel: function() {
+           $( this ).dialog( "close" );
+        }
+     },
+     close: function() {
+        allFields.val( "" ).removeClass( "ui-state-error" )
+     }
+  });
+});
+</script>
+
+
+
+<div id="dialog-form" title="Add event">
+  <p class="validateTips">All form fields are required.</p>
+
+  <form>
+    <fieldset>
+      <label for="start_time">Start Time</label>
+      <input type="text" name="start_time" id="start_time" class="text ui-widget content ui-corner-all">
+      <label for="end_time">End Time</label>
+      <input type="text" name="end_time" id="end_time" value="" class="text ui-widget-content ui-corner-corner-all">
+      <label for="activity">Activity</label>
+      <input type="text" name="activity" id="activity" value="" class="text ui-widget-content ui-corner-all">
+      <label for="location">Location</label>
+      <input type="text" name="location" id="location" value="" class="text ui-widget-content ui-corner-all">
+    </fieldset>
+  </form>
+</div>-->
+
 
 <div class="container">
   <div class="page-header">
@@ -73,12 +239,24 @@
   <script>
     
     $(document).ready(function() {
+
+    $('.fc-week fc-first').on('click', function() {
+    
+//    <td class="fc-day fc-wed fc-widget-content fc-past" data-date="2014-04-02"><div><div class="fc-day-number">2</div><div class="fc-day-content"><div style="position: relative; height: 20px;">&nbsp;</div></div></div></td>
+    
+    console.log( "ready!" );
+    });
   
     var date = new Date();
     var d = date.getDate();
     var m = date.getMonth();
     var y = date.getFullYear();
+
+
+    // TESTING
+    var today = new Date(y, m, d);
     
+
     $('#calendar').fullCalendar({
     header: {
     left: 'prev,next today',
@@ -131,7 +309,23 @@
     end: new Date(y, m, 29),
     url: 'http://google.com/'
     }
-    ]
+    ],
+    
+
+    // Use below if you want something to happen after
+    // clicking on an existing event in the calendar
+    eventClick: function(events) {
+       console.log( "It works!" );
+  
+    },
+    // Use below if you want something to happen after
+    // clicking on a day
+    // Currently, it prints out the date of the clicked day
+    dayClick: function(today) {
+        console.log(today);
+    }
+    
+
     });
     
     });
@@ -156,5 +350,9 @@
   -->
 
 </div>
+
+   <form id="testForm" action="/calendar/test_ajax/" method="post">{% csrf_token %}
+     <input type="submit" id="go" name="go" value="Click to Hopefully Have AJAX work!">
+   </form>
 
 {% endblock %}

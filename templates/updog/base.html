@@ -1,34 +1,35 @@
 {% load static %}
-
 <!DOCTYPE html>
-
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
-
-    <!-- Off Canvas -->
-<!--    <link href="{% static 'css/bootstrap-offcanvas.css' %}" rel="stylesheet">-->
-
-
     <script src="{% static 'js/jquery.js' %}"></script>
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
     <script src="{% static 'js/updog-ajax.js' %}"></script>
-
     <link href="{% static 'css/fullcalendar.css' %}" rel="stylesheet">
     <link href="{% static 'css/fullcalendar.print.css' %}" rel="stylesheet" media="print">
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/jquery-ui.custom.min.js' %}"></script>
-    <script src="{% static 'js/fullcalendar.min.js' %}"></script>
-
+    <script src="{% static 'js/fullcalendar.js' %}"></script>
     <title>{% block title %}What's Up With Me?{% endblock %}</title>
   </head>
-
   <body>
+    <script>
+      $(document).ready(function() {
+      console.log( "ready!" );
+  
+      if ( $( '.navbar-header' ).is( ':visible' )) {
 
-    <!-- this places the calendar!!!!! 
-    <div id='calendar'></div>-->
+           $('.navbar-toggle').on('click', function() {
+           $(".collapse").toggle('in');
+         });
+      }
+    });
+    </script>
+    
+    <br /><br /><br /><br /><br />
 
     {% block above_calendar_block %}
     {% endblock %}
@@ -36,30 +37,36 @@
     {% block calendar_block %}
     {% endblock %}
 
+
     <div class="navbar navbar-fixed-top navbar-inverse" role="navigation">
-      <div class="container">
-	<div class="navbar-header">
+
+<!-- This makes the dropdown menu in the top right
+     with Home, About, and Contact -->	
+      <div class="navbar-header">
+	<div class="container">
 	  <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
             <span class="sr-only">Toggle navigation</span>
+	    <!-- these three things make the three lines in
+		 the drop down menu (add more, or take away
+		 some to make more or fewer lines) -->
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
 	  </button>
-	  <a class="navbar-brand" href="#">UpDog</a>
+	  <a class="navbar-brand" href="test">UpDog</a>
 	</div>
 	<div class="collapse navbar-collapse">
 	  <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#about">About</a></li>
+            <li class="active"><a href="http://www.crossfit.com">Home</a></li>
+            <li><a href="http://www.wikipedia.com">About</a></li>
             <li><a href="#contact">Contact</a></li>
+	    <li><a href="#preferences">Preferences</a></li>
 	  </ul>
 	</div><!-- /.nav-collapse -->
       </div><!-- /.container -->
     </div><!-- /.navbar -->
-    
 
-    
-    <div class="container">
+<!--    <div class="container">
     </div><!-- container -->  
     
     <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
