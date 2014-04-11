@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from udCalendar.models import UpDogUser, Friendship
+from udCalendar.models import UpDogUser, Friendship, Event
 from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
@@ -32,7 +32,7 @@ def test(request):
 # The calendar view  
 def calendar(request):
     context = RequestContext(request)
-    user = UpDogUser.objects.order_by('-user')[0]
+    user = UpDogUser.objects.order_by('-user')[1]
 
     ships_list = user.get_friends()
     ordered_ships_list = ships_list.order_by('-meeting_count')
@@ -64,7 +64,7 @@ def test_ajax(request):
     else:
         message = "Not Ajax"
 
-    user = UpDogUser.objects.order_by('-user')[2]
+    user = UpDogUser.objects.order_by('-user')[1]
     
     ## sort user's friendships from by decr. meet count
     ships_list = user.get_friends()
@@ -82,6 +82,7 @@ def test_ajax(request):
     events_list = []
     while i < 35:
         days_events = user.get_events_on_day(start_date)
+        print days_events
         for event in days_events:
             events_list.append(event)
         start_date = start_date - datetime.timedelta(days=1)
