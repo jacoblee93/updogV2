@@ -25,9 +25,9 @@ def populate():
     p.add_user(ud5)
 
     dt1 = add_downtime(ud1, datetime(2014, 4, 8, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 8, 8, 30, 0, tzinfo=utc))
-    ev1 = add_event(datetime(2014, 4, 6, 1, 0, 0, tzinfo=utc), datetime(2014, 4, 6, 1, 30, 0, tzinfo=utc), [ud1, ud5, ud3])
-    ev2 = add_event(datetime(2014, 4, 7, 4, 30, 0, tzinfo=utc), datetime(2014, 4, 7, 7, 0, 0, tzinfo=utc), [ud1, ud2])
-    ev3 = add_event(datetime(2014, 4, 8, 4, 30, 0, tzinfo=utc), datetime(2014, 4, 8, 7, 0, 0, tzinfo=utc), [ud5])
+    ev1 = add_event(datetime(2014, 4, 6, 1, 0, 0, tzinfo=utc), datetime(2014, 4, 6, 1, 30, 0, tzinfo=utc), [ud1, ud5, ud3],"Frist","Late Meal")
+    ev2 = add_event(datetime(2014, 4, 7, 4, 30, 0, tzinfo=utc), datetime(2014, 4, 7, 7, 0, 0, tzinfo=utc), [ud1, ud2],"McCosh Basement","UpDog Meeting")
+    ev3 = add_event(datetime(2014, 4, 8, 4, 30, 0, tzinfo=utc), datetime(2014, 4, 8, 7, 0, 0, tzinfo=utc), [ud5],"Princeton","Classes")
 
 def add_user(username, firstname, lastname, password, email):
 
@@ -51,8 +51,8 @@ def add_downtime(user, startTime, endTime):
     downtime = Downtime.objects.get_or_create(owner=user, start_time=startTime, end_time=endTime)[0]
     return downtime
 
-def add_event(startTime, endTime, participants):
-    event = Event.objects.get_or_create(start_time=startTime, end_time=endTime)[0]
+def add_event(startTime, endTime, participants, location="", activity=""):
+    event = Event.objects.get_or_create(start_time=startTime, end_time=endTime, location = location, activity = activity)[0]
     for person in participants:
         event.add_user(person)
     return event

@@ -17,7 +17,7 @@ import json
 # A view in which to test graphics
 def test(request):
     context = RequestContext(request)
-    user = UpDogUser.objects.order_by('-user')[1]
+    user = UpDogUser.objects.order_by('-user')[0]
 
     ships_list = user.get_friends()
     ordered_ships_list = ships_list.order_by('-meeting_count')
@@ -32,23 +32,15 @@ def test(request):
 # The calendar view  
 def calendar(request):
     context = RequestContext(request)
+    user = UpDogUser.objects.order_by('-user')[2q1`
+]
 
-    if request.is_ajax():
-        message = "Yes, AJAX!"
-    else:
-        message = "Not Ajax"
-
-    user = UpDogUser.objects.order_by('-user')[1]
-    
-    ## sort user's friendships from by decr. meet count
     ships_list = user.get_friends()
     ordered_ships_list = ships_list.order_by('-meeting_count')
     friends_list = []
     for ship in ordered_ships_list:
         friends_list.append(ship.to_user.user)
-
-    #json_friends = serializers.serialize("json", friends_list)
-    context_dict = {'friends_list': friends_list}#json_friends}
+    context_dict = {'friends_list': friends_list}
     
     ## events for 35 days, starting today
     i = 0
@@ -56,15 +48,12 @@ def calendar(request):
     events_list = []
     while i < 35:
         days_events = user.get_events_on_day(start_date)
-        print days_events
         for event in days_events:
             events_list.append(event)
-        start_date = start_date - datetime.timedelta(days=1)
+        start_date = start_date + datetime.timedelta(days=1)
         i = i + 1
 
-    json_events = serializers.serialize("json", events_list)
-    context_dict['events_list'] = json_events
-
+    context_dict['events_list'] = events_list
     return render_to_response('updog/calendar.html', context_dict, context)
 
 # TESTING AJAX STUFF
@@ -76,7 +65,7 @@ def test_ajax(request):
     else:
         message = "Not Ajax"
 
-    user = UpDogUser.objects.order_by('-user')[1]
+    user = UpDogUser.objects.order_by('-user')[2]
     
     ## sort user's friendships from by decr. meet count
     ships_list = user.get_friends()
@@ -101,7 +90,12 @@ def test_ajax(request):
         i = i + 1
 
     json_events = serializers.serialize("json", events_list)
+
+ #   context_dict['events_list'] = events_list
+    
     context_dict['events_list'] = json_events
+
+    print json_events
 
     #return HttpResponse(simplejson.dumps(context_dict))
     return render_to_response('updog/test_ajax.html', context_dict, context)
