@@ -3,20 +3,36 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
+<<<<<<< HEAD
 from udCalendar.models import UpDogUser, Friendship
+=======
+from udCalendar.models import UpDogUser, Friendship, Event
+>>>>>>> ffa44f845824a93e8d38cfe299633c882a75817f
 from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
 from django.utils.timezone import utc
+<<<<<<< HEAD
+=======
+
+# TESTING JSON STUFF
+from django.utils import simplejson
+from django.core import serializers
+>>>>>>> ffa44f845824a93e8d38cfe299633c882a75817f
 import json
 
 # A view in which to test graphics
 def test(request):
     context = RequestContext(request)
+<<<<<<< HEAD
 
     user = UpDogUser.objects.order_by('-user')[0]
 
     ## sort user's friendships from by decr. meet count                                         
+=======
+    user = UpDogUser.objects.order_by('-user')[0]
+
+>>>>>>> ffa44f845824a93e8d38cfe299633c882a75817f
     ships_list = user.get_friends()
     ordered_ships_list = ships_list.order_by('-meeting_count')
     friends_list = []
@@ -24,15 +40,25 @@ def test(request):
         friends_list.append(ship.to_user.user)
     context_dict = {'friends_list': friends_list}
 
+<<<<<<< HEAD
     return render_to_response('updog/base.html', {}, context)
+=======
+    return render_to_response('updog/base.html', context_dict, context)
+>>>>>>> ffa44f845824a93e8d38cfe299633c882a75817f
 
 @login_required
 # The calendar view  
 def calendar(request):
     context = RequestContext(request)
+<<<<<<< HEAD
     user = UpDogUser.objects.order_by('-user')[0]
 
     ## sort user's friendships from by decr. meet count
+=======
+    user = UpDogUser.objects.order_by('-user')[2q1`
+]
+
+>>>>>>> ffa44f845824a93e8d38cfe299633c882a75817f
     ships_list = user.get_friends()
     ordered_ships_list = ships_list.order_by('-meeting_count')
     friends_list = []
@@ -48,16 +74,68 @@ def calendar(request):
         days_events = user.get_events_on_day(start_date)
         for event in days_events:
             events_list.append(event)
+<<<<<<< HEAD
             participants_list.append(event)
+=======
+>>>>>>> ffa44f845824a93e8d38cfe299633c882a75817f
         start_date = start_date + datetime.timedelta(days=1)
         i = i + 1
 
     context_dict['events_list'] = events_list
+<<<<<<< HEAD
     
     
 
 
     return render_to_response('updog/calendar.html', context_dict, context)
+=======
+    return render_to_response('updog/calendar.html', context_dict, context)
+
+# TESTING AJAX STUFF
+def test_ajax(request):
+    context = RequestContext(request)
+
+    if request.is_ajax():
+        message = "Yes, AJAX!"
+    else:
+        message = "Not Ajax"
+
+    user = UpDogUser.objects.order_by('-user')[2]
+    
+    ## sort user's friendships from by decr. meet count
+    ships_list = user.get_friends()
+    ordered_ships_list = ships_list.order_by('-meeting_count')
+    friends_list = []
+    for ship in ordered_ships_list:
+        friends_list.append(ship.to_user.user)
+
+    #json_friends = serializers.serialize("json", friends_list)
+    context_dict = {'friends_list': friends_list}#json_friends}
+    
+    ## events for 35 days, starting today
+    i = 0
+    start_date = datetime.datetime.utcnow().replace(tzinfo=utc) # shouldn't start on today
+    events_list = []
+    while i < 35:
+        days_events = user.get_events_on_day(start_date)
+        print days_events
+        for event in days_events:
+            events_list.append(event)
+        start_date = start_date - datetime.timedelta(days=1)
+        i = i + 1
+
+    json_events = serializers.serialize("json", events_list)
+
+ #   context_dict['events_list'] = events_list
+    
+    context_dict['events_list'] = json_events
+
+    print json_events
+
+    #return HttpResponse(simplejson.dumps(context_dict))
+    return render_to_response('updog/test_ajax.html', context_dict, context)
+
+>>>>>>> ffa44f845824a93e8d38cfe299633c882a75817f
 
 def login(request):
     context = RequestContext(request)
