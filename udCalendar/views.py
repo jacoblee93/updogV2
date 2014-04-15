@@ -28,7 +28,7 @@ def test(request):
 # The calendar view  
 def calendar(request):
     context = RequestContext(request)
-    user = UpDogUser.objects.order_by('-user')[0]
+    user = UpDogUser.objects.order_by('-user')[4]
     
     ## sort user's friendships from by decr. meet count
     ships_list = user.get_friends()
