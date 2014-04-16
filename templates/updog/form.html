@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+		<title>Contact</title>
+		<script type="text/javascript"
+			src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js">
+		</script>
+		<script type="text/javascript">
+		/*<![CDATA[*/
+		$(function() {
+			var form = $("#contactform");
+			form.submit(function (e) {
+				$("#sendbutton").attr('disabled', true)
+				$("#sendwrapper").prepend('<span>Sending message, please wait... </span>')
+				$("ajaxwrapper").load(
+					form.attr('action') + ' #ajaxwrapper',
+					form.serializeArray(),
+					function(responseText, responseStatus) {
+						$("#sendbutton").attr('disabled', false)
+					}
+				);
+				e.preventDefault();
+			})
+		});
+		/*]]>*/
+		</script>
+	</head>
+	<body>
+		<h1>Contact</h1>
+		<form action="{% url contact_form %}" method="post" id="contactform">
+			<div id="ajaxwrapper">
+				{% csrf_token %}
+				{{ form.non_field_errors }}
+				{{ form.as_p }}
+				<p id="sendwrapper"><input type="submit" value="Send" id="sendbutton"/></p>
+			</div>
+		</form>
+	</body>
+</html>

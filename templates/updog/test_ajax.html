@@ -1,0 +1,41 @@
+{% extends 'updog/base.html' %}
+
+{% load static %}
+
+{% block above_calendar_block %}
+
+<script>
+  $(document).ready(function() {
+    $("#testForm").submit(function(event) {
+        event.preventDefault();
+        $.ajax({
+           type: "POST",
+           url: "/calendar/test_ajax/",
+           success: function(data) {
+
+            {% autoescape off %}
+              var data = {{ events_list }};
+            {% endautoescape %}
+
+            if (data.length > 0) {
+              var dlength = data.length;
+              for (var i = 0; i < dlength; i++) {
+                alert(data[i].fields.start_time);
+              }
+            }
+            console.log( "ajax worked" );
+           },
+        });
+     });
+  });
+</script>
+
+{% endblock %}
+
+{% block calendar_block %}
+
+   <form id="testForm" action="/calendar/test_ajax/" method="post">{% csrf_token %}
+     <input type="submit" id="go" name="go" value="Click to Hopefully Have AJAX work!">
+   </form>
+
+{% endblock %}

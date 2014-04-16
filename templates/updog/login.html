@@ -1,0 +1,46 @@
+{% extends 'updog/base.html' %}
+
+{% block above_calendar_block %}
+{% load static %}
+<div id = "globalContainer" class="uiContextualLayerParent">
+
+  <div class="row">
+    <div class="col-md-2">
+          <br>
+	       <img src="{% static 'dog.gif' %}" alt="UpDog" /><br />
+
+    </div>
+    <div class="col-md-4">
+      <div class="jumbotron masthead" style="background: white;">
+         <div class="container" style="text-align: center; background: white;">
+
+          <h1>UpDog</h1>
+          <br>
+        <p>
+          <a class="btn btn-primary btn-large" href="{% url 'socialauth_begin' 'facebook' %}">Login with Facebook</a>
+        </p>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="col-md-6">
+      <div class="jumbotron masthead" style="background: white;">
+	<div class="container" style="background: white;">
+          <h2>Manage Your Time.</h2>
+        	  <div>
+        	    <p><span class="glyphicon glyphicon-calendar"></span> Schedule team meetings.</p>
+        	  </div>
+        	  <div>
+                <p><span class="glyphicon glyphicon-user"></span> Fill free time with friends.</p>
+            </div>
+            <div>
+                <p><span class="glyphicon glyphicon-phone"></span> Keep in touch.</p>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
