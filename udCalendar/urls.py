@@ -12,4 +12,6 @@ urlpatterns = patterns('',
         url(r'', include('social_auth.urls')),
         url(r'^login/$', views.login, name='login'),
         url(r'^logout_user/$', views.logout_user, name='logout'),
+        url(r'^change_event/$', views.change_event, name='change_event'),
+        url(r'^add_event/$', views.add_event, name='add_event'),
 )
