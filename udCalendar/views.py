@@ -133,6 +133,20 @@ def add_event(request):
     else: return HttpResponse("Failure!!!!")
 
 @login_required
+def edit_event(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            event = Event.objects.filter(pk=request.POST['pk'])[0]
+            if 'activity' in request.POST:
+                event.activity = request.POST['activity']
+            if 'location' in request.POST:
+                event.location = request.POST['location']
+            event.save()
+
+            return HttpResponse("Success here!!!!!")
+    else: return HttpResponse("Failure here!!!!")
+
+@login_required
 def change_event(request):
     if request.is_ajax():
         if request.method == 'POST':            

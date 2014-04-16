@@ -153,6 +153,133 @@ function getinfo(obj) {
       eventClick: function(event, jsEvent, view) {
         console.log(event);
         $dialog.dialog({title:event.title});
+
+        var edit = document.createElement("input");
+        edit.setAttribute('type', "submit");
+        edit.setAttribute('value', "Edit Event");
+        edit.onclick = function() {
+
+          $dialog.dialog('close');
+          $dialog.dialog({title:'Edit Event'});
+
+          // find where the last index of the substring " in " exists.  Assume what
+          // comes before is the activity and what comes after is the location.
+          var i = 0;
+          
+          while (event.title.substring(i, event.title.length).indexOf(" in ") != -1) {
+              i = i + event.title.substring(i, event.title.length).indexOf(" in ");
+              // increment i by 3 because we look past the found " in "
+              i = i + 3;
+          }
+
+          var activity_text = document.createElement("span");
+          activity_text.innerHTML = 'Activity (opt): &nbsp';
+          var activity = document.createElement("input");
+          activity.setAttribute('type', "text");
+          activity.setAttribute('name', "activity");
+          activity.setAttribute('id', 'activity_field'); 
+          if (i != -1) {
+            activity.setAttribute('value', event.title.substring(0, i - 3));
+          }
+          else activity.setAttribute('value', event.title);
+
+          // span makes it so there's no newline at the end, while "br" would
+          // include the newline
+          start_text = document.createElement("span");
+          // &nbsp is a non-breaking whitespace character
+          start_text.innerHTML = '<br/>Start Time: &nbsp&nbsp&nbsp&nbsp&nbsp';
+          // input box
+          var start_time = document.createElement("input");
+          // you are typing text into the box
+          start_time.setAttribute('type', "text");
+          // can reference this by using "start_time"
+          start_time.setAttribute('name', "start_time");
+
+          end_text = document.createElement("span");
+          end_text.innerHTML = '<br/>End Time: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
+          var end_time = document.createElement("input");
+          end_time.setAttribute('type', "test");
+          end_time.setAttribute('name', "end_time");
+
+          var location_text = document.createElement("span");
+          location_text.innerHTML = '<br/>Location (opt): ';
+          var location = document.createElement("input");
+          location.setAttribute('type', "text");
+          location.setAttribute('name', "location");
+          location.setAttribute('id', 'location_field');
+
+          if (i != -1) {
+            location.setAttribute('value', event.title.substring(i + 1, event.title.length));
+          }
+
+          var newline = document.createElement("span");
+          newline.innerHTML = '<br/>';
+
+          $dialog.empty().append(activity_text);
+          $dialog.append(activity);
+          $dialog.append(start_text);
+          $dialog.append(start_time);
+          $dialog.append(end_text);
+          $dialog.append(end_time);
+
+          $dialog.append(location_text);
+          $dialog.append(location);
+          $dialog.append(newline);
+
+          var cancel = document.createElement("input");
+          cancel.setAttribute('type', "submit");
+          cancel.setAttribute('value', "Cancel");
+
+          cancel.onclick = function() {
+            $dialog.dialog('close');
+          };
+
+          var submit = document.createElement("input");
+          submit.setAttribute('type',"submit");
+          submit.setAttribute('value', "Submit Change");
+
+          submit.onclick = function() {
+            console.log("paoisjdfpoiasjdfpoiajsdpfoiajsdpf");
+
+            $.ajax({
+              type: "POST",
+              url: "/calendar/edit_event/",
+              data: {'activity': $('#activity_field').val(),
+              'location': $('#location_field').val(),
+              'pk': event.id,
+              },
+               success: function(data) {
+                  console.log( "ajax worked123!!!" );
+
+                  // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
+                  /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
+                  $dialog.dialog('close');
+               },
+            });
+          };
+
+          $dialog.append(cancel);
+          $dialog.append(submit);
+          $dialog.dialog('open');
+        };
+
+        var del = document.createElement("input");
+        del.setAttribute('type',"submit");
+        del.setAttribute('value', "Delete Event");
+        del.onclick = function() {
+          //
+          if( confirm( "Are you sure you want to delete event " + event.title + " ?")) {
+            console.log("Delete Function");
+
+            // THESE TWO LINES WILL REMOVE event FROM THE FRONT END,
+            // BUT NOT THE BACK END!!!!
+            $('#calendar').fullCalendar('removeEvents', event.id);
+            $('#calendar').fullCalendar('rerenderEvents');
+            
+            $dialog.dialog('close');
+          }
+        };
+
         $($dialog).empty().append(
           $('<p />').text(event.start.toDateString())
         );
@@ -163,6 +290,18 @@ function getinfo(obj) {
         $($dialog).append(
           $('<p />').text(event.allDay ? 'All day event' : getTime(event.start) + '-' + getTime(event.end))
         );
+
+        var cancel = document.createElement("input");
+        cancel.setAttribute('type', "submit");
+        cancel.setAttribute('value', "Cancel");
+
+        cancel.onclick = function() {
+          $dialog.dialog('close');
+        };
+
+        $dialog.append(cancel);
+        $($dialog).append(edit);
+        $($dialog).append(del);
         $dialog.dialog('open');
       },
       eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
@@ -201,10 +340,6 @@ function getinfo(obj) {
                 doubleClick = null;
 
                 $dialog.dialog({title:'Add Event'});
-
-                var submit = document.createElement("input");
-                submit.setAttribute('type',"submit");
-                submit.setAttribute('value', "Submit");
 
                 var activity_text = document.createElement("span");
                 activity_text.innerHTML = 'Activity (opt): &nbsp';
@@ -252,9 +387,19 @@ function getinfo(obj) {
                 $dialog.append(location);
                 $dialog.append(newline);
 
-                submit.onclick = function() {
-                  console.log("paoisjdfpoiasjdfpoiajsdpfoiajsdpf");
+                var cancel = document.createElement("input");
+                cancel.setAttribute('type', "submit");
+                cancel.setAttribute('value', "Cancel");
 
+                cancel.onclick = function() {
+                  $dialog.dialog('close');
+                };
+
+                var submit = document.createElement("input");
+                submit.setAttribute('type',"submit");
+                submit.setAttribute('value', "Submit");
+
+                submit.onclick = function() {
                   $.ajax({
                     type: "POST",
                     url: "/calendar/add_event/",
@@ -263,12 +408,15 @@ function getinfo(obj) {
                     },
                      success: function(data) {
                         console.log( "ajax worked123!!!" );
+
+                        // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
+                        /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
                         $dialog.dialog('close');
                      },
                   });
                 };
-
-                $('#submit').load('/calendar/ #calendar');
+           //     $('#submit').load('/calendar/ #calendar');
+                $dialog.append(cancel);
                 $dialog.append(submit);
                 $dialog.dialog('open');
             }
