@@ -39,11 +39,11 @@ class UpDogUser(models.Model):
 
     def get_downtimes_on_day(self, date):
         return self.downtime_set.filter(
-            start_time__day=date.day)
+            start_time__day=date.day, start_time__month=date.month, start_time__year=date.year)
 
     def get_events_on_day(self, date):
         return self.events.filter(
-            start_time__day=date.day)
+            start_time__day=date.day, start_time__month=date.month, start_time__year=date.year)
    
 class Friendship(models.Model):
 

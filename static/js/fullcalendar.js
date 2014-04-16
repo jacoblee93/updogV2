@@ -2526,7 +2526,28 @@ function BasicView(element, calendar, viewName) {
 		if (!opt('selectable')) { // if selectable, SelectionManager will worry about dayClick
 			var date = parseISO8601($(this).data('date'));
 			trigger('dayClick', this, date, true, ev);
+
+		/*eventElement
+			.click(function(ev) {
+				if (!eventElement.hasClass('ui-draggable-dragging') &&
+					!eventElement.hasClass('ui-resizable-resizing')) {
+						return trigger('eventClick', this, event, ev);
+					}
+			})
+			.hover(
+				function(ev) {
+					trigger('eventMouseover', this, event, ev);
+				},
+				function(ev) {
+					trigger('eventMouseout', this, event, ev);
+				}
+			);*/
+
 		}
+					// NEW CODE: allows for double click
+		/*	.dblclick(function (ev) {
+				return trigger('eventDblClick', this, event, ev);
+			})*/
 	}
 	
 	
