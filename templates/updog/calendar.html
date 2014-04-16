@@ -34,25 +34,43 @@
 
 {% block calendar_block %}
 
-      <!-- THIS IS THE CALENDAR!!! -->
+<!-- THIS IS THE CALENDAR!!! -->
+<div class="span12">
+  <div class="row-fluid">
+    <div class="col-xs-6 col-sm-9">
       <div id='calendar'></div>
       <div class="ui-helper-hidden" id="calendar-details" title="Event Details">
         <p>Event details</p>
       </div>
+    </div>
 
-  <div id="loginmodal" style="display:none;">
-    <h1>User Login</h1>
-    <form id="loginform" name="loginform" method="post" action="index.html">
-      <label for="username">Username:</label>
-      <input type="text" name="username" id="username" class="txtfield" tabindex="1">
-       
-      <label for="password">Password:</label>
-      <input type="password" name="password" id="password" class="txtfield" tabindex="2">
-       
-      <div class="center"><input type="submit" name="loginbtn" id="loginbtn" class="flatbtn-blu hidemodal" value="Log In" tabindex="3"></div>
-    </form>
+    {% if user.is_authenticated %}
+      <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+        <div class="list-group">
+          {% if friends_list %}
+            {% for friend in friends_list %}
+              <a class="list-group-item" onclick="getinfo( '{{ friend }}' )">
+               <div><img src="{% static 'img/glyphicons-halflings.png' %}" alt = "profpic" width = "40" height = "40">
+               {{ friend }}
+               </div>
+              </a>
+            {% endfor %}
+          {% else %}
+            <strong>No friends.</strong>
+          {% endif %}
+        </div>
+      </div><!--/span-->
+    {% endif %}
   </div>
+</div>
 
+<script>
+function getinfo(obj) {
+  
+}
+</script>
+      
+<div>
   <script>
     // This function converts a Date object, date, into a time of the form: 2:00 PM or 11:00 AM
     function getTime(date) {

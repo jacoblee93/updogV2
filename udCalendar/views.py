@@ -15,13 +15,12 @@ from django.utils import simplejson
 from django.core import serializers
 import json
 
-# TESTING ADD_EVENT
-from django.views.decorators.csrf import csrf_exempt
-
+@login_required
 # A view in which to test graphics
 def test(request):
     context = RequestContext(request)
-    user = UpDogUser.objects.order_by('-user')[1]
+    #user = UpDogUser.objects.order_by('-user')[4]
+    user = request.user.updoguser
 
     ships_list = user.get_friends()
     ordered_ships_list = ships_list.order_by('-meeting_count')
@@ -36,18 +35,18 @@ def test(request):
 # The calendar view  
 def calendar(request):
     context = RequestContext(request)
-    
+
     ## sort user's friendships from by decr. meet count
     ships_list = request.user.updoguser.get_friends()
+
     ordered_ships_list = ships_list.order_by('-meeting_count')
     friends_list = []
     for ship in ordered_ships_list:
         friends_list.append(ship.to_user.user)
 
-    #json_friends = serializers.serialize("json", friends_list)
     context_dict = {'friends_list': friends_list}#json_friends}
     
-    ## events for 30 days, starting today
+    ## events for 60 days, starting today
     i = 0
     start_date = datetime.datetime.utcnow().replace(tzinfo=utc) # shouldn't start on today
     events_list = []
@@ -76,7 +75,7 @@ def test_ajax(request):
   #      message = "Not Ajax"
 
     #user = UpDogUser.objects.order_by('-user')[1]
-    
+
     ## sort user's friendships from by decr. meet count
     #ships_list = user.get_friends()
 #    ordered_ships_list = ships_list.order_by('-meeting_count')
