@@ -136,6 +136,15 @@ function getinfo(obj) {
       width: 350
     });
 
+    // this creates a datepicker object below the calendar
+    $('#datepicker').datepicker({
+        inline: true,
+        onSelect: function(dateText, inst) {
+            var d = new Date(dateText);
+            $('#fullcalendar').fullCalendar('gotoDate', d);
+        }
+    }); 
+
       $('#calendar').fullCalendar({
       header: {
       left: 'prev,next today',
@@ -152,6 +161,9 @@ function getinfo(obj) {
       // clicking on an existing event in the calendar
       eventClick: function(event, jsEvent, view) {
         console.log(event);
+
+
+
         $dialog.dialog({title:event.title});
 
         var edit = document.createElement("input");
@@ -249,10 +261,40 @@ function getinfo(obj) {
               'pk': event.id,
               },
                success: function(data) {
-                  console.log( "ajax worked123!!!" );
+                  $('#calendar').fullCalendar('removeEvents', event.id);
 
-                  // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
-                  /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
+                  // data[0] now holds the event to edit
+                  var data = JSON.parse(data);
+                  var edited_event = new Object();
+
+
+                  console.log( "pk2 = " + data[0].pk );
+
+                  // If event has no activity
+                  if (! data[0].fields.activity) {
+                    if (! data[0].fields.location) {
+                      edited_event.title = "Busy";
+                    }
+                    else{
+                      edited_event.title = "Busy in " + data[0].fields.location;
+                    }
+                  }
+                  // If event has an activity
+                  else {
+                    if (! data[0].fields.location) {
+                      edited_event.title = data[0].fields.activity;
+                    }
+                    else{
+                      edited_event.title = data[0].fields.activity + " in " + data[0].fields.location;
+                    }
+                  }
+
+                  edited_event.start = data[0].fields.start_time;
+                  edited_event.end = data[0].fields.end_time;
+                  edited_event.allDay = false;
+                  edited_event.id = data[0].pk;
+
+                  $('#calendar').fullCalendar('renderEvent', edited_event, stick = true);
                   $dialog.dialog('close');
                },
             });
@@ -267,12 +309,19 @@ function getinfo(obj) {
         del.setAttribute('type',"submit");
         del.setAttribute('value', "Delete Event");
         del.onclick = function() {
-          //
           if( confirm( "Are you sure you want to delete event " + event.title + " ?")) {
             console.log("Delete Function");
+            $.ajax({
+              type: "POST",
+              url: "/calendar/remove_event/",
+              data: {"pk": event.id},
+               success: function(data) {
+                  console.log( "ajax to remove!!!" );
 
-            // THESE TWO LINES WILL REMOVE event FROM THE FRONT END,
-            // BUT NOT THE BACK END!!!!
+                  // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
+                  /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
+               },
+            })
             $('#calendar').fullCalendar('removeEvents', event.id);
             $('#calendar').fullCalendar('rerenderEvents');
             
@@ -314,8 +363,6 @@ function getinfo(obj) {
                 "minute_delta": minuteDelta,
                 "resize": "false",
               },
-
-
         });
       },
       eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
@@ -359,6 +406,36 @@ function getinfo(obj) {
                 start_time.setAttribute('type', "text");
                 // can reference this by using "start_time"
                 start_time.setAttribute('name', "start_time");
+               // start_time.innerHTML = '<p><input type="text" id="datepicker"></p>';
+
+
+
+               //$('activity_field').datepicker();
+
+              datepicker = document.createElement("input");
+              datepicker.setAttribute('type', 'date');
+              datepicker.innerHTML = '<input type="date" name="date" id="date" value=""/>';
+
+
+
+              //datepicker.onclick = function() {
+
+                //console.log("HERE!!!!!!")
+              //}    
+
+/*
+               start_time.onclick = function() {
+                  $('#datepicker').datepicker();
+                  $('#datepicker').datepicker('show');
+
+                  console.log("starttime")
+               };
+*/
+
+
+
+
+
 
                 end_text = document.createElement("span");
                 end_text.innerHTML = '<br/>End Time: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
@@ -387,6 +464,18 @@ function getinfo(obj) {
                 $dialog.append(location);
                 $dialog.append(newline);
 
+
+
+
+
+
+
+                $dialog.append(datepicker);
+
+
+
+
+
                 var cancel = document.createElement("input");
                 cancel.setAttribute('type', "submit");
                 cancel.setAttribute('value', "Cancel");
@@ -399,6 +488,10 @@ function getinfo(obj) {
                 submit.setAttribute('type',"submit");
                 submit.setAttribute('value', "Submit");
 
+
+
+
+
                 submit.onclick = function() {
                   $.ajax({
                     type: "POST",
@@ -407,15 +500,47 @@ function getinfo(obj) {
                     'location': $('#location_field').val()
                     },
                      success: function(data) {
-                        console.log( "ajax worked123!!!" );
+                        // data[0] now holds the event to add
+                        var data = JSON.parse(data);
+                        var added_event = new Object();
+                        // If event has no activity
+                        if (! data[0].fields.activity) {
+                          if (! data[0].fields.location) {
+                            added_event.title = "Busy";
+                          }
+                          else{
+                            added_event.title = "Busy in " + data[0].fields.location;
+                          }
+                        }
+                        // If event has an activity
+                        else {
+                          if (! data[0].fields.location) {
+                            added_event.title = data[0].fields.activity;
+                          }
+                          else{
+                            added_event.title = data[0].fields.activity + " in " + data[0].fields.location;
+                          }
+                        }
 
-                        // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
-                        /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
+                        added_event.start = data[0].fields.start_time;
+                        added_event.end = data[0].fields.end_time;
+                        added_event.allDay = false;
+                        added_event.id = data[0].pk;
+
+
+
+
+                        console.log( "pk1 = " + data[0].pk );
+                        console.log( "added_event.id = " + added_event.id)
+
+
+
+                        $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
+
                         $dialog.dialog('close');
                      },
                   });
                 };
-           //     $('#submit').load('/calendar/ #calendar');
                 $dialog.append(cancel);
                 $dialog.append(submit);
                 $dialog.dialog('open');
@@ -432,13 +557,19 @@ function getinfo(obj) {
         },
     });
 });
-
   </script>
+
+<script>
+  $('#myDate').datepicker();
+</script>
 
 </div>
 <form action="/calendar/" method="post">{% csrf_token %} 
   {{ form.as_p }}
   <input type="submit" value="Submit!" />
 </form>
+
+<!-- datepicker calendar is below the calendar 
+<input type="date" name="date" id="date" value="" /> -->
 
 {% endblock %}
