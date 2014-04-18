@@ -35,8 +35,8 @@ def test(request):
 # The calendar view  
 def calendar(request):
     context = RequestContext(request)
-    #current_user = request.user.updoguser
-    current_user = UpDogUser.objects.order_by('-user')[2]
+    current_user = request.user.updoguser
+    #current_user = UpDogUser.objects.order_by('-user')[2]
     ## sort user's friendships from by decr. meet count
     ships_list = current_user.get_friends()
 
@@ -63,7 +63,7 @@ def gimme_events(current_user):
             events_list.append(event)
             print event
 
-        start_date = start_date - datetime.timedelta(days=1)
+        start_date = start_date + datetime.timedelta(days=1)
         i = i + 1
     return events_list
 
