@@ -49,6 +49,7 @@ def calendar(request):
 
     json_events = serializers.serialize("json", gimme_events(current_user))
     context_dict['events_list'] = json_events
+    context_dict['username'] = request.user.username;
 
     return render_to_response('updog/calendar.html', context_dict, context)
 
