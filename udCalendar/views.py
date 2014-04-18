@@ -42,14 +42,14 @@ def calendar(request):
     #user = UpDogUser.objects.order_by('-user')[1]
     user = request.user.updoguser
     ## sort user's friendships from by decr. meet count
-    #user.add_friend(UpDogUser.objects.order_by('-user')[2])
+    user.add_friend(UpDogUser.objects.order_by('-user')[2])
     ships_list = user.get_friends()
     ordered_ships_list = ships_list.order_by('-meeting_count')
     friends_list = []
     for ship in ordered_ships_list:
         friends_list.append(ship.to_user.user)
 
-    #user.remove_friend(UpDogUser.objects.order_by('-user')[2])
+    user.remove_friend(UpDogUser.objects.order_by('-user')[2])
     #json_friends = serializers.serialize("json", friends_list)
     context_dict = {'friends_list': friends_list}#json_friends}
     

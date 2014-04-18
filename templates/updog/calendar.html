@@ -34,6 +34,12 @@
 
 {% block calendar_block %}
 
+<script>
+function getinfo(name) {
+  alert();
+}
+</script>
+
 <!-- THIS IS THE CALENDAR!!! -->
 <div class="span12">
   <div class="row-fluid">
@@ -49,7 +55,7 @@
         <div class="list-group">
           {% if friends_list %}
             {% for friend in friends_list %}
-              <a class="list-group-item" onclick="getinfo( '{{ friend }}' )">
+              <a class="list-group-item" onclick="getinfo('{{ friend }}')">
                <div><img src="{% static 'img/glyphicons-halflings.png' %}" alt = "profpic" width = "40" height = "40">
                {{ friend }}
                </div>
@@ -68,12 +74,6 @@
       <!--<label class="checkbox">
 	<input type="checkbox" value="#events-modal" id="events-in-modal"> Open events in modal window
       </label>-->
-
-<script>
-function getinfo(obj) {
-  
-}
-</script>
       
 <!--<div> <label class="checkbox">
   <input type="checkbox" value="#events-modal" id="events-in-modal"> Open events in modal window
