@@ -120,6 +120,10 @@ var fcViews = fc.views = {};
 
 
 $.fn.fullCalendar = function(options) {
+<<<<<<< HEAD
+=======
+
+>>>>>>> b722c563fda9a7880b149fab98f37e5b7ca4ea22
 	// method calling
 	if (typeof options == 'string') {
 		var args = Array.prototype.slice.call(arguments, 1);
