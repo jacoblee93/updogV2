@@ -58,7 +58,7 @@ def gimme_events(current_user):
     i = 0
     start_date = datetime.datetime.utcnow().replace(tzinfo=utc) # shouldn't start on today
     events_list = []
-    while i < 60:
+    while i < 30:
         days_events = current_user.get_events_on_day(start_date)
         for event in days_events:
             events_list.append(event)
@@ -66,6 +66,18 @@ def gimme_events(current_user):
 
         start_date = start_date + datetime.timedelta(days=1)
         i = i + 1
+    i = 0
+    start_date = datetime.datetime.utcnow().replace(tzinfo=utc) # shouldn't start on today
+    start_date = start_date - datetime.timedelta(days=1)
+    while i < 30:
+        days_events = current_user.get_events_on_day(start_date)
+        for event in days_events:
+            events_list.append(event)
+            print event
+
+        start_date = start_date - datetime.timedelta(days=1)
+        i = i + 1
+
     return events_list
 
 #### TRYING TO have FRONT END REQUEST A FRIENDS EVENTS

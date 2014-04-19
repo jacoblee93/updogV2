@@ -114,28 +114,27 @@ function make_events(data, color, owner) {
 
         var our_data = JSON.parse(data);
         var get_some_events = make_events(our_data, 'red', obj);
-
-        //console.log(get_some_events.length);
-
-        existing_events = $("#calendar").fullCalendar('clientEvents');
-
-        for (var i = 0; i < get_some_events.length; i++) {
-          var is_unique = true;
-          for (var j = 0; j < existing_events.length; j++) {
-            if (get_some_events[i].id == existing_events[j].id) {
-              is_unique = false;
+        if (get_some_events) {
+          //console.log(get_some_events.length);
+  
+            existing_events = $("#calendar").fullCalendar('clientEvents');
+  
+            for (var i = 0; i < get_some_events.length; i++) {
+              var is_unique = true;
+              for (var j = 0; j < existing_events.length; j++) {
+                if (get_some_events[i].id == existing_events[j].id) {
+                  is_unique = false;
+                }
+              }
+              if (is_unique) {
+                $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+                
+              }
             }
-          }
-          if (is_unique) {
-            $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
-            
-          }
-        }
-        var test = document.getElementById('friend_'+obj);
-        console.log(obj);
+            var test = document.getElementById('friend_'+obj);  
+            test.setAttribute("onclick", "erase_events("+JSON.stringify(obj)+")");
 
-
-        test.setAttribute("onclick", "erase_events("+JSON.stringify(obj)+")");
+            }
        },
       });
 
