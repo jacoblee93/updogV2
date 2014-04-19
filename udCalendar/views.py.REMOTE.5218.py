@@ -9,7 +9,6 @@ from django.utils import timezone
 import datetime
 from datetime import timedelta
 from django.utils.timezone import utc
-from django.db.models import Q
 
 # TESTING JSON STUFF
 from django.utils import simplejson
@@ -37,28 +36,16 @@ def test(request):
 def calendar(request):
     context = RequestContext(request)
 
-    user = request.user.updoguser
     ## sort user's friendships from by decr. meet count
-    # Alex - for local use when redesigning friends tab
-    user.add_friend(UpDogUser.objects.order_by('-user')[2])
-    user.add_friend(UpDogUser.objects.order_by('-user')[3])
-    user.add_friend(UpDogUser.objects.order_by('-user')[4])
-    ships_list = user.get_friends()
-    #ships_list = request.user.updoguser.get_friends()
+    ships_list = request.user.updoguser.get_friends()
 
     ordered_ships_list = ships_list.order_by('-meeting_count')
     friends_list = []
     for ship in ordered_ships_list:
         friends_list.append(ship.to_user.user)
 
-    # Alex - for local use when rediesigning friends tab 
-    user.remove_friend(UpDogUser.objects.order_by('-user')[2])
-    user.remove_friend(UpDogUser.objects.order_by('-user')[3])
-    user.remove_friend(UpDogUser.objects.order_by('-user')[4])
-    #json_friends = serializers.serialize("json", friends_list)
-
     context_dict = {'friends_list': friends_list}#json_friends}
-    #user_events = Event.objects.filter(user = request.user.updoguser)
+    
     ## events for 60 days, starting today
     i = 0
     start_date = datetime.datetime.utcnow().replace(tzinfo=utc) # shouldn't start on today
@@ -177,23 +164,6 @@ def change_event(request):
         return HttpResponse("Success123")
 
     else: return HttpResponse("Failure123")
-
-@login_required
-def find_friends(request):
-    if request.is_ajax():
-        if request.method == 'GET':
-            l = len(request.GET["search"])
-            # problems: only matches full string, is also case sensitive
-            friends_list = UpDogUser.objects.filter(Q(user__first_name=request.GET["search"]) | Q(user__last_name=request.GET["search"]) | Q(user__username=request.GET["search"]))
-            fl = len(friends_list)
-            user_list = []
-
-            for i in xrange(0,fl):
-                user_list.append(friends_list[i].user)
-            user_list = serializers.serialize('json', user_list)
-            return HttpResponse(user_list)
-
-    return HttpResponse("Uh-Oh")
 
 
 
