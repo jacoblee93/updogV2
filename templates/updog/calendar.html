@@ -132,6 +132,50 @@ div#scroll-able {
                <span class="frand">{{ friend }}</span>
                </div>
               </a>
+              <script>
+              $( "a").hover(function on_hover() {
+                var obj = '{{ friend }}';
+              $.ajax({
+              type: "POST",
+              url: "/calendar/get_friends_events/",
+              data: {'friend': obj},
+              success: function(data) {
+
+              var our_data = JSON.parse(data);
+              var get_some_events = make_events(our_data, 'red', obj, true);
+              if (get_some_events) {
+    
+              existing_events = $("#calendar").fullCalendar('clientEvents');
+    
+              for (var i = 0; i < get_some_events.length; i++) {
+                var is_unique = true;
+                for (var j = 0; j < existing_events.length; j++) {
+                  if (get_some_events[i].id == existing_events[j].id) {
+                    is_unique = false;
+                  }
+                }
+                if (is_unique) {
+                  $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+                  
+                }
+              }
+
+              }
+              },
+              });
+
+              }, function off_hover() {
+                var obj = '{{ friend }}';
+                existing_events = $("#calendar").fullCalendar('clientEvents');
+                for (var i = 0; i < existing_events.length; i++) {
+                  if (existing_events[i].owner === "hover") {
+                      $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+                  }
+                }
+                $('#calendar').fullCalendar('rerenderEvents');
+              });
+
+              </script>
             {% endfor %}
           {% else %}
             <strong>No friends.</strong>
@@ -156,7 +200,11 @@ div#scroll-able {
 </div>
       
 <script>
-function make_events(data, color, owner) {
+
+
+
+
+function make_events(data, color, owner, hover) {
       if (data.length > 0) {
         var dlength = data.length;
         var multiple = [];
@@ -189,6 +237,9 @@ function make_events(data, color, owner) {
           single.id = data[i].pk;
           single.color = color;
           single.owner = owner;
+          if (hover) {
+            single.owner = "hover";
+          }
 
           multiple.push(single);
         }
@@ -204,9 +255,8 @@ function make_events(data, color, owner) {
       success: function(data) {
 
         var our_data = JSON.parse(data);
-        var get_some_events = make_events(our_data, 'red', obj);
+        var get_some_events = make_events(our_data, 'red', obj, false);
         if (get_some_events) {
-          //console.log(get_some_events.length);
   
             existing_events = $("#calendar").fullCalendar('clientEvents');
   
@@ -214,7 +264,14 @@ function make_events(data, color, owner) {
               var is_unique = true;
               for (var j = 0; j < existing_events.length; j++) {
                 if (get_some_events[i].id == existing_events[j].id) {
-                  is_unique = false;
+                  if (existing_events[j].owner != "hover") {
+                    is_unique = false;
+                  }
+                  // existing event owner is hover
+                  else {
+                    $('#calendar').fullCalendar('removeEvents', existing_events[j].id); // remove the one with 'hover' owner
+                  }
+
                 }
               }
               if (is_unique) {
@@ -225,7 +282,7 @@ function make_events(data, color, owner) {
             var test = document.getElementById('friend_'+obj);  
             test.setAttribute("onclick", "erase_events("+JSON.stringify(obj)+")");
 
-            }
+                }
        },
       });
 
@@ -235,7 +292,9 @@ function make_events(data, color, owner) {
       existing_events = $("#calendar").fullCalendar('clientEvents');
       for (var i = 0; i < existing_events.length; i++) {
         if (existing_events[i].owner == obj) {
-          $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+          //if (existing_events[i].temp == false) {
+            $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+          //}
         }
       }
       $('#calendar').fullCalendar('rerenderEvents');
@@ -263,7 +322,7 @@ function make_events(data, color, owner) {
         var data = {{ events_list }};
       {% endautoescape %}
 
-    var multiple = make_events(data, 'blue', '{{ username }}'); 
+    var multiple = make_events(data, 'blue', '{{ username }}', false);
 
     var date = new Date();
     var d = date.getDate();
