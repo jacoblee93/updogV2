@@ -470,8 +470,6 @@ function make_events(data, color, owner, hover, is_event) {
       eventClick: function(event, jsEvent, view) {
         console.log(event.color);
         if (event.is_event) {
-
-
         $dialog.dialog({title:event.title});
 
         var edit = document.createElement("input");
@@ -635,6 +633,12 @@ function make_events(data, color, owner, hover, is_event) {
         $($dialog).append(edit);
         $($dialog).append(del);
         $dialog.dialog('open');
+      }
+      // edit downtimes
+      else if (event.owner == '{{username}}') {
+        console.log("This is one of your down times!!!")
+
+
       }
       },
       eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
