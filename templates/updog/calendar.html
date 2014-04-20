@@ -287,8 +287,12 @@ function make_events(data, color, owner, hover, is_event) {
           if (is_event) {
             single.editable = true;
           }
+          if (owner == "{{username}}") {
+            single.editable = true;
 
-          if (hover) {
+          }
+
+          else if (hover) {
             single.owner = "hover";
           }
 
@@ -422,9 +426,18 @@ function make_events(data, color, owner, hover, is_event) {
     $(document).ready(function() {
       {% autoescape off %}
         var data = {{ events_list }};
+        var downtime_data = {{ downtimes }}
       {% endautoescape %}
 
     var multiple = make_events(data, 'blue', '{{ username }}', false, true);
+    var downtimes = make_events(downtime_data, 'green', '{{ username }}', false, false);
+    var downtimes_and_events;
+    if (multiple) {
+      downtimes_and_events = multiple.concat(downtimes);
+    }
+    else if (downtimes) {
+      downtimes_and_events = downtimes.concat(multiple)
+    }
 
     var date = new Date();
     var d = date.getDate();
@@ -442,6 +455,15 @@ function make_events(data, color, owner, hover, is_event) {
       width: 350
     });
 
+    // this creates a datepicker object below the calendar
+    $('#datepicker').datepicker({
+        inline: true,
+        onSelect: function(dateText, inst) {
+            var d = new Date(dateText);
+            $('#fullcalendar').fullCalendar('gotoDate', d);
+        }
+    }); 
+
       $('#calendar').fullCalendar({
       header: {
       left: 'prev,next today',
@@ -454,12 +476,13 @@ function make_events(data, color, owner, hover, is_event) {
       editable: false, // TESTING IT OUT AS FALSE, DONT KILL ME FRANKLYN
       // set the default view to be the agendaWeek view
       defaultView: 'agendaWeek',
-      events: multiple,
+      events: downtimes_and_events,
 
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
       eventClick: function(event, jsEvent, view) {
-        console.log(event);
+        console.log(event.color);
+        if (event.is_event) {
         $dialog.dialog({title:event.title});
 
         var edit = document.createElement("input");
@@ -555,12 +578,17 @@ function make_events(data, color, owner, hover, is_event) {
               data: {'activity': $('#activity_field').val(),
               'location': $('#location_field').val(),
               'pk': event.id,
+
               },
                success: function(data) {
-                  console.log( "ajax worked123!!!" );
+                  $('#calendar').fullCalendar('removeEvents', event.id);
 
-                  // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
-                  /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
+                  // data[0] now holds the event to edit
+                  var data = JSON.parse(data);
+
+                  var edited_event = make_events(data, 'blue', '{{username}}', false, true)[0];
+
+                  $('#calendar').fullCalendar('renderEvent', edited_event, stick = true);
                   $dialog.dialog('close');
                },
             });
@@ -575,12 +603,19 @@ function make_events(data, color, owner, hover, is_event) {
         del.setAttribute('type',"submit");
         del.setAttribute('value', "Delete Event");
         del.onclick = function() {
-          //
           if( confirm( "Are you sure you want to delete event " + event.title + " ?")) {
             console.log("Delete Function");
+            $.ajax({
+              type: "POST",
+              url: "/calendar/remove_event/",
+              data: {"pk": event.id},
+               success: function(data) {
+                  console.log( "ajax to remove!!!" );
 
-            // THESE TWO LINES WILL REMOVE event FROM THE FRONT END,
-            // BUT NOT THE BACK END!!!!
+                  // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
+                  /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
+               },
+            })
             $('#calendar').fullCalendar('removeEvents', event.id);
             $('#calendar').fullCalendar('rerenderEvents');
             
@@ -611,23 +646,44 @@ function make_events(data, color, owner, hover, is_event) {
         $($dialog).append(edit);
         $($dialog).append(del);
         $dialog.dialog('open');
+      }
+      // edit downtimes
+      else if (event.owner == '{{username}}') {
+        console.log("This is one of your down times!!!")
+
+
+      }
       },
       eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
 
-        $.ajax({
-          type: "POST",
-          url: "/calendar/change_event/",
-          data: {"pk": event.id, 
-                "day_delta": dayDelta,
-                "minute_delta": minuteDelta,
-                "resize": "false",
-              },
+        if (event.is_event) {
+          $.ajax({
+            type: "POST",
+            url: "/calendar/change_event/",
+            data: {"pk": event.id, 
+                  "day_delta": dayDelta,
+                  "minute_delta": minuteDelta,
+                  "resize": "false",
+                },
+          });
+        }
 
+        else {
 
-        });
+          $.ajax({
+            type: "POST",
+            url: "/calendar/change_downtime/",
+            data: {"pk": event.id, 
+                  "day_delta": dayDelta,
+                  "minute_delta": minuteDelta,
+                  "resize": "false",
+                },
+          });
+        }
       },
       eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
 
+      if (event.is_event) {
         $.ajax({
           type: "POST",
           url: "/calendar/change_event/",
@@ -637,7 +693,23 @@ function make_events(data, color, owner, hover, is_event) {
                 "resize": "true",
               },
         });
-      },
+      }
+
+      else {
+
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_downtime/",
+          data: {"pk": event.id, 
+                "day_delta": dayDelta,
+                "minute_delta": minuteDelta,
+                "resize": "true",
+              },
+        });
+      }
+
+
+    },
 
       select: function(startDate, endDate, allDay, jsEvent, view) {
 
@@ -695,6 +767,36 @@ function make_events(data, color, owner, hover, is_event) {
                 start_time.setAttribute('type', "text");
                 // can reference this by using "start_time"
                 start_time.setAttribute('name', "start_time");
+               // start_time.innerHTML = '<p><input type="text" id="datepicker"></p>';
+
+
+
+               //$('activity_field').datepicker();
+
+              datepicker = document.createElement("input");
+              datepicker.setAttribute('type', 'date');
+              datepicker.innerHTML = '<input type="date" name="date" id="date" value=""/>';
+
+
+
+              //datepicker.onclick = function() {
+
+                //console.log("HERE!!!!!!")
+              //}    
+
+/*
+               start_time.onclick = function() {
+                  $('#datepicker').datepicker();
+                  $('#datepicker').datepicker('show');
+
+                  console.log("starttime")
+               };
+*/
+
+
+
+
+
 
                 end_text = document.createElement("span");
                 end_text.innerHTML = '<br/>End Time: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
@@ -723,6 +825,18 @@ function make_events(data, color, owner, hover, is_event) {
                 $dialog.append(location);
                 $dialog.append(newline);
 
+
+
+
+
+
+
+                $dialog.append(datepicker);
+
+
+
+
+
                 var cancel = document.createElement("input");
                 cancel.setAttribute('type', "submit");
                 cancel.setAttribute('value', "Cancel");
@@ -744,15 +858,22 @@ function make_events(data, color, owner, hover, is_event) {
                     },
                     // data is what the server returns
                      success: function(data) {
-                        console.log( "ajax worked123!!!" );
+                        // data[0] now holds the event to add
+                        var data = JSON.parse(data);
 
-                        // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
-                        /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
+                        var added_event = make_events(data, 'blue', '{{username}}', false, true)[0];
+
+                        console.log( "pk1 = " + data[0].pk );
+                        console.log( "added_event.id = " + added_event.id)
+
+
+
+                        $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
+
                         $dialog.dialog('close');
                      },
                   });
                 };
-           //     $('#submit').load('/calendar/ #calendar');
                 $dialog.append(cancel);
                 $dialog.append(submit);
                 $dialog.dialog('open');
@@ -769,8 +890,15 @@ function make_events(data, color, owner, hover, is_event) {
         },
     });
 });
-
   </script>
+
+<script>
+  $('#myDate').datepicker();
+</script>
+
 </div>
+
+<!-- datepicker calendar is below the calendar 
+<input type="date" name="date" id="date" value="" /> -->
 
 {% endblock %}
