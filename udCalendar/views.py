@@ -122,7 +122,7 @@ def gimme_downtimes(current_user):
 
 #### TRYING TO have FRONT END REQUEST A FRIENDS EVENTS::::: WE DON:T ACTUALLY NEED THIS *SWITCH TO DOWNTIMES*
 @login_required
-##@csrf_exempt ## DELETE_ME
+@csrf_exempt ## DELETE_ME
 def get_friends_events(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -140,7 +140,7 @@ def get_friends_events(request):
         return HttpResponse("Failure!!!!")
 
 @login_required
-##@csrf_exempt ## DELETE_ME
+@csrf_exempt ## DELETE_ME
 def get_friends_downtimes(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -208,6 +208,7 @@ def logout_user(request):
 
 
 @login_required
+@csrf_exempt ## DELETE_ME
 def add_event(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -227,6 +228,7 @@ def add_event(request):
     else: return HttpResponse("Failure!!!!")
 
 @login_required
+@csrf_exempt ## DELETE_ME
 def edit_event(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -241,6 +243,7 @@ def edit_event(request):
     else: return HttpResponse("Failure here!!!!")
 
 @login_required
+@csrf_exempt ## DELETE_ME
 def change_event(request):
     if request.is_ajax():
         if request.method == 'POST':            
@@ -260,6 +263,7 @@ def change_event(request):
     else: return HttpResponse("Failure123")
 
 @login_required
+@csrf_exempt ## DELETE_ME
 def find_friends(request):
     if request.is_ajax():
         if request.method == 'GET':
