@@ -17,5 +17,6 @@ urlpatterns = patterns('',
         url(r'^edit_event/$', views.edit_event, name='edit_event'),
         url(r'^find_friends/$', views.find_friends, name='find_friends'),
         url(r'^get_friends_events/$', views.get_friends_events, name='get_friends_events'),
+        url(r'^add_downtime/$', views.add_downtime, name='add_downtime'),
 
 )

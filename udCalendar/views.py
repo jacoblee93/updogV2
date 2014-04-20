@@ -3,13 +3,14 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from udCalendar.models import UpDogUser, Friendship, Event
+from udCalendar.models import UpDogUser, Friendship, Event, Downtime
 from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
 from datetime import timedelta
 from django.utils.timezone import utc
 from django.db.models import Q
+from dateutil import parser
 
 # TESTING JSON STUFF
 from django.utils import simplejson
@@ -159,6 +160,31 @@ def logout_user(request):
     logout(request)
     return HttpResponseRedirect('/calendar/login/')
 
+@login_required
+def add_downtime(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            startDate = None
+            endDate = None
+            if 'startDate' in request.POST:
+                startDate = request.POST['startDate']
+            else: return HttpResponse("Error! No startDate provided")
+            if 'endDate' in request.POST:
+                endDate = request.POST['endDate']
+            else: return HttpResponse("Error! No endDate provided")
+
+            startDate = startDate.strip("\"")
+            startDate = parser.parse(startDate)
+            endDate = endDate.strip("\"")
+            endDate = parser.parse(endDate)
+
+            new_downtime = Downtime.objects.get_or_create(owner=request.user.updoguser, start_time=startDate, end_time=endDate)[0]
+            return HttpResponse(serializers.serialize('json',[new_downtime, ]))
+
+    return HttpResponse("Error!")
+
+
+
 
 @login_required
 def add_event(request):
@@ -228,14 +254,5 @@ def find_friends(request):
             return HttpResponse(user_list)
 
     return HttpResponse("Uh-Oh")
-
-
-
-
-
-
-
-
-
 
 

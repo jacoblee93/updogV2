@@ -348,6 +348,8 @@ function make_events(data, color, owner, hover) {
       },
 
       editable: true,
+      selectable: true,
+      selecthelper: true,
       // set the default view to be the agendaWeek view
       defaultView: 'agendaWeek',
       events: multiple,
@@ -531,6 +533,34 @@ function make_events(data, color, owner, hover) {
                 "day_delta": dayDelta,
                 "minute_delta": minuteDelta,
                 "resize": "true",
+              },
+        });
+      },
+
+      select: function(startDate, endDate, allDay, jsEvent, view) {
+
+        if (startDate - endDate == -1800000) return;
+
+        startDateOffset = startDate.getTimezoneOffset();
+        startDate = new Date(startDate.getTime() - startDateOffset*60000);
+
+        endDate = new Date(endDate.getTime() - startDateOffset*60000);
+
+        $.ajax({
+          type:"POST",
+          url: "/calendar/add_downtime/",
+          data: {"startDate": startDate.toUTCString(),
+                "endDate": endDate.toUTCString(),
+                "allDay": allDay,
+              },
+              success: function(data) {
+
+                console.log(data);
+                var displayed_downtime = make_events(JSON.parse(data), 'green', "{{ username }}", false, false);
+                for (var i = 0; i < displayed_downtime.length; i++) {
+
+                  $("#calendar").fullCalendar('renderEvent', displayed_downtime[i], stick=true);
+                }
               },
         });
       },
