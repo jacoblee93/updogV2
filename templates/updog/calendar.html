@@ -34,6 +34,79 @@
 
 {% block calendar_block %}
 
+<script>
+function getinfo(name) {
+  alert();
+}
+</script>
+
+<style>
+div#scroll-able {
+  height: 310px;
+  overflow: scroll;
+}
+</style>
+
+
+<div>
+  <script type="text/javascript">
+    $(function() {
+      $(".submit").click(function() {
+        var name = $("#search").val();
+
+          if (name == '')
+        {
+          $('.success').fadeOut(200).hide();
+          $('.error').fadeOut(200).show();
+        }
+        else
+        {
+          $.ajax({
+            type: "GET",
+            url: "/calendar/find_friends/",
+            data: {"search": name,
+            },
+            success: function(data) {
+              mydata = JSON.parse(data);
+              if (data.length > 0) {
+                var dlength = mydata.length;
+                var users = [];
+                var isFriend = 0;
+                userhtml = "";
+
+                for (var i = 0; i < dlength; i++) {
+                  // excludes current friends and self, but not very efficient, could take
+                  // a long ass time for a large number of friends and users
+                  isFriend = 0;
+                  {% if friends_list %}
+                    {% for friend in friends_list %}
+                      if ('{{ friend }}' === mydata[i].fields.username)
+                        isFriend = 1;
+                    {% endfor %}
+                  {% endif %}
+
+                  if (mydata[i].fields.username != '{{ user.username }}' && isFriend == 0) {
+                    users.push(mydata[i].fields.username);
+                  }
+                };
+              }
+              if (users.length != 0) {
+                for (var i = 0; i < dlength; i++) {
+                userhtml = userhtml + '<div><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt = "profpic" width = "40" height = "40"> ' + users[i] + '<div style="float:right"><button type="button"> add </button></div></a></div>';
+                }
+              }
+                $('.error').fadeOut(200).hide();
+                $(".output").html(userhtml);
+            }
+          });
+        }
+      return false;
+    });
+  });
+  </script>
+</div>
+
+
 <!-- THIS IS THE CALENDAR!!! -->
 <div class="span12">
   <div class="row-fluid">
@@ -44,10 +117,15 @@
       </div>
     </div>
 
+    <!-- this is the friends tab -->
     {% if user.is_authenticated %}
-      <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+    <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+      <div id="scroll-able"> 
         <div class="list-group">
           {% if friends_list %}
+            <a class="list-group-item active">
+              Friends:
+            </a>  
             {% for friend in friends_list %}
               <a class="list-group-item" onclick="getevents( '{{ friend }}' )" id="friend_{{ friend }}"> 
                <div><img src="{% static 'img/glyphicons-halflings.png' %}" alt = "profpic" width = "40" height = "40">
@@ -55,18 +133,20 @@
                </div>
               </a>
               <script>
-              $( "a").hover(function on_hover() {
+
+              $( "#friend_{{ friend }}").hover(function on_hover() {
+
                 var obj = '{{ friend }}';
               $.ajax({
               type: "POST",
-              url: "/calendar/get_friends_events/",
+              url: "/calendar/get_friends_downtimes/",
               data: {'friend': obj},
               success: function(data) {
 
               var our_data = JSON.parse(data);
-              var get_some_events = make_events(our_data, 'red', obj, true);
+              var get_some_events = make_events(our_data, 'orange', obj, true, false);
+
               if (get_some_events) {
-    
               existing_events = $("#calendar").fullCalendar('clientEvents');
     
               for (var i = 0; i < get_some_events.length; i++) {
@@ -75,6 +155,7 @@
                   if (get_some_events[i].id == existing_events[j].id) {
                     is_unique = false;
                   }
+
                 }
                 if (is_unique) {
                   $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
@@ -91,11 +172,53 @@
                 existing_events = $("#calendar").fullCalendar('clientEvents');
                 for (var i = 0; i < existing_events.length; i++) {
                   if (existing_events[i].owner === "hover") {
-                      $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+                    $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
                   }
                 }
                 $('#calendar').fullCalendar('rerenderEvents');
               });
+              /*$( "#friend_{{ friend }}").hover(function on_hover() {
+                var obj = '{{ friend }}';
+              $.ajax({
+              type: "POST",
+              url: "/calendar/get_friends_events/",
+              data: {'friend': obj},
+              success: function(data) {
+
+              var our_data = JSON.parse(data);
+              var get_some_events = make_events(our_data, 'red', obj, true, true);
+              if (get_some_events) {
+    
+              existing_events = $("#calendar").fullCalendar('clientEvents');
+    
+              for (var i = 0; i < get_some_events.length; i++) {
+                var is_unique = true;
+                for (var j = 0; j < existing_events.length; j++) {
+                  if (get_some_events[i].id == existing_events[j].id) {
+                    is_unique = false;
+                  }
+
+                }
+                if (is_unique) {
+                  $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+                  
+                }
+              }
+
+              }
+              },
+              });
+
+              }, function off_hover() {
+                var obj = '{{ friend }}';
+                existing_events = $("#calendar").fullCalendar('clientEvents');
+                for (var i = 0; i < existing_events.length; i++) {
+                  if (existing_events[i].owner === "hover") {
+                    $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+                  }
+                }
+                $('#calendar').fullCalendar('rerenderEvents');
+              });*/
 
               </script>
             {% endfor %}
@@ -104,37 +227,54 @@
           {% endif %}
         </div>
       </div>
+      <!-- this is the searchbar -->
+      <div id="scroll-able">
+          <div class="list-group">
+              <form class="list-group-item list-group-item-info" method="post" name="form">
+                Find friends:<input id="search" size="17" name="search" type="text" />
+                <input type="submit" value="Search" class="submit"/>
+                <span class="error" style="display:none"> Please Enter Valid Data</span>
+                <span class="success" style="display:none"></span></a>
+              </form>
+            <div class="output"></div>
+      </div><!--/span-->
+    </div>
     {% endif %}
+    <br>
   </div>
 </div>
-
+      
 <script>
 
-function make_events(data, color, owner, hover) {
+function make_events(data, color, owner, hover, is_event) {
       if (data.length > 0) {
         var dlength = data.length;
         var multiple = [];
-        
         // in each loop, we add another event to the list of events for this user
         for (var i = 0; i < dlength; i++) {
           var single = new Object();
-          // If event has no activity
-          if (! data[i].fields.activity) {
-            if (! data[i].fields.location) {
-              single.title = "Busy";
+          if (is_event) {
+            // If event has no activity
+            if (! data[i].fields.activity) {
+              if (! data[i].fields.location) {
+                single.title = "Busy";
+              }
+              else{
+                single.title = "Busy in " + data[i].fields.location;
+              }
             }
-            else{
-              single.title = "Busy in " + data[i].fields.location;
+            // If event has an activity
+            else {
+              if (! data[i].fields.location) {
+                single.title = data[i].fields.activity;
+              }
+              else{
+                single.title = data[i].fields.activity + " in " + data[i].fields.location;
+              }
             }
           }
-          // If event has an activity
-          else {
-            if (! data[i].fields.location) {
-              single.title = data[i].fields.activity;
-            }
-            else{
-              single.title = data[i].fields.activity + " in " + data[i].fields.location;
-            }
+          else { // for downtimes
+            single.title = owner + " is free";
           }
 
           single.start = data[i].fields.start_time;
@@ -143,6 +283,11 @@ function make_events(data, color, owner, hover) {
           single.id = data[i].pk;
           single.color = color;
           single.owner = owner;
+          single.is_event = is_event; // true for events, false for downtimes
+          if (is_event) {
+            single.editable = true;
+          }
+
           if (hover) {
             single.owner = "hover";
           }
@@ -152,7 +297,62 @@ function make_events(data, color, owner, hover) {
       }
       return multiple;
     }
-    
+    function getevents(obj) {
+      $.ajax({
+      type: "POST",
+      url: "/calendar/get_friends_downtimes/",
+      data: {'friend': obj},
+      success: function(data) {
+
+        var our_data = JSON.parse(data);
+        var get_some_events = make_events(our_data, 'orange', obj, false, false);
+        if (get_some_events) {
+  
+            existing_events = $("#calendar").fullCalendar('clientEvents');
+  
+            for (var i = 0; i < get_some_events.length; i++) {
+              var is_unique = true;
+              for (var j = 0; j < existing_events.length; j++) {
+                if (get_some_events[i].id == existing_events[j].id) {
+                  if (existing_events[j].owner != "hover") {
+                    is_unique = false;
+                  }
+                  // existing event owner is hover
+                  else {
+                    $('#calendar').fullCalendar('removeEvents', existing_events[j].id); // remove the one with 'hover' owner
+                  }
+
+                }
+              }
+              if (is_unique) {
+                $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+                
+              }
+            }
+            var test = document.getElementById('friend_'+obj);  
+            test.setAttribute("onclick", "erase_events("+JSON.stringify(obj)+")");
+
+            }
+       },
+      });
+
+    }
+    function erase_events(obj) {
+  
+      existing_events = $("#calendar").fullCalendar('clientEvents');
+      for (var i = 0; i < existing_events.length; i++) {
+        if (existing_events[i].owner == obj) {
+          $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+        }
+      }
+      $('#calendar').fullCalendar('rerenderEvents');
+
+      var test = document.getElementById('friend_'+obj);
+      test.setAttribute("onclick", "getevents("+JSON.stringify(obj)+")");
+
+
+    }
+    /*
     function getevents(obj) {
       $.ajax({
       type: "POST",
@@ -161,7 +361,7 @@ function make_events(data, color, owner, hover) {
       success: function(data) {
 
         var our_data = JSON.parse(data);
-        var get_some_events = make_events(our_data, 'red', obj, false);
+        var get_some_events = make_events(our_data, 'red', obj, false, true);
         if (get_some_events) {
   
             existing_events = $("#calendar").fullCalendar('clientEvents');
@@ -198,9 +398,7 @@ function make_events(data, color, owner, hover) {
       existing_events = $("#calendar").fullCalendar('clientEvents');
       for (var i = 0; i < existing_events.length; i++) {
         if (existing_events[i].owner == obj) {
-          //if (existing_events[i].temp == false) {
-            $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
-          //}
+          $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
         }
       }
       $('#calendar').fullCalendar('rerenderEvents');
@@ -209,11 +407,9 @@ function make_events(data, color, owner, hover) {
       test.setAttribute("onclick", "getevents("+JSON.stringify(obj)+")");
 
 
-    }    
+    }    */
 </script>
 
-
-      
 <div>
   <script>
     // This function converts a Date object, date, into a time of the form: 2:00 PM or 11:00 AM
@@ -223,13 +419,12 @@ function make_events(data, color, owner, hover) {
 
       return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
     } 
-
     $(document).ready(function() {
       {% autoescape off %}
         var data = {{ events_list }};
       {% endautoescape %}
 
-    var multiple = make_events(data, 'blue', '{{ username }}', false);
+    var multiple = make_events(data, 'blue', '{{ username }}', false, true);
 
     var date = new Date();
     var d = date.getDate();
@@ -254,7 +449,7 @@ function make_events(data, color, owner, hover) {
       right: 'month,agendaWeek,agendaDay',
       },
 
-      editable: true,
+      editable: false, // TESTING IT OUT AS FALSE, DONT KILL ME FRANKLYN
       // set the default view to be the agendaWeek view
       defaultView: 'agendaWeek',
       events: multiple,
@@ -517,6 +712,7 @@ function make_events(data, color, owner, hover) {
                     data: {'activity': $('#activity_field').val(),
                     'location': $('#location_field').val()
                     },
+                    // data is what the server returns
                      success: function(data) {
                         console.log( "ajax worked123!!!" );
 
@@ -545,11 +741,6 @@ function make_events(data, color, owner, hover) {
 });
 
   </script>
-
 </div>
-<form action="/calendar/" method="post">{% csrf_token %} 
-  {{ form.as_p }}
-  <input type="submit" value="Submit!" />
-</form>
 
 {% endblock %}
