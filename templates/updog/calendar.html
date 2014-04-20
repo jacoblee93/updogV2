@@ -287,8 +287,12 @@ function make_events(data, color, owner, hover, is_event) {
           if (is_event) {
             single.editable = true;
           }
+          if (owner == "{{username}}") {
+            single.editable = true;
 
-          if (hover) {
+          }
+
+          else if (hover) {
             single.owner = "hover";
           }
 
@@ -422,9 +426,18 @@ function make_events(data, color, owner, hover, is_event) {
     $(document).ready(function() {
       {% autoescape off %}
         var data = {{ events_list }};
+        var downtime_data = {{ downtimes }}
       {% endautoescape %}
 
     var multiple = make_events(data, 'blue', '{{ username }}', false, true);
+    var downtimes = make_events(downtime_data, 'green', '{{ username }}', false, false);
+    var downtimes_and_events;
+    if (multiple) {
+      downtimes_and_events = multiple.concat(downtimes);
+    }
+    else if (downtimes) {
+      downtimes_and_events = downtimes.concat(multiple)
+    }
 
     var date = new Date();
     var d = date.getDate();
@@ -463,7 +476,7 @@ function make_events(data, color, owner, hover, is_event) {
       editable: false, // TESTING IT OUT AS FALSE, DONT KILL ME FRANKLYN
       // set the default view to be the agendaWeek view
       defaultView: 'agendaWeek',
-      events: multiple,
+      events: downtimes_and_events,
 
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
@@ -643,18 +656,34 @@ function make_events(data, color, owner, hover, is_event) {
       },
       eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
 
-        $.ajax({
-          type: "POST",
-          url: "/calendar/change_event/",
-          data: {"pk": event.id, 
-                "day_delta": dayDelta,
-                "minute_delta": minuteDelta,
-                "resize": "false",
-              },
-        });
+        if (event.is_event) {
+          $.ajax({
+            type: "POST",
+            url: "/calendar/change_event/",
+            data: {"pk": event.id, 
+                  "day_delta": dayDelta,
+                  "minute_delta": minuteDelta,
+                  "resize": "false",
+                },
+          });
+        }
+
+        else {
+
+          $.ajax({
+            type: "POST",
+            url: "/calendar/change_downtime/",
+            data: {"pk": event.id, 
+                  "day_delta": dayDelta,
+                  "minute_delta": minuteDelta,
+                  "resize": "false",
+                },
+          });
+        }
       },
       eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
 
+      if (event.is_event) {
         $.ajax({
           type: "POST",
           url: "/calendar/change_event/",
@@ -664,7 +693,23 @@ function make_events(data, color, owner, hover, is_event) {
                 "resize": "true",
               },
         });
-      },
+      }
+
+      else {
+
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_downtime/",
+          data: {"pk": event.id, 
+                "day_delta": dayDelta,
+                "minute_delta": minuteDelta,
+                "resize": "true",
+              },
+        });
+      }
+
+
+    },
 
       select: function(startDate, endDate, allDay, jsEvent, view) {
 

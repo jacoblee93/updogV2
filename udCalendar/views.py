@@ -66,7 +66,9 @@ def calendar(request):
     context_dict = {'friends_list': friends_list}#json_friends}
 
     json_events = serializers.serialize("json", gimme_events(current_user))
+    json_downtimes = serializers.serialize("json", gimme_downtimes(current_user))
     context_dict['events_list'] = json_events
+    context_dict['downtimes'] = json_downtimes
     context_dict['username'] = request.user.username;
 
     return render_to_response('updog/calendar.html', context_dict, context)
@@ -289,6 +291,24 @@ def change_event(request):
                 event.start_time = event.start_time + time_changes
 
             event.save()
+
+        return HttpResponse("Success123")
+
+    else: return HttpResponse("Failure123")
+
+def change_downtime(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+            time_changes = timedelta(days = int(request.POST['day_delta']), 
+                minutes = int(request.POST['minute_delta']))
+
+            downtime.end_time = downtime.end_time + time_changes
+
+            if request.POST['resize'] == "false":
+                downtime.start_time = downtime.start_time + time_changes
+
+            downtime.save()
 
         return HttpResponse("Success123")
 
