@@ -71,18 +71,32 @@ div#scroll-able {
               if (data.length > 0) {
                 var dlength = mydata.length;
                 var users = [];
+                var isFriend = 0;
                 userhtml = "";
+
                 for (var i = 0; i < dlength; i++) {
-                  // note: this potentially exposes the (encoded) password, do we care?
-                  // also, doesn't exclude current friends or self yet, not sure how to do // that
-                  users.push(mydata[i].fields.username);
+                  // excludes current friends and self, but not very efficient, could take
+                  // a long ass time for a large number of friends and users
+                  isFriend = 0;
+                  {% if friends_list %}
+                    {% for friend in friends_list %}
+                      if ('{{ friend }}' === mydata[i].fields.username)
+                        isFriend = 1;
+                    {% endfor %}
+                  {% endif %}
+
+                  if (mydata[i].fields.username != '{{ user.username }}' && isFriend == 0) {
+                    users.push(mydata[i].fields.username);
+                  }
                 };
               }
-              for (var i = 0; i < dlength; i++) {
-              userhtml = userhtml + '<div><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt = "profpic" width = "40" height = "40"> ' + users[i] + '<div style="float:right"><button type="button"> add </button></div></a></div>';
+              if (users.length != 0) {
+                for (var i = 0; i < dlength; i++) {
+                userhtml = userhtml + '<div><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt = "profpic" width = "40" height = "40"> ' + users[i] + '<div style="float:right"><button type="button"> add </button></div></a></div>';
+                }
               }
-              $('.error').fadeOut(200).hide();
-              $(".output").html(userhtml);
+                $('.error').fadeOut(200).hide();
+                $(".output").html(userhtml);
             }
           });
         }
@@ -138,24 +152,9 @@ div#scroll-able {
     </div>
     {% endif %}
     <br>
-</div>
+  </div>
 </div>
       
-<div>
-  <script>
-    // This function converts a Date object, date, into a time of the form: 2:00 PM or 11:00 AM
-    function getTime(date) {
-      var local_time = date.toLocaleTimeString()
-      var lt_length = local_time.length;
-
-      return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
-    } 
-
-    $(document).ready(function() {
-      {% autoescape off %}
-        var data = {{ events_list }};
-      {% endautoescape %}
-
 <script>
 function make_events(data, color, owner) {
       if (data.length > 0) {
@@ -250,8 +249,6 @@ function make_events(data, color, owner) {
     
 </script>
 
-
-      
 <div>
   <script>
     // This function converts a Date object, date, into a time of the form: 2:00 PM or 11:00 AM
@@ -261,13 +258,12 @@ function make_events(data, color, owner) {
 
       return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
     } 
-
     $(document).ready(function() {
       {% autoescape off %}
         var data = {{ events_list }};
       {% endautoescape %}
 
-    var multiple = make_events(data, 'blue', '{{ username }}');
+    var multiple = make_events(data, 'blue', '{{ username }}'); 
 
     var date = new Date();
     var d = date.getDate();
