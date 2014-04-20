@@ -240,19 +240,20 @@ def add_downtime(request):
 def add_event(request):
     if request.is_ajax():
         if request.method == 'POST':
+            context = RequestContext(request)
+
             if 'activity' in request.POST:
                 activity = request.POST['activity']
-
             if 'location' in request.POST:
                 location = request.POST['location']
 
-            event = Event(activity=activity, location=location, start_time=timezone.now() + timedelta(hours=47), end_time=(timezone.now() + timedelta(hours=48)))
-
+            event = Event(activity=activity, location=location, start_time=timezone.now() + timedelta(hours=23), end_time=(timezone.now() + timedelta(hours=24)))
             event.save()
-
             event.owners.add(request.user.updoguser)
 
-            return HttpResponse("Success!!!!!")
+            json_event = serializers.serialize("json", [event, ])
+
+            return HttpResponse(json_event)
     else: return HttpResponse("Failure!!!!")
 
 @login_required
@@ -265,9 +266,14 @@ def edit_event(request):
                 event.activity = request.POST['activity']
             if 'location' in request.POST:
                 event.location = request.POST['location']
+
             event.save()
 
-            return HttpResponse("Success here!!!!!")
+            json_event = serializers.serialize("json", [event, ])
+
+            print event.pk
+
+            return HttpResponse(json_event)
     else: return HttpResponse("Failure here!!!!")
 
 @login_required
@@ -309,7 +315,15 @@ def change_downtime(request):
     else: return HttpResponse("Failure123")
 
 @login_required
-##@csrf_exempt ## DELETE_ME
+def remove_event(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            event = Event.objects.filter(pk=request.POST['pk'])[0]
+            event.delete()
+
+            return HttpResponse("Success here!!!!!")
+    else: return HttpResponse("Failure here!!!!")
+
 def find_friends(request):
     if request.is_ajax():
         if request.method == 'GET':
