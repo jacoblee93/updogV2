@@ -468,8 +468,8 @@ function make_events(data, color, owner, hover, is_event) {
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
       eventClick: function(event, jsEvent, view) {
-        console.log(event);
-
+        console.log(event.color);
+        if (event.is_event) {
 
 
         $dialog.dialog({title:event.title});
@@ -635,6 +635,7 @@ function make_events(data, color, owner, hover, is_event) {
         $($dialog).append(edit);
         $($dialog).append(del);
         $dialog.dialog('open');
+      }
       },
       eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
 
@@ -799,10 +800,6 @@ function make_events(data, color, owner, hover, is_event) {
                 submit.setAttribute('type',"submit");
                 submit.setAttribute('value', "Submit");
 
-
-
-
-
                 submit.onclick = function() {
                   $.ajax({
                     type: "POST",
@@ -814,33 +811,8 @@ function make_events(data, color, owner, hover, is_event) {
                      success: function(data) {
                         // data[0] now holds the event to add
                         var data = JSON.parse(data);
-                        var added_event = new Object();
-                        // If event has no activity
-                        if (! data[0].fields.activity) {
-                          if (! data[0].fields.location) {
-                            added_event.title = "Busy";
-                          }
-                          else{
-                            added_event.title = "Busy in " + data[0].fields.location;
-                          }
-                        }
-                        // If event has an activity
-                        else {
-                          if (! data[0].fields.location) {
-                            added_event.title = data[0].fields.activity;
-                          }
-                          else{
-                            added_event.title = data[0].fields.activity + " in " + data[0].fields.location;
-                          }
-                        }
 
-                        added_event.start = data[0].fields.start_time;
-                        added_event.end = data[0].fields.end_time;
-                        added_event.allDay = false;
-                        added_event.id = data[0].pk;
-
-
-
+                        var added_event = make_events(data, 'blue', '{{username}}', false, true)[0];
 
                         console.log( "pk1 = " + data[0].pk );
                         console.log( "added_event.id = " + added_event.id)
