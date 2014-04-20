@@ -565,40 +565,15 @@ function make_events(data, color, owner, hover, is_event) {
               data: {'activity': $('#activity_field').val(),
               'location': $('#location_field').val(),
               'pk': event.id,
+
               },
                success: function(data) {
                   $('#calendar').fullCalendar('removeEvents', event.id);
 
                   // data[0] now holds the event to edit
                   var data = JSON.parse(data);
-                  var edited_event = new Object();
 
-
-                  console.log( "pk2 = " + data[0].pk );
-
-                  // If event has no activity
-                  if (! data[0].fields.activity) {
-                    if (! data[0].fields.location) {
-                      edited_event.title = "Busy";
-                    }
-                    else{
-                      edited_event.title = "Busy in " + data[0].fields.location;
-                    }
-                  }
-                  // If event has an activity
-                  else {
-                    if (! data[0].fields.location) {
-                      edited_event.title = data[0].fields.activity;
-                    }
-                    else{
-                      edited_event.title = data[0].fields.activity + " in " + data[0].fields.location;
-                    }
-                  }
-
-                  edited_event.start = data[0].fields.start_time;
-                  edited_event.end = data[0].fields.end_time;
-                  edited_event.allDay = false;
-                  edited_event.id = data[0].pk;
+                  var edited_event = make_events(data, 'blue', '{{username}}', false, true)[0];
 
                   $('#calendar').fullCalendar('renderEvent', edited_event, stick = true);
                   $dialog.dialog('close');
