@@ -43,9 +43,6 @@
     {% block calendar_block %}
     {% endblock %}
 
-    {% if user.is_authenticated %}
-    <a href="/calendar/logout_user/">Logout</a>
-    {% endif %}
     <div class="bs-example bs-navbar-top-example">
       <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       
@@ -77,6 +74,12 @@
               <li><a href="http://www.wikipedia.com">About</a></li>
               <li><a href="#contact">Contact</a></li>
               <li><a href="#preferences">Preferences</a></li>
+              {% if user.is_authenticated %}
+                <li><a href="/calendar/logout_user/">Logout</a></li>
+              {% else %} 
+                <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
+              {% endif %}
+
             
 	    </ul>
 	  

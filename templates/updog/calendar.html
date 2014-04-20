@@ -49,42 +49,71 @@
         <div class="list-group">
           {% if friends_list %}
             {% for friend in friends_list %}
-              <a class="list-group-item" onclick="getinfo( '{{ friend }}' )">
+              <a class="list-group-item" onclick="getevents( '{{ friend }}' )" id="friend_{{ friend }}"> 
                <div><img src="{% static 'img/glyphicons-halflings.png' %}" alt = "profpic" width = "40" height = "40">
-               {{ friend }}
+               <span class="frand">{{ friend }}</span>
                </div>
               </a>
+              <script>
+              $( "a").hover(function on_hover() {
+                var obj = '{{ friend }}';
+              $.ajax({
+              type: "POST",
+              url: "/calendar/get_friends_events/",
+              data: {'friend': obj},
+              success: function(data) {
+
+              var our_data = JSON.parse(data);
+              var get_some_events = make_events(our_data, 'red', obj, true);
+              if (get_some_events) {
+    
+              existing_events = $("#calendar").fullCalendar('clientEvents');
+    
+              for (var i = 0; i < get_some_events.length; i++) {
+                var is_unique = true;
+                for (var j = 0; j < existing_events.length; j++) {
+                  if (get_some_events[i].id == existing_events[j].id) {
+                    is_unique = false;
+                  }
+                }
+                if (is_unique) {
+                  $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+                  
+                }
+              }
+
+              }
+              },
+              });
+
+              }, function off_hover() {
+                var obj = '{{ friend }}';
+                existing_events = $("#calendar").fullCalendar('clientEvents');
+                for (var i = 0; i < existing_events.length; i++) {
+                  if (existing_events[i].owner === "hover") {
+                      $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+                  }
+                }
+                $('#calendar').fullCalendar('rerenderEvents');
+              });
+
+              </script>
             {% endfor %}
           {% else %}
             <strong>No friends.</strong>
           {% endif %}
         </div>
-      </div><!--/span-->
+      </div>
     {% endif %}
   </div>
 </div>
 
 <script>
-function getinfo(obj) {
-  
-}
-</script>
-      
-<div>
-  <script>
-    // This function converts a Date object, date, into a time of the form: 2:00 PM or 11:00 AM
-    function getTime(date) {
-      var local_time = date.toLocaleTimeString()
-      var lt_length = local_time.length;
 
-      return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
-    } 
 
-    $(document).ready(function() {
-      {% autoescape off %}
-        var data = {{ events_list }};
-      {% endautoescape %}
 
+
+function make_events(data, color, owner, hover) {
       if (data.length > 0) {
         var dlength = data.length;
         var multiple = [];
@@ -115,11 +144,98 @@ function getinfo(obj) {
           single.end = data[i].fields.end_time;
           single.allDay = false;
           single.id = data[i].pk;
+          single.color = color;
+          single.owner = owner;
+          if (hover) {
+            single.owner = "hover";
+          }
 
           multiple.push(single);
         }
       }
+      return multiple;
+    }
+    
+    function getevents(obj) {
+      $.ajax({
+      type: "POST",
+      url: "/calendar/get_friends_events/",
+      data: {'friend': obj},
+      success: function(data) {
+
+        var our_data = JSON.parse(data);
+        var get_some_events = make_events(our_data, 'red', obj, false);
+        if (get_some_events) {
   
+            existing_events = $("#calendar").fullCalendar('clientEvents');
+  
+            for (var i = 0; i < get_some_events.length; i++) {
+              var is_unique = true;
+              for (var j = 0; j < existing_events.length; j++) {
+                if (get_some_events[i].id == existing_events[j].id) {
+                  if (existing_events[j].owner != "hover") {
+                    is_unique = false;
+                  }
+                  // existing event owner is hover
+                  else {
+                    $('#calendar').fullCalendar('removeEvents', existing_events[j].id); // remove the one with 'hover' owner
+                  }
+
+                }
+              }
+              if (is_unique) {
+                $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+                
+              }
+            }
+            var test = document.getElementById('friend_'+obj);  
+            test.setAttribute("onclick", "erase_events("+JSON.stringify(obj)+")");
+
+                }
+       },
+      });
+
+    }
+    function erase_events(obj) {
+  
+      existing_events = $("#calendar").fullCalendar('clientEvents');
+      for (var i = 0; i < existing_events.length; i++) {
+        if (existing_events[i].owner == obj) {
+          //if (existing_events[i].temp == false) {
+            $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+          //}
+        }
+      }
+      $('#calendar').fullCalendar('rerenderEvents');
+
+      var test = document.getElementById('friend_'+obj);
+      test.setAttribute("onclick", "getevents("+JSON.stringify(obj)+")");
+
+
+    }
+
+    
+</script>
+
+
+      
+<div>
+  <script>
+    // This function converts a Date object, date, into a time of the form: 2:00 PM or 11:00 AM
+    function getTime(date) {
+      var local_time = date.toLocaleTimeString()
+      var lt_length = local_time.length;
+
+      return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
+    } 
+
+    $(document).ready(function() {
+      {% autoescape off %}
+        var data = {{ events_list }};
+      {% endautoescape %}
+
+    var multiple = make_events(data, 'blue', '{{ username }}', false);
+
     var date = new Date();
     var d = date.getDate();
     var m = date.getMonth();
