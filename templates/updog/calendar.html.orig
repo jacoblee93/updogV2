@@ -40,73 +40,6 @@ function getinfo(name) {
 }
 </script>
 
-<style>
-div#scroll-able {
-  height: 310px;
-  overflow: scroll;
-}
-</style>
-
-
-<div>
-  <script type="text/javascript">
-    $(function() {
-      $(".submit").click(function() {
-        var name = $("#search").val();
-
-          if (name == '')
-        {
-          $('.success').fadeOut(200).hide();
-          $('.error').fadeOut(200).show();
-        }
-        else
-        {
-          $.ajax({
-            type: "GET",
-            url: "/calendar/find_friends/",
-            data: {"search": name,
-            },
-            success: function(data) {
-              mydata = JSON.parse(data);
-              if (data.length > 0) {
-                var dlength = mydata.length;
-                var users = [];
-                var isFriend = 0;
-                userhtml = "";
-
-                for (var i = 0; i < dlength; i++) {
-                  // excludes current friends and self, but not very efficient, could take
-                  // a long ass time for a large number of friends and users
-                  isFriend = 0;
-                  {% if friends_list %}
-                    {% for friend in friends_list %}
-                      if ('{{ friend }}' === mydata[i].fields.username)
-                        isFriend = 1;
-                    {% endfor %}
-                  {% endif %}
-
-                  if (mydata[i].fields.username != '{{ user.username }}' && isFriend == 0) {
-                    users.push(mydata[i].fields.username);
-                  }
-                };
-              }
-              if (users.length != 0) {
-                for (var i = 0; i < dlength; i++) {
-                userhtml = userhtml + '<div><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt = "profpic" width = "40" height = "40"> ' + users[i] + '<div style="float:right"><button type="button"> add </button></div></a></div>';
-                }
-              }
-                $('.error').fadeOut(200).hide();
-                $(".output").html(userhtml);
-            }
-          });
-        }
-      return false;
-    });
-  });
-  </script>
-</div>
-
-
 <!-- THIS IS THE CALENDAR!!! -->
 <div class="span12">
   <div class="row-fluid">
@@ -117,94 +50,54 @@ div#scroll-able {
       </div>
     </div>
 
-    <!-- this is the friends tab -->
     {% if user.is_authenticated %}
-    <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
-      <div id="scroll-able"> 
+      <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
         <div class="list-group">
           {% if friends_list %}
-            <a class="list-group-item active">
-              Friends:
-            </a>  
             {% for friend in friends_list %}
-              <a class="list-group-item" onclick="getevents( '{{ friend }}' )" id="friend_{{ friend }}"> 
+              <a class="list-group-item" onclick="getinfo('{{ friend }}')">
                <div><img src="{% static 'img/glyphicons-halflings.png' %}" alt = "profpic" width = "40" height = "40">
-               <span class="frand">{{ friend }}</span>
+               {{ friend }}
                </div>
               </a>
-              <script>
-              $( "a").hover(function on_hover() {
-                var obj = '{{ friend }}';
-              $.ajax({
-              type: "POST",
-              url: "/calendar/get_friends_events/",
-              data: {'friend': obj},
-              success: function(data) {
-
-              var our_data = JSON.parse(data);
-              var get_some_events = make_events(our_data, 'red', obj, true);
-              if (get_some_events) {
-    
-              existing_events = $("#calendar").fullCalendar('clientEvents');
-    
-              for (var i = 0; i < get_some_events.length; i++) {
-                var is_unique = true;
-                for (var j = 0; j < existing_events.length; j++) {
-                  if (get_some_events[i].id == existing_events[j].id) {
-                    is_unique = false;
-                  }
-                }
-                if (is_unique) {
-                  $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
-                  
-                }
-              }
-
-              }
-              },
-              });
-
-              }, function off_hover() {
-                var obj = '{{ friend }}';
-                existing_events = $("#calendar").fullCalendar('clientEvents');
-                for (var i = 0; i < existing_events.length; i++) {
-                  if (existing_events[i].owner === "hover") {
-                      $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
-                  }
-                }
-                $('#calendar').fullCalendar('rerenderEvents');
-              });
-
-              </script>
             {% endfor %}
           {% else %}
             <strong>No friends.</strong>
           {% endif %}
         </div>
-      </div>
-      <!-- this is the searchbar -->
-      <div id="scroll-able">
-          <div class="list-group">
-              <form class="list-group-item list-group-item-info" method="post" name="form">
-                Find friends:<input id="search" size="17" name="search" type="text" />
-                <input type="submit" value="Search" class="submit"/>
-                <span class="error" style="display:none"> Please Enter Valid Data</span>
-                <span class="success" style="display:none"></span></a>
-              </form>
-            <div class="output"></div>
       </div><!--/span-->
-    </div>
     {% endif %}
-    <br>
   </div>
 </div>
-      
+
+<<<<<<< HEAD
+
+      <!--<label class="checkbox">
+	<input type="checkbox" value="#events-modal" id="events-in-modal"> Open events in modal window
+      </label>-->
+=======
 <script>
+function getinfo(obj) {
+  
+}
+</script>
+>>>>>>> 67f2c06bca5397cab3b05495a13da47e83aeeed3
+      
+<div>
+  <script>
+    // This function converts a Date object, date, into a time of the form: 2:00 PM or 11:00 AM
+    function getTime(date) {
+      var local_time = date.toLocaleTimeString()
+      var lt_length = local_time.length;
 
+      return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
+    } 
 
+    $(document).ready(function() {
+      {% autoescape off %}
+        var data = {{ events_list }};
+      {% endautoescape %}
 
-
-function make_events(data, color, owner, hover) {
       if (data.length > 0) {
         var dlength = data.length;
         var multiple = [];
@@ -235,95 +128,11 @@ function make_events(data, color, owner, hover) {
           single.end = data[i].fields.end_time;
           single.allDay = false;
           single.id = data[i].pk;
-          single.color = color;
-          single.owner = owner;
-          if (hover) {
-            single.owner = "hover";
-          }
 
           multiple.push(single);
         }
       }
-      return multiple;
-    }
-    
-    function getevents(obj) {
-      $.ajax({
-      type: "POST",
-      url: "/calendar/get_friends_events/",
-      data: {'friend': obj},
-      success: function(data) {
-
-        var our_data = JSON.parse(data);
-        var get_some_events = make_events(our_data, 'red', obj, false);
-        if (get_some_events) {
   
-            existing_events = $("#calendar").fullCalendar('clientEvents');
-  
-            for (var i = 0; i < get_some_events.length; i++) {
-              var is_unique = true;
-              for (var j = 0; j < existing_events.length; j++) {
-                if (get_some_events[i].id == existing_events[j].id) {
-                  if (existing_events[j].owner != "hover") {
-                    is_unique = false;
-                  }
-                  // existing event owner is hover
-                  else {
-                    $('#calendar').fullCalendar('removeEvents', existing_events[j].id); // remove the one with 'hover' owner
-                  }
-
-                }
-              }
-              if (is_unique) {
-                $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
-                
-              }
-            }
-            var test = document.getElementById('friend_'+obj);  
-            test.setAttribute("onclick", "erase_events("+JSON.stringify(obj)+")");
-
-                }
-       },
-      });
-
-    }
-    function erase_events(obj) {
-  
-      existing_events = $("#calendar").fullCalendar('clientEvents');
-      for (var i = 0; i < existing_events.length; i++) {
-        if (existing_events[i].owner == obj) {
-          //if (existing_events[i].temp == false) {
-            $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
-          //}
-        }
-      }
-      $('#calendar').fullCalendar('rerenderEvents');
-
-      var test = document.getElementById('friend_'+obj);
-      test.setAttribute("onclick", "getevents("+JSON.stringify(obj)+")");
-
-
-    }
-
-    
-</script>
-
-<div>
-  <script>
-    // This function converts a Date object, date, into a time of the form: 2:00 PM or 11:00 AM
-    function getTime(date) {
-      var local_time = date.toLocaleTimeString()
-      var lt_length = local_time.length;
-
-      return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
-    } 
-    $(document).ready(function() {
-      {% autoescape off %}
-        var data = {{ events_list }};
-      {% endautoescape %}
-
-    var multiple = make_events(data, 'blue', '{{ username }}', false);
-
     var date = new Date();
     var d = date.getDate();
     var m = date.getMonth();
@@ -339,15 +148,6 @@ function make_events(data, color, owner, hover) {
       height: 300,
       width: 350
     });
-
-    // this creates a datepicker object below the calendar
-    $('#datepicker').datepicker({
-        inline: true,
-        onSelect: function(dateText, inst) {
-            var d = new Date(dateText);
-            $('#fullcalendar').fullCalendar('gotoDate', d);
-        }
-    }); 
 
       $('#calendar').fullCalendar({
       header: {
@@ -365,9 +165,6 @@ function make_events(data, color, owner, hover) {
       // clicking on an existing event in the calendar
       eventClick: function(event, jsEvent, view) {
         console.log(event);
-
-
-
         $dialog.dialog({title:event.title});
 
         var edit = document.createElement("input");
@@ -465,40 +262,10 @@ function make_events(data, color, owner, hover) {
               'pk': event.id,
               },
                success: function(data) {
-                  $('#calendar').fullCalendar('removeEvents', event.id);
+                  console.log( "ajax worked123!!!" );
 
-                  // data[0] now holds the event to edit
-                  var data = JSON.parse(data);
-                  var edited_event = new Object();
-
-
-                  console.log( "pk2 = " + data[0].pk );
-
-                  // If event has no activity
-                  if (! data[0].fields.activity) {
-                    if (! data[0].fields.location) {
-                      edited_event.title = "Busy";
-                    }
-                    else{
-                      edited_event.title = "Busy in " + data[0].fields.location;
-                    }
-                  }
-                  // If event has an activity
-                  else {
-                    if (! data[0].fields.location) {
-                      edited_event.title = data[0].fields.activity;
-                    }
-                    else{
-                      edited_event.title = data[0].fields.activity + " in " + data[0].fields.location;
-                    }
-                  }
-
-                  edited_event.start = data[0].fields.start_time;
-                  edited_event.end = data[0].fields.end_time;
-                  edited_event.allDay = false;
-                  edited_event.id = data[0].pk;
-
-                  $('#calendar').fullCalendar('renderEvent', edited_event, stick = true);
+                  // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
+                  /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
                   $dialog.dialog('close');
                },
             });
@@ -513,19 +280,12 @@ function make_events(data, color, owner, hover) {
         del.setAttribute('type',"submit");
         del.setAttribute('value', "Delete Event");
         del.onclick = function() {
+          //
           if( confirm( "Are you sure you want to delete event " + event.title + " ?")) {
             console.log("Delete Function");
-            $.ajax({
-              type: "POST",
-              url: "/calendar/remove_event/",
-              data: {"pk": event.id},
-               success: function(data) {
-                  console.log( "ajax to remove!!!" );
 
-                  // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
-                  /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
-               },
-            })
+            // THESE TWO LINES WILL REMOVE event FROM THE FRONT END,
+            // BUT NOT THE BACK END!!!!
             $('#calendar').fullCalendar('removeEvents', event.id);
             $('#calendar').fullCalendar('rerenderEvents');
             
@@ -567,6 +327,8 @@ function make_events(data, color, owner, hover) {
                 "minute_delta": minuteDelta,
                 "resize": "false",
               },
+
+
         });
       },
       eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
@@ -610,36 +372,6 @@ function make_events(data, color, owner, hover) {
                 start_time.setAttribute('type', "text");
                 // can reference this by using "start_time"
                 start_time.setAttribute('name', "start_time");
-               // start_time.innerHTML = '<p><input type="text" id="datepicker"></p>';
-
-
-
-               //$('activity_field').datepicker();
-
-              datepicker = document.createElement("input");
-              datepicker.setAttribute('type', 'date');
-              datepicker.innerHTML = '<input type="date" name="date" id="date" value=""/>';
-
-
-
-              //datepicker.onclick = function() {
-
-                //console.log("HERE!!!!!!")
-              //}    
-
-/*
-               start_time.onclick = function() {
-                  $('#datepicker').datepicker();
-                  $('#datepicker').datepicker('show');
-
-                  console.log("starttime")
-               };
-*/
-
-
-
-
-
 
                 end_text = document.createElement("span");
                 end_text.innerHTML = '<br/>End Time: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
@@ -668,18 +400,6 @@ function make_events(data, color, owner, hover) {
                 $dialog.append(location);
                 $dialog.append(newline);
 
-
-
-
-
-
-
-                $dialog.append(datepicker);
-
-
-
-
-
                 var cancel = document.createElement("input");
                 cancel.setAttribute('type', "submit");
                 cancel.setAttribute('value', "Cancel");
@@ -692,10 +412,6 @@ function make_events(data, color, owner, hover) {
                 submit.setAttribute('type',"submit");
                 submit.setAttribute('value', "Submit");
 
-
-
-
-
                 submit.onclick = function() {
                   $.ajax({
                     type: "POST",
@@ -703,49 +419,16 @@ function make_events(data, color, owner, hover) {
                     data: {'activity': $('#activity_field').val(),
                     'location': $('#location_field').val()
                     },
-                    // data is what the server returns
                      success: function(data) {
-                        // data[0] now holds the event to add
-                        var data = JSON.parse(data);
-                        var added_event = new Object();
-                        // If event has no activity
-                        if (! data[0].fields.activity) {
-                          if (! data[0].fields.location) {
-                            added_event.title = "Busy";
-                          }
-                          else{
-                            added_event.title = "Busy in " + data[0].fields.location;
-                          }
-                        }
-                        // If event has an activity
-                        else {
-                          if (! data[0].fields.location) {
-                            added_event.title = data[0].fields.activity;
-                          }
-                          else{
-                            added_event.title = data[0].fields.activity + " in " + data[0].fields.location;
-                          }
-                        }
+                        console.log( "ajax worked123!!!" );
 
-                        added_event.start = data[0].fields.start_time;
-                        added_event.end = data[0].fields.end_time;
-                        added_event.allDay = false;
-                        added_event.id = data[0].pk;
-
-
-
-
-                        console.log( "pk1 = " + data[0].pk );
-                        console.log( "added_event.id = " + added_event.id)
-
-
-
-                        $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
-
+                        // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
+                        /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
                         $dialog.dialog('close');
                      },
                   });
                 };
+           //     $('#submit').load('/calendar/ #calendar');
                 $dialog.append(cancel);
                 $dialog.append(submit);
                 $dialog.dialog('open');
@@ -762,15 +445,13 @@ function make_events(data, color, owner, hover) {
         },
     });
 });
+
   </script>
 
-<script>
-  $('#myDate').datepicker();
-</script>
-
 </div>
-
-<!-- datepicker calendar is below the calendar 
-<input type="date" name="date" id="date" value="" /> -->
+<form action="/calendar/" method="post">{% csrf_token %} 
+  {{ form.as_p }}
+  <input type="submit" value="Submit!" />
+</form>
 
 {% endblock %}
