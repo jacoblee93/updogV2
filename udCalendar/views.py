@@ -297,6 +297,7 @@ def change_event(request):
 
     else: return HttpResponse("Failure123")
 
+@csrf_exempt ## DELETE_ME
 def change_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':

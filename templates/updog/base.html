@@ -74,8 +74,9 @@
 	      <li class="active"><a href="http://www.crossfit.com">Home</a></li>
               <li><a href="http://www.wikipedia.com">About</a></li>
               <li><a href="#contact">Contact</a></li>
-              <li><a href="#preferences">Preferences</a></li>
+              
               {% if user.is_authenticated %}
+                <li><a href="#preferences">Preferences</a></li>
                 <li><a href="/calendar/logout_user/">Logout</a></li>
               {% else %} 
                 <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
