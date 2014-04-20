@@ -18,5 +18,5 @@ urlpatterns = patterns('',
         url(r'^remove_event/$', views.remove_event, name='remove_event'),
         url(r'^find_friends/$', views.find_friends, name='find_friends'),
         url(r'^get_friends_events/$', views.get_friends_events, name='get_friends_events'),
-
+        url(r'^get_friends_downtimes/$', views.get_friends_downtimes, name='get_friends_downtimes'),
 )
