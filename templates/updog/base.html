@@ -11,6 +11,19 @@
     <script src="{% static 'js/updog-ajax.js' %}"></script>
     <link href="{% static 'css/fullcalendar.css' %}" rel="stylesheet">
     <link href="{% static 'css/fullcalendar.print.css' %}" rel="stylesheet" media="print">
+    <link href="{% static 'css/datepicker.css' %}" rel="stylesheet">
+    <link href="{% static 'css/jquery.timepicker.css' %}" rel="stylesheet">
+
+
+    <link href="{% static 'css/classic.css' %}" rel="stylesheet">
+    <link href="{% static 'css/classic.time.css' %}" rel="stylesheet">
+    <script src="{% static 'js/picker.js' %}"></script>
+    <script src="{% static 'js/picker.time.js' %}"></script>
+
+
+
+    <script src="{% static 'js/jquery.timepicker.js' %}"></script>
+    <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/jquery-ui.custom.min.js' %}"></script>
     <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
@@ -74,8 +87,9 @@
 	      <li class="active"><a href="http://www.crossfit.com">Home</a></li>
               <li><a href="http://www.wikipedia.com">About</a></li>
               <li><a href="#contact">Contact</a></li>
-              <li><a href="#preferences">Preferences</a></li>
+              
               {% if user.is_authenticated %}
+                <li><a href="#preferences">Preferences</a></li>
                 <li><a href="/calendar/logout_user/">Logout</a></li>
               {% else %} 
                 <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
