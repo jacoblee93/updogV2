@@ -51,6 +51,8 @@ class Friendship(models.Model):
     from_user = models.ForeignKey(UpDogUser, related_name='friend_of')
     date_last_seen = models.DateField(auto_now=True)
     meeting_count = models.IntegerField(default=0)
+    is_mutual = models.BooleanField(default=False)
+    is_new = models.BooleanField(default=False)
     
     def __unicode__(self):
         return "From %s to %s" % (self.from_user, self.to_user)

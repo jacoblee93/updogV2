@@ -277,6 +277,23 @@ def edit_event(request):
     else: return HttpResponse("Failure here!!!!")
 
 @login_required
+def edit_downtime(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+            if 'activity' in request.POST:
+                downtime.preferred_activity = request.POST['activity']
+            downtime.save()
+
+            json_downtime = serializers.serialize("json", [downtime, ])
+
+            print json_downtime
+
+            return HttpResponse(json_downtime)
+
+    return HttpResponse("Invalid request")
+
+@login_required
 #@csrf_exempt ## DELETE_ME
 def change_event(request):
     if request.is_ajax():
@@ -323,6 +340,18 @@ def remove_event(request):
 
             return HttpResponse("Success here!!!!!")
     else: return HttpResponse("Failure here!!!!")
+
+@login_required
+def remove_downtime(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+            downtime.delete()
+
+            return HttpResponse("Successfully deleted downtime")
+
+    return HttpResponse("Invalid request")
+            
 
 def find_friends(request):
     if request.is_ajax():

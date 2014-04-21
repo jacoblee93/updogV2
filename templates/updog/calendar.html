@@ -274,7 +274,10 @@ function make_events(data, color, owner, hover, is_event) {
             }
           }
           else { // for downtimes
-            single.title = owner + " is free";
+
+            if (!data[i].fields.preferred_activity)
+              single.title = owner + " is free";
+            else single.title = owner + " wants to " + data[i].fields.preferred_activity;
           }
 
           single.start = data[i].fields.start_time;
@@ -433,11 +436,16 @@ function make_events(data, color, owner, hover, is_event) {
     var downtimes = make_events(downtime_data, 'green', '{{ username }}', false, false);
     var downtimes_and_events;
     if (multiple) {
-      downtimes_and_events = multiple.concat(downtimes);
+
+      if (downtimes) {
+
+        downtimes_and_events = multiple.concat(downtimes);
+      }
+
+      else downtimes_and_events = multiple;
     }
-    else if (downtimes) {
-      downtimes_and_events = downtimes.concat(multiple)
-    }
+
+    else if (downtimes) downtimes_and_events = downtimes;
 
     var date = new Date();
     var d = date.getDate();
@@ -648,11 +656,150 @@ function make_events(data, color, owner, hover, is_event) {
         $dialog.dialog('open');
       }
       // edit downtimes
-      else if (event.owner == '{{username}}') {
-        console.log("This is one of your down times!!!")
+      else if (event.owner == '{{ username }}') {
+        
+        $dialog.dialog({title:event.title});
+
+        var edit = document.createElement("input");
+        edit.setAttribute('type', "submit");
+        edit.setAttribute('value', "Edit Downtime");
+        edit.onclick = function() {
+
+          $dialog.dialog('close');
+          $dialog.dialog({title:'Edit Downtime'});
+
+          var activity_text = document.createElement("span");
+          activity_text.innerHTML = 'Preferred Activity (opt): &nbsp';
+          var activity = document.createElement("input");
+          activity.setAttribute('type', "text");
+          activity.setAttribute('name', "activity");
+          activity.setAttribute('id', 'activity_field'); 
+
+          if (event.title != "{{username}} is free") {
+
+            var nameLength = "{{username}}".length;
+            activity.setAttribute("value", event.title.substring(nameLength + 10, event.title.length));
+          }
+
+          // span makes it so there's no newline at the end, while "br" would
+          // include the newline
+          start_text = document.createElement("span");
+          // &nbsp is a non-breaking whitespace character
+          start_text.innerHTML = '<br/>Start Time: &nbsp&nbsp&nbsp&nbsp&nbsp';
+          // input box
+          var start_time = document.createElement("input");
+          // you are typing text into the box
+          start_time.setAttribute('type', "text");
+          // can reference this by using "start_time"
+          start_time.setAttribute('name', "start_time");
+
+          end_text = document.createElement("span");
+          end_text.innerHTML = '<br/>End Time: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
+          var end_time = document.createElement("input");
+          end_time.setAttribute('type', "test");
+          end_time.setAttribute('name', "end_time");
+
+          var newline = document.createElement("span");
+          newline.innerHTML = '<br/>';
+
+          $dialog.empty().append(activity_text);
+          $dialog.append(activity);
+          $dialog.append(start_text);
+          $dialog.append(start_time);
+          $dialog.append(end_text);
+          $dialog.append(end_time);
+          $dialog.append(newline);
+
+          var cancel = document.createElement("input");
+          cancel.setAttribute('type', "submit");
+          cancel.setAttribute('value', "Cancel");
+
+          cancel.onclick = function() {
+            $dialog.dialog('close');
+          };
+
+          var submit = document.createElement("input");
+          submit.setAttribute('type',"submit");
+          submit.setAttribute('value', "Submit Change");
+
+          submit.onclick = function() {
+
+            $.ajax({
+              type: "POST",
+              url: "/calendar/edit_downtime/",
+              data: {'activity': $('#activity_field').val(),
+              'pk': event.id,
+
+              },
+               success: function(data) {
+                  $('#calendar').fullCalendar('removeEvents', event.id);
+
+                  // data[0] now holds the event to edit
+                  var data = JSON.parse(data);
+
+                  var edited_event = make_events(data, 'green', '{{username}}', false, false)[0];
+
+                  $('#calendar').fullCalendar('renderEvent', edited_event, stick = true);
+                  $dialog.dialog('close');
+               },
+            });
+          };
+
+          $dialog.append(cancel);
+          $dialog.append(submit);
+          $dialog.dialog('open');
+        };
+
+        var del = document.createElement("input");
+        del.setAttribute('type',"submit");
+        del.setAttribute('value', "Delete Downtime");
+        del.onclick = function() {
+          if( confirm( "Are you sure you want to delete this downtime?")) {
+            console.log("Delete Function");
+            $.ajax({
+              type: "POST",
+              url: "/calendar/remove_downtime/",
+              data: {"pk": event.id},
+               success: function(data) {
+                  console.log( "ajax to remove!!!" );
+
+                  // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
+                  /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
+               },
+            })
+            $('#calendar').fullCalendar('removeEvents', event.id);
+            $('#calendar').fullCalendar('rerenderEvents');
+            
+            $dialog.dialog('close');
+          }
+        };
+
+        $($dialog).empty().append(
+          $('<p />').text(event.start.toDateString())
+        );
+        $($dialog).append(
+          $('<p />').text(event.allDay ? 'All day event' : getTime(event.start) + '-' + getTime(event.end))
+        );
+        if (event.location)
+        $($dialog).append(
+          $('<p />').text(event.allDay ? 'All day event' : getTime(event.start) + '-' + getTime(event.end))
+        );
+
+        var cancel = document.createElement("input");
+        cancel.setAttribute('type', "submit");
+        cancel.setAttribute('value', "Cancel");
+
+        cancel.onclick = function() {
+          $dialog.dialog('close');
+        };
+
+        $dialog.append(cancel);
+        $($dialog).append(edit);
+        $($dialog).append(del);
+        $dialog.dialog('open');
 
 
-      }
+        }
       },
       eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
 
