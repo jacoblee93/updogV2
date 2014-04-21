@@ -468,7 +468,7 @@ function make_events(data, color, owner, hover, is_event) {
       header: {
       left: 'prev,next today',
       center: 'title',
-      right: 'month,agendaWeek,agendaDay',
+      right: 'month,agendaWeek',
       },
 
       selectable: true,
@@ -519,12 +519,102 @@ function make_events(data, color, owner, hover, is_event) {
           start_text = document.createElement("span");
           // &nbsp is a non-breaking whitespace character
           start_text.innerHTML = '<br/>Start Time: &nbsp&nbsp&nbsp&nbsp&nbsp';
+
+/*
+          var startTime = document.createElement("input");
+          startTime.id = "txtStartTime";
+          startTime.type = "text";
+          startTime.className = "timepicker";
+          startTime.style.width = "85px";
+         // startTime.readonly = "readonly";
+
+
+          var lblStartTime = document.createElement('label')
+          lblStartTime.htmlFor = "txtStartTime";
+          lblStartTime.appendChild(document.createTextNode('fromTime'));
+*/
+
+          var startDate = document.createElement("input");
+          startDate.id = "txtStartDate";
+          startDate.type = "text";
+          startDate.className = "datepicker";
+          startDate.style.width = "85px";
+          startDate.readonly = "readonly";
+
+          // January is 0 so we add 1
+          var startMonth = event.start.getMonth() + 1;
+          if (startMonth < 10) {
+            startMonth = '0' + startMonth;
+          }
+          var startDay = event.start.getDate();
+          console.log(event.start);
+          if (startDay < 10) {
+            startDay = '0' + startDay;
+          }
+
+
+
+
+          // when editing an event, the start date is displayed
+          startDate.setAttribute('value', startMonth + '/' + startDay + '/' + event.start.getFullYear());
+
+
+          var lblStartDate = document.createElement('label')
+          lblStartDate.htmlFor = "txtStartDate";
+          lblStartDate.appendChild(document.createTextNode('fromDate'));
+
+          to_text = document.createElement("span");
+          // &nbsp is a non-breaking whitespace character
+          to_text.innerHTML = '&nbsp to &nbsp';
+
+          var endDate = document.createElement("input");
+          endDate.id = "txtEndDate";
+          endDate.type = "text";
+          endDate.className = "datepicker";
+          endDate.style.width = "85px";
+          endDate.readonly = "readonly";
+
+                    // January is 0 so we add 1
+          var endMonth = event.end.getMonth() + 1;
+          if (endMonth < 10) {
+            endMonth = '0' + endMonth;
+          }
+          var endDay = event.end.getDate();
+          if (endDay < 10) {
+            endDay = '0' + endDay;
+          }
+
+          // when editing an event, the end date is displayed
+          endDate.setAttribute('value', endMonth + '/' + endDay + '/' + event.end.getFullYear());
+
+          var lblEndDate = document.createElement('label')
+          lblEndDate.htmlFor = "txtEndDate";
+          lblEndDate.appendChild(document.createTextNode('toDate'));
+
+        $('#form-control').datepicker({
+        autoclose: true,
+        todayBtn: true,
+        todayHighlight: true
+
+        // make this value the selected date so they can't have something start on one day and end on a later day
+        //startDate:
+        });
+        $('#datepicker').datepicker({
+        autoclose: true,
+        todayBtn: true,
+        todayHighlight: true
+
+        // make this value the selected date so they can't have something start on one day and end on a later day
+        //startDate:
+        });
+
           // input box
           var start_time = document.createElement("input");
           // you are typing text into the box
           start_time.setAttribute('type', "text");
           // can reference this by using "start_time"
           start_time.setAttribute('name', "start_time");
+          start_time.innerHTML = '<input type="text" class="form-control  datepicker" id="datepicker" data-date-format="dd/mm/yyyy" />';
 
           end_text = document.createElement("span");
           end_text.innerHTML = '<br/>End Time: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
@@ -556,6 +646,36 @@ function make_events(data, color, owner, hover, is_event) {
           $dialog.append(location_text);
           $dialog.append(location);
           $dialog.append(newline);
+
+          $dialog.append(startDate);
+
+
+          $dialog.append(to_text);
+          $dialog.append(endDate);
+          $dialog.append(newline);
+
+         //////// $dialog.append(startTime);
+
+          // the options that our datepicker will use
+          var datePickerOptions = {
+              autoclose: true,
+              todayBtn: true,
+              todayHighlight: true
+
+              // make this value the selected date so they can't have something start on one day and end on a later day
+              //startDate:
+          };
+
+          $(startDate).datepicker(datePickerOptions);
+          $(endDate).datepicker(datePickerOptions);
+
+/*
+          var timePickerOptions = {
+            useSelect: true
+          };
+
+          console.log(startTime.className);
+          $(startTime).pickatime();*/
 
           var cancel = document.createElement("input");
           cancel.setAttribute('type', "submit");
