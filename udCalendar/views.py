@@ -3,13 +3,16 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from udCalendar.models import UpDogUser, Friendship, Event
+from udCalendar.models import UpDogUser, Friendship, Event, Downtime
 from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
 from datetime import timedelta
 from django.utils.timezone import utc
 from django.db.models import Q
+from dateutil import parser
+
+from django.views.decorators.csrf import csrf_exempt
 
 # TESTING JSON STUFF
 from django.utils import simplejson
@@ -41,6 +44,8 @@ def calendar(request):
     #current_user = UpDogUser.objects.order_by('-user')[2]
     ## sort user's friendships from by decr. meet count
     # Alex - for local use when redesigning friends tab
+
+
     current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
@@ -61,7 +66,9 @@ def calendar(request):
     context_dict = {'friends_list': friends_list}#json_friends}
 
     json_events = serializers.serialize("json", gimme_events(current_user))
+    json_downtimes = serializers.serialize("json", gimme_downtimes(current_user))
     context_dict['events_list'] = json_events
+    context_dict['downtimes'] = json_downtimes
     context_dict['username'] = request.user.username;
 
     return render_to_response('updog/calendar.html', context_dict, context)
@@ -75,7 +82,6 @@ def gimme_events(current_user):
         days_events = current_user.get_events_on_day(start_date)
         for event in days_events:
             events_list.append(event)
-            print event
 
         start_date = start_date + datetime.timedelta(days=1)
         i = i + 1
@@ -86,14 +92,38 @@ def gimme_events(current_user):
         days_events = current_user.get_events_on_day(start_date)
         for event in days_events:
             events_list.append(event)
-            print event
 
         start_date = start_date - datetime.timedelta(days=1)
         i = i + 1
 
     return events_list
 
-#### TRYING TO have FRONT END REQUEST A FRIENDS EVENTS
+def gimme_downtimes(current_user):
+    ## downtimes for 60 days, surrounding today
+    i = 0
+    start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
+    dts_list = []
+    while i < 30:
+        days_dts = current_user.get_downtimes_on_day(start_date)
+        for dt in days_dts:
+            dts_list.append(dt)
+
+        start_date = start_date + datetime.timedelta(days=1)
+        i = i + 1
+    i = 0
+    start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
+    start_date = start_date - datetime.timedelta(days=1)
+    while i < 30:
+        days_dts = current_user.get_downtimes_on_day(start_date)
+        for dt in days_dts:
+            dts_list.append(dt)
+
+        start_date = start_date - datetime.timedelta(days=1)
+        i = i + 1
+
+    return dts_list
+
+#### TRYING TO have FRONT END REQUEST A FRIENDS EVENTS::::: WE DON:T ACTUALLY NEED THIS *SWITCH TO DOWNTIMES*
 @login_required
 def get_friends_events(request):
     if request.is_ajax():
@@ -110,6 +140,24 @@ def get_friends_events(request):
                 else: return HttpResponse("Failure!")
     else: 
         return HttpResponse("Failure!!!!")
+
+@login_required
+def get_friends_downtimes(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            if 'friend' in request.POST:
+                friend = request.POST['friend']
+                friend = User.objects.filter(username=friend)[0]
+                if friend:
+                    friend_downtimes = gimme_downtimes(friend.updoguser)
+                    json_downtimes = serializers.serialize("json", friend_downtimes)
+
+                    return HttpResponse(json_downtimes)
+
+                else: return HttpResponse("Failure!")
+    else: 
+        return HttpResponse("Failure!!!!")
+
 
 # TESTING AJAX STUFF
 def test_ajax(request):
@@ -159,24 +207,50 @@ def logout_user(request):
     logout(request)
     return HttpResponseRedirect('/calendar/login/')
 
+@login_required
+def add_downtime(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            startDate = None
+            endDate = None
+            if 'startDate' in request.POST:
+                startDate = request.POST['startDate']
+            else: return HttpResponse("Error! No startDate provided")
+            if 'endDate' in request.POST:
+                endDate = request.POST['endDate']
+            else: return HttpResponse("Error! No endDate provided")
+
+            startDate = startDate.strip("\"")
+            startDate = parser.parse(startDate)
+            endDate = endDate.strip("\"")
+            endDate = parser.parse(endDate)
+
+            new_downtime = Downtime.objects.get_or_create(owner=request.user.updoguser, start_time=startDate, end_time=endDate)[0]
+            return HttpResponse(serializers.serialize('json',[new_downtime, ]))
+
+    return HttpResponse("Error!")
+
+
+
 
 @login_required
 def add_event(request):
     if request.is_ajax():
         if request.method == 'POST':
+            context = RequestContext(request)
+
             if 'activity' in request.POST:
                 activity = request.POST['activity']
-
             if 'location' in request.POST:
                 location = request.POST['location']
 
-            event = Event(activity=activity, location=location, start_time=timezone.now() + timedelta(hours=47), end_time=(timezone.now() + timedelta(hours=48)))
-
+            event = Event(activity=activity, location=location, start_time=timezone.now() + timedelta(hours=23), end_time=(timezone.now() + timedelta(hours=24)))
             event.save()
-
             event.owners.add(request.user.updoguser)
 
-            return HttpResponse("Success!!!!!")
+            json_event = serializers.serialize("json", [event, ])
+
+            return HttpResponse(json_event)
     else: return HttpResponse("Failure!!!!")
 
 @login_required
@@ -188,10 +262,32 @@ def edit_event(request):
                 event.activity = request.POST['activity']
             if 'location' in request.POST:
                 event.location = request.POST['location']
+
             event.save()
 
-            return HttpResponse("Success here!!!!!")
+            json_event = serializers.serialize("json", [event, ])
+
+            print event.pk
+
+            return HttpResponse(json_event)
     else: return HttpResponse("Failure here!!!!")
+
+@login_required
+def edit_downtime(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+            if 'activity' in request.POST:
+                downtime.preferred_activity = request.POST['activity']
+            downtime.save()
+
+            json_downtime = serializers.serialize("json", [downtime, ])
+
+            print json_downtime
+
+            return HttpResponse(json_downtime)
+
+    return HttpResponse("Invalid request")
 
 @login_required
 def change_event(request):
@@ -213,6 +309,46 @@ def change_event(request):
     else: return HttpResponse("Failure123")
 
 @login_required
+def change_downtime(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+            time_changes = timedelta(days = int(request.POST['day_delta']), 
+                minutes = int(request.POST['minute_delta']))
+
+            downtime.end_time = downtime.end_time + time_changes
+
+            if request.POST['resize'] == "false":
+                downtime.start_time = downtime.start_time + time_changes
+
+            downtime.save()
+
+        return HttpResponse("Success123")
+
+    else: return HttpResponse("Failure123")
+
+@login_required
+def remove_event(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            event = Event.objects.filter(pk=request.POST['pk'])[0]
+            event.delete()
+
+            return HttpResponse("Success here!!!!!")
+    else: return HttpResponse("Failure here!!!!")
+
+@login_required
+def remove_downtime(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+            downtime.delete()
+
+            return HttpResponse("Successfully deleted downtime")
+
+    return HttpResponse("Invalid request")
+            
+@login_required
 def find_friends(request):
     if request.is_ajax():
         if request.method == 'GET':
@@ -228,14 +364,5 @@ def find_friends(request):
             return HttpResponse(user_list)
 
     return HttpResponse("Uh-Oh")
-
-
-
-
-
-
-
-
-
 
 
