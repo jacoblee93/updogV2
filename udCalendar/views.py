@@ -49,7 +49,14 @@ def calendar(request):
     current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
+    test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
+    test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
+    test_to_friendship.is_mutual = True
+    test_from_friendship.is_mutual = True
+    test_to_friendship.save()
+    test_from_friendship.save()
     ships_list = current_user.get_friends()
+    print ships_list
     #ships_list = request.user.updoguser.get_friends()
 
     ordered_ships_list = ships_list.order_by('-meeting_count')
@@ -58,9 +65,6 @@ def calendar(request):
         friends_list.append(ship.to_user.user)
 
     # Alex - for local use when rediesigning friends tab 
-    current_user.remove_friend(UpDogUser.objects.order_by('-user')[2])
-    current_user.remove_friend(UpDogUser.objects.order_by('-user')[3])
-    current_user.remove_friend(UpDogUser.objects.order_by('-user')[4])
     #json_friends = serializers.serialize("json", friends_list)
 
     context_dict = {'friends_list': friends_list}#json_friends}
@@ -364,5 +368,76 @@ def find_friends(request):
             return HttpResponse(user_list)
 
     return HttpResponse("Uh-Oh")
+
+@login_required
+def send_friend_request(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            if 'new_friend' in request.POST:
+                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                current_user = request.user.updoguser
+
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
+
+                if to_friendship:
+                    return HttpResponse("Request Pending")
+
+                current_user.add_friend(new_friend)
+
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
+                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)
+
+                from_friendship.is_new = True
+                new_friend.new_notifications = True
+
+                from_friendship.save()
+                new_friend.save()
+
+                return HttpResponse("Success")
+
+    return HttpResponse("Failure!")
+
+@login_required
+def accept_friend_request(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            if 'new_friend' in request.POST:
+                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                current_user = request.user.updoguser
+
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
+                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)
+
+                to_friendship.is_mutual = True
+                from_friendship.is_mutual = True
+
+                to_friendship.is_new = False
+
+                to_friendship.save()
+                from_friendship.save()
+
+                return HttpResponse("Success!")
+
+    return HttpResponse("Failure!")
+
+@login_required
+def reject_friend_request(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            if 'new_friend' in request.POST:
+                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                current_user = request.user.updoguser
+
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
+                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)
+
+                to_friendship.is_new = False
+                to_frienship.save()
+
+                return HttpResponse("Success!")
+
+    return HttpResponse("Failure!")
+
+
 
 

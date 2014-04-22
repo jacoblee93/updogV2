@@ -23,4 +23,7 @@ urlpatterns = patterns('',
         url(r'^get_friends_events/$', views.get_friends_events, name='get_friends_events'),
         url(r'^add_downtime/$', views.add_downtime, name='add_downtime'),
         url(r'^get_friends_downtimes/$', views.get_friends_downtimes, name='get_friends_downtimes'),
+        url(r'^send_friend_request/$', views.send_friend_request, name='send_friend_request'),
+        url(r'^accept_friend_request/$', views.accept_friend_request, name='accept_friend_request'),
+        url(r'^reject_friend_request/$', views.reject_friend_request, name='reject_friend_request'),
 )

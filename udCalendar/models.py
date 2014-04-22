@@ -12,6 +12,7 @@ class UpDogUser(models.Model):
     packs = models.ManyToManyField('Pack')
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=False, related_name='friend_to+')
     location = models.CharField(max_length=100)
+    new_notifications = models.BooleanField(default=False)
 
     def __unicode__(self):
         return self.user.username
@@ -35,7 +36,7 @@ class UpDogUser(models.Model):
         return
 
     def get_friends(self):
-        return Friendship.objects.filter(from_user=self)
+        return Friendship.objects.filter(from_user=self, is_mutual=True)
 
     def get_downtimes_on_day(self, date):
         return self.downtime_set.filter(
