@@ -47,7 +47,7 @@ div#scroll-able {
 }
 </style>
 
-
+<!-- the function to find the friends the user searches for -->
 <div>
   <script type="text/javascript">
     $(function() {
@@ -86,15 +86,16 @@ div#scroll-able {
                   {% endif %}
 
                   if (mydata[i].fields.username != '{{ user.username }}' && isFriend == 0) {
-                    users.push(mydata[i].fields.username);
+                    users.push(mydata[i]);
                   }
                 };
               }
               if (users.length != 0) {
                 for (var i = 0; i < dlength; i++) {
-                userhtml = userhtml + '<div><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt = "profpic" width = "40" height = "40"> ' + users[i] + '<div style="float:right"><button type="button"> add </button></div></a></div>';
+                userhtml = userhtml + '<div><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt = "profpic" width = "40" height = "40"> ' + users[i].fields.username + '<div style="float:right"><button type="button" onclick="add_friend(\'' +  users[i].fields.username  + '\')"> add </button></div></a></div>';
                 }
               }
+                console.log(userhtml);
                 $('.error').fadeOut(200).hide();
                 $(".output").html(userhtml);
             }
@@ -201,8 +202,15 @@ div#scroll-able {
       
 <script>
 
+function add_friend(new_friend) {
+  //alert(new_friend + ", " + '{{ user.username }}');
+  
+  
+}
 
+</script>
 
+<script>
 
 function make_events(data, color, owner, hover) {
       if (data.length > 0) {
