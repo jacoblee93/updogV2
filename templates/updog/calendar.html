@@ -92,7 +92,7 @@ div#scroll-able {
               }
               if (users.length != 0) {
                 for (var i = 0; i < dlength; i++) {
-                userhtml = userhtml + '<div><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt = "profpic" width = "40" height = "40"> ' + users[i] + '<div style="float:right"><button type="button"> add </button></div></a></div>';
+                userhtml = userhtml + '<div><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt = "profpic" width = "40" height = "40"> ' + users[i] + '<div style="float:right"><button type="button" onclick="send_friend_request(\'' + users[i] + '\')"> add </button></div></a></div>';
                 }
               }
                 $('.error').fadeOut(200).hide();
@@ -244,6 +244,25 @@ div#scroll-able {
   </div>
 </div>
       
+<script>
+
+function send_friend_request(new_friend) {
+  $.ajax({
+    type: "POST",
+    url: "/calendar/send_friend_request/",
+    data: {'new_friend': new_friend},
+    success: function(data) {
+
+      console.log(data);
+    }
+
+  });
+
+
+}
+
+</script>
+
 <script>
 
 function make_events(data, color, owner, hover, is_event) {
