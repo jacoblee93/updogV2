@@ -76,6 +76,7 @@ SOCIAL_AUTH_PIPELINE = (
     'social_auth.backends.pipeline.user.update_user_details',
     'udCalendar.pipelines.get_fbid',
     'udCalendar.pipelines.get_location',
+    'udCalendar.pipelines.save_profile_picture',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -123,11 +124,11 @@ DATABASES = {
 
 # Heroku database
 import dj_database_url
-DATABASES['default'] = dj_database_url.config()
+#DATABASES['default'] = dj_database_url.config()
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-ALLOWED_HOSTS = ['*']
+#ALLOWED_HOSTS = ['*']
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
