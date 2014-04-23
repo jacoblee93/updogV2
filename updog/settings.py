@@ -27,6 +27,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     STATIC_PATH,
 )
+STATIC_ROOT = 'staticfiles'
 
 DATABASE_PATH = os.path.join(PROJECT_PATH, 'updog.db')
 
@@ -110,6 +111,8 @@ WSGI_APPLICATION = 'updog.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
+ 
+# SQLite database (development)
 
 DATABASES = {
     'default': {
@@ -117,6 +120,14 @@ DATABASES = {
         'NAME': DATABASE_PATH,
     }
 }
+
+# Heroku database
+import dj_database_url
+DATABASES['default'] = dj_database_url.config()
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+ALLOWED_HOSTS = ['*']
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
