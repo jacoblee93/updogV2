@@ -371,8 +371,8 @@ def find_friends(request):
     if request.is_ajax():
         if request.method == 'GET':
             l = len(request.GET["search"])
-            # problems: only matches full string, is also case sensitive
-            friends_list = UpDogUser.objects.filter(Q(user__first_name=request.GET["search"]) | Q(user__last_name=request.GET["search"]) | Q(user__username=request.GET["search"]))
+
+            friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
             fl = len(friends_list)
             user_list = []
 
@@ -387,14 +387,16 @@ def find_friends(request):
 def send_friend_request(request):
     if request.is_ajax():
         if request.method == 'POST':
-            if 'new_friend' in request.POST:
+
+            if 'new_friend' in request.POST and 'i' in request.POST:
+                i = request.POST['i']
                 new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
                 current_user = request.user.updoguser
 
                 to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
 
                 if to_friendship:
-                    return HttpResponse("Request Pending")
+                    return HttpResponse("Request Pending," + i)
 
                 current_user.add_friend(new_friend)
 
@@ -407,7 +409,7 @@ def send_friend_request(request):
                 from_friendship.save()
                 new_friend.save()
 
-                return HttpResponse("Success")
+                return HttpResponse("Success," + i)
 
     return HttpResponse("Failure!")
 

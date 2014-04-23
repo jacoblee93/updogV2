@@ -84,8 +84,8 @@ div#scroll-able {
                 };
               }
               if (users.length != 0) {
-                for (var i = 0; i < dlength; i++) {
-                userhtml = userhtml + '<div><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt = "profpic" width = "40" height = "40"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="send_friend_request(\'' +  users[i].fields.username  + '\')"> add </button></div></a></div>';
+                for (var i = 0; i < users.length; i++) {
+                userhtml = userhtml + '<div><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt = "profpic" width = "40" height = "40"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="send_friend_request(\'' +  users[i].fields.username + '\' , \'' + i + '\')"> add </button></div><div id="div' + i + '"></div></a></div>';
                 }
               }
                 $('.error').fadeOut(200).hide();
@@ -239,14 +239,22 @@ div#scroll-able {
       
 <script>
 
-function send_friend_request(new_friend) {
+function send_friend_request(new_friend, i) {
   $.ajax({
     type: "POST",
     url: "/calendar/send_friend_request/",
-    data: {'new_friend': new_friend},
+    data: {'new_friend': new_friend, 'i': i},
     success: function(data) {
-
-      console.log(data);
+      var s = data.indexOf(',');
+      var data1 = data.substring(0,s);
+      var data2 = data.substring(s+1, data.length);
+      if (data1 === "Request Pending") {
+        // need to modify to #divi
+        $("#div"+data2).text("Request Pending");
+      }
+      else {
+        $("#div"+data2).text("friend request sent");
+      }
     }
 
   });
