@@ -48,14 +48,67 @@
       }
     });
     </script>
-    
-    <br /><br /><br /><br /><br />
+
+    {% block nav_block %}
+    {% endblock %}
 
     {% block above_calendar_block %}
     {% endblock %}
 
     {% block calendar_block %}
     {% endblock %}
+
+    <script>
+
+    function display_friend_requests() {
+      $.ajax({
+        type: "GET",
+        url: "/calendar/display_friend_requests/",
+        data: {"username": '{{ user.username }}',
+        },
+        success: function(data) {
+        mydata = JSON.parse(data);
+        var dlength = mydata.length;
+        var users = [];
+        userhtml = "";
+
+        for (var i = 0; i < dlength; i++) {
+          users.push(mydata[i]);
+        }
+
+        if (users.length != 0) {
+          for (var i = 0; i < dlength; i++) {
+            userhtml = userhtml + '<li><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="40" height="40"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<br><div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li>';
+          }
+        }
+        $(".notifications").html(userhtml);
+      }
+    });
+  }
+
+  function accept_friend_request(new_friend) {
+    $.ajax({
+      type: "POST",
+      url: "/calendar/accept_friend_request/",
+      data: {'new_friend': new_friend},
+      success: function(data){
+        
+      }
+    });
+  }
+
+  function reject_friend_request(new_friend) {
+    $.ajax({
+      type: "POST",
+      url: "/calendar/reject_friend_request/",
+      data: {'new_friend': new_friend},
+      success: function(data){
+        console.log(data)
+      }
+    });
+  }
+
+</script>
 
     <div class="bs-example bs-navbar-top-example">
       <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -90,6 +143,16 @@
               
               {% if user.is_authenticated %}
                 <li><a href="#preferences">Preferences</a></li>
+                <li><div class=></li>
+                <!--<li><a onclick = "display_friend_requests()"> Notifications 
+                  <div class="notifications"></div>
+                </a></li>-->
+                <li class="dropdown">
+                  <a onclick="display_friend_requests()" class="dropdown-toggle" data-toggle="dropdown" >Notifications <b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <div class="notifications"></div>
+                  </ul>
+                </li>
                 <li><a href="/calendar/logout_user/">Logout</a></li>
               {% else %} 
                 <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>

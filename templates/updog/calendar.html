@@ -230,8 +230,8 @@ div#scroll-able {
                 <span class="success" style="display:none"></span></a>
               </form>
             <div class="output"></div>
-      </div><!--/span-->
-    </div>
+          </div><!--/span-->
+      </div>
     {% endif %}
     <br>
   </div>
@@ -240,9 +240,29 @@ div#scroll-able {
 <script>
 
 function send_friend_request(new_friend) {
-  //alert(new_friend + ", " + '{{ user.username }}');
-  
-  
+  $.ajax({
+    type: "POST",
+    url: "/calendar/send_friend_request/",
+    data: {'new_friend': new_friend},
+    success: function(data) {
+
+      console.log(data);
+    }
+
+  });
+}
+
+</script>
+
+<script>
+
+function get_friend_requests() {
+  $.ajax({
+    type: "GET",
+    url: "/calendar/get_friend_request/"
+
+  })
+
 }
 
 </script>
