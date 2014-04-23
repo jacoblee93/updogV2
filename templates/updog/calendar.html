@@ -34,12 +34,6 @@
 
 {% block calendar_block %}
 
-<script>
-function getinfo(name) {
-  alert();
-}
-</script>
-
 <style>
 div#scroll-able {
   height: 310px;
@@ -47,7 +41,7 @@ div#scroll-able {
 }
 </style>
 
-
+<!-- the function to find the friends the user searches for -->
 <div>
   <script type="text/javascript">
     $(function() {
@@ -75,8 +69,7 @@ div#scroll-able {
                 userhtml = "";
 
                 for (var i = 0; i < dlength; i++) {
-                  // excludes current friends and self, but not very efficient, could take
-                  // a long ass time for a large number of friends and users
+                  // to do: firstname/lastname in friends tab, show current and pending friends in search, w/o add button, add notifications dropdown to navbar
                   isFriend = 0;
                   {% if friends_list %}
                     {% for friend in friends_list %}
@@ -238,8 +231,8 @@ div#scroll-able {
                 <span class="success" style="display:none"></span></a>
               </form>
             <div class="output"></div>
-      </div><!--/span-->
-    </div>
+          </div><!--/span-->
+      </div>
     {% endif %}
     <br>
   </div>
@@ -258,7 +251,18 @@ function send_friend_request(new_friend) {
     }
 
   });
+}
 
+</script>
+
+<script>
+
+function get_friend_requests() {
+  $.ajax({
+    type: "GET",
+    url: "/calendar/get_friend_request/"
+
+  })
 
 }
 
