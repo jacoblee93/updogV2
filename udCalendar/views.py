@@ -46,18 +46,18 @@ def calendar(request):
     # Alex - for local use when redesigning friends tab
 
 
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
 
-    test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
-    test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
-    test_to_friendship.is_mutual= True
-    test_from_friendship.is_mutual = True
-    test_to_friendship.is_new = False
-    test_from_friendship.is_new = False
-    test_to_friendship.save()
-    test_from_friendship.save()
+    #test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
+    #test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
+    #test_to_friendship.is_mutual= True
+    #test_from_friendship.is_mutual = True
+    #test_to_friendship.is_new = False
+    #test_from_friendship.is_new = False
+    #test_to_friendship.save()
+    #test_from_friendship.save()
 
     # Alex - friend request to build notifications bar
     #test_to_request = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
@@ -71,7 +71,6 @@ def calendar(request):
     #test_to_request.save()
 
     ships_list = current_user.get_friends()
-    #ships_list = request.user.updoguser.get_friends()
 
     ordered_ships_list = ships_list.order_by('-meeting_count')
     friends_list = []
@@ -400,13 +399,13 @@ def send_friend_request(request):
 
                 current_user.add_friend(new_friend)
 
-                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
-                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
+                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
 
-                from_friendship.is_new = True
+                to_friendship.is_new = True
                 new_friend.new_notifications = True
 
-                from_friendship.save()
+                to_friendship.save()
                 new_friend.save()
 
                 return HttpResponse("Success," + i)
@@ -463,13 +462,15 @@ def reject_friend_request(request):
 def display_friend_requests(request):
     if request.is_ajax():
         if request.method == 'GET':
-            user_in = UpDogUser.objects.filter(user__username=request.GET["username"])
-            has_friend_requests = user_in[0].new_notifications
-            if has_friend_requests:
-                return HttpResponse()
+
+            current_uduser = request.user.updoguser
+            
+            if not current_uduser.new_notifications:
+                return HttpResponse("No new notifications")
 
             else:
-                requests = Friendship.objects.filter(to_user=user_in, is_new=True)
+                requests = Friendship.objects.filter(to_user=current_uduser)
+                print requests
                 rl = len(requests)
                 request_list = []
 

@@ -13,6 +13,7 @@ class UpDogUser(models.Model):
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=False, related_name='friend_to+')
     location = models.CharField(max_length=100)
     new_notifications = models.BooleanField(default=False)
+    profile_picture = models.ImageField(upload_to='profile_pictures')
 
     def __unicode__(self):
         return self.user.username

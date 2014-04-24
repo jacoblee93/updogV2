@@ -58,7 +58,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'udCalendar',
-    'social_auth',
+    'social_authOB',
 )
 
 AUTHENTICATION_BACKENDS = (
@@ -107,7 +107,7 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'updog.urls'
 
-WSGI_APPLICATION = 'updog.wsgi.application'
+#WSGI_APPLICATION = 'updog.wsgi.application'
 
 
 # Database
