@@ -34,12 +34,6 @@
 
 {% block calendar_block %}
 
-<script>
-function getinfo(name) {
-  alert();
-}
-</script>
-
 <style>
 div#scroll-able {
   height: 310px;
@@ -47,7 +41,7 @@ div#scroll-able {
 }
 </style>
 
-
+<!-- the function to find the friends the user searches for -->
 <div>
   <script type="text/javascript">
     $(function() {
@@ -75,8 +69,7 @@ div#scroll-able {
                 userhtml = "";
 
                 for (var i = 0; i < dlength; i++) {
-                  // excludes current friends and self, but not very efficient, could take
-                  // a long ass time for a large number of friends and users
+                  // to do: firstname/lastname in friends tab, show current and pending friends in search, w/o add button, add notifications dropdown to navbar
                   isFriend = 0;
                   {% if friends_list %}
                     {% for friend in friends_list %}
@@ -85,14 +78,15 @@ div#scroll-able {
                     {% endfor %}
                   {% endif %}
 
-                  if (mydata[i].fields.username != '{{ user.username }}' && isFriend == 0) {
+                  if (mydata[i].fields.username != '{{ user.username }}') {
                     users.push(mydata[i].fields.username);
                   }
                 };
               }
               if (users.length != 0) {
                 for (var i = 0; i < dlength; i++) {
-                userhtml = userhtml + '<div><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt = "profpic" width = "40" height = "40"> ' + users[i] + '<div style="float:right"><button type="button"> add </button></div></a></div>';
+                  console.log(mydata[i].fields);
+                userhtml = userhtml + '<div><a class="list-group-item"><img src="/media/profile_pictures/' + users[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + mydata[i].fields.first_name + ' ' +  mydata[i].fields.last_name + '<div style="float:right"><button type="button" onclick="send_friend_request(\'' + users[i] + '\')"> add </button></div></a></div>';
                 }
               }
                 $('.error').fadeOut(200).hide();
@@ -128,8 +122,8 @@ div#scroll-able {
             </a>  
             {% for friend in friends_list %}
               <a class="list-group-item" onclick="getevents( '{{ friend }}' )" id="friend_{{ friend }}"> 
-               <div><img src="{% static 'img/glyphicons-halflings.png' %}" alt = "profpic" width = "40" height = "40">
-               <span class="frand">{{ friend }}</span>
+               <div><img src="/media/profile_pictures/{{ friend }}-social.jpg" alt = "profpic" width = "50" height = "50">
+               <span class="frand">{{ friend.first_name }} {{ friend.last_name }}</span>
                </div>
               </a>
               <script>
@@ -237,8 +231,8 @@ div#scroll-able {
                 <span class="success" style="display:none"></span></a>
               </form>
             <div class="output"></div>
-      </div><!--/span-->
-    </div>
+          </div><!--/span-->
+      </div>
     {% endif %}
     <br>
   </div>
@@ -246,64 +240,35 @@ div#scroll-able {
       
 <script>
 
-function make_events(data, color, owner, hover, is_event) {
-      if (data.length > 0) {
-        var dlength = data.length;
-        var multiple = [];
-        // in each loop, we add another event to the list of events for this user
-        for (var i = 0; i < dlength; i++) {
-          var single = new Object();
-          if (is_event) {
-            // If event has no activity
-            if (! data[i].fields.activity) {
-              if (! data[i].fields.location) {
-                single.title = "Busy";
-              }
-              else{
-                single.title = "Busy in " + data[i].fields.location;
-              }
-            }
-            // If event has an activity
-            else {
-              if (! data[i].fields.location) {
-                single.title = data[i].fields.activity;
-              }
-              else{
-                single.title = data[i].fields.activity + " in " + data[i].fields.location;
-              }
-            }
-          }
-          else { // for downtimes
+function send_friend_request(new_friend) {
+  $.ajax({
+    type: "POST",
+    url: "/calendar/send_friend_request/",
+    data: {'new_friend': new_friend},
+    success: function(data) {
 
-            if (!data[i].fields.preferred_activity)
-              single.title = owner + " is free";
-            else single.title = owner + " wants to " + data[i].fields.preferred_activity;
-          }
-
-          single.start = data[i].fields.start_time;
-          single.end = data[i].fields.end_time;
-          single.allDay = false;
-          single.id = data[i].pk;
-          single.color = color;
-          single.owner = owner;
-          single.is_event = is_event; // true for events, false for downtimes
-          if (is_event) {
-            single.editable = true;
-          }
-          if (owner == "{{username}}") {
-            single.editable = true;
-
-          }
-
-          else if (hover) {
-            single.owner = "hover";
-          }
-
-          multiple.push(single);
-        }
-      }
-      return multiple;
+      console.log(data);
     }
+
+  });
+}
+
+</script>
+
+<script>
+
+function get_friend_requests() {
+  $.ajax({
+    type: "GET",
+    url: "/calendar/get_friend_request/"
+
+  })
+
+}
+
+</script>
+
+<script>
     function getevents(obj) {
       $.ajax({
       type: "POST",

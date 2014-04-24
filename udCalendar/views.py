@@ -11,6 +11,7 @@ from datetime import date, time, timedelta
 from django.utils.timezone import utc
 from django.db.models import Q
 from dateutil import parser
+import random
 
 from django.views.decorators.csrf import csrf_exempt
 
@@ -20,6 +21,7 @@ from django.core import serializers
 import json
 
 @login_required
+@csrf_exempt
 # A view in which to test graphics
 def test(request):
     context = RequestContext(request)
@@ -36,6 +38,7 @@ def test(request):
     return render_to_response('updog/base.html', context_dict, context)
 
 @login_required
+@csrf_exempt
 # The calendar view  
 def calendar(request):
     context = RequestContext(request)
@@ -46,11 +49,31 @@ def calendar(request):
     # Alex - for local use when redesigning friends tab
 
 
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
+
+    #test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
+    #test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
+    #test_to_friendship.is_mutual= True
+    #test_from_friendship.is_mutual = True
+    #test_to_friendship.is_new = False
+    #test_from_friendship.is_new = False
+    #test_to_friendship.save()
+    #test_from_friendship.save()
+
+    # Alex - friend request to build notifications bar
+    #test_to_request = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
+    #test_from_request = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
+    #test_from_request.is_new = True
+    #current_user.new_notifications = True
+    #test_to_request.is_new = False
+    #test_to_request.is_mutual = False
+    #test_from_request.is_mutual = False
+    #test_from_request.save()
+    #test_to_request.save()
+
     ships_list = current_user.get_friends()
-    #ships_list = request.user.updoguser.get_friends()
 
     ordered_ships_list = ships_list.order_by('-meeting_count')
     friends_list = []
@@ -58,9 +81,6 @@ def calendar(request):
         friends_list.append(ship.to_user.user)
 
     # Alex - for local use when rediesigning friends tab 
-    current_user.remove_friend(UpDogUser.objects.order_by('-user')[2])
-    current_user.remove_friend(UpDogUser.objects.order_by('-user')[3])
-    current_user.remove_friend(UpDogUser.objects.order_by('-user')[4])
     #json_friends = serializers.serialize("json", friends_list)
 
     context_dict = {'friends_list': friends_list}#json_friends}
@@ -125,6 +145,7 @@ def gimme_downtimes(current_user):
 
 #### TRYING TO have FRONT END REQUEST A FRIENDS EVENTS::::: WE DON:T ACTUALLY NEED THIS *SWITCH TO DOWNTIMES*
 @login_required
+@csrf_exempt
 def get_friends_events(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -142,6 +163,7 @@ def get_friends_events(request):
         return HttpResponse("Failure!!!!")
 
 @login_required
+@csrf_exempt
 def get_friends_downtimes(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -203,11 +225,13 @@ def login(request):
     return render_to_response('updog/login.html', {}, context)
 
 @login_required
+@csrf_exempt
 def logout_user(request):
     logout(request)
     return HttpResponseRedirect('/calendar/login/')
 
 @login_required
+@csrf_exempt
 def add_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -231,6 +255,7 @@ def add_downtime(request):
     return HttpResponse("Error!")
 
 @login_required
+@csrf_exempt
 def add_event(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -267,6 +292,7 @@ def add_event(request):
     else: return HttpResponse("Failure!!!!")
 
 @login_required
+@csrf_exempt
 def edit_event(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -302,6 +328,7 @@ def edit_event(request):
     else: return HttpResponse("Failure here!!!!")
 
 @login_required
+@csrf_exempt
 def edit_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -319,6 +346,7 @@ def edit_downtime(request):
     return HttpResponse("Invalid request")
 
 @login_required
+@csrf_exempt
 def change_event(request):
     if request.is_ajax():
         if request.method == 'POST':            
@@ -338,6 +366,7 @@ def change_event(request):
     else: return HttpResponse("Failure123")
 
 @login_required
+@csrf_exempt
 def change_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -357,6 +386,7 @@ def change_downtime(request):
     else: return HttpResponse("Failure123")
 
 @login_required
+@csrf_exempt
 def remove_event(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -367,6 +397,7 @@ def remove_event(request):
     else: return HttpResponse("Failure here!!!!")
 
 @login_required
+@csrf_exempt
 def remove_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -378,6 +409,7 @@ def remove_downtime(request):
     return HttpResponse("Invalid request")
 
 @login_required
+@csrf_exempt
 def find_friends(request):
     if request.is_ajax():
         if request.method == 'GET':
@@ -394,4 +426,168 @@ def find_friends(request):
 
     return HttpResponse("Uh-Oh")
 
+@login_required
+@csrf_exempt
+def send_friend_request(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            if 'new_friend' in request.POST:
+                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                current_user = request.user.updoguser
 
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
+
+                #if to_friendship:
+                 #   return HttpResponse("Request Pending")
+
+                current_user.add_friend(new_friend)
+
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
+                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
+
+                to_friendship.is_new = True
+                new_friend.new_notifications = True
+
+                to_friendship.save()
+                new_friend.save()
+
+                return HttpResponse("Success")
+
+    return HttpResponse("Failure!")
+
+@login_required
+@csrf_exempt
+def accept_friend_request(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            if 'new_friend' in request.POST:
+                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                current_user = request.user.updoguser
+
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
+                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
+
+                to_friendship.is_mutual = True
+                from_friendship.is_mutual = True
+
+                to_friendship.is_new = False
+                from_friendship.is_new = False
+
+                to_friendship.save()
+                from_friendship.save()
+
+                return HttpResponse("Success!")
+
+    return HttpResponse("Failure!")
+
+@login_required
+@csrf_exempt
+def reject_friend_request(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            if 'new_friend' in request.POST:
+                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                current_user = request.user.updoguser
+
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
+                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
+
+                print to_friendship
+                print from_friendship
+                to_friendship.is_new = False
+                from_friendship.is_new = False
+                to_friendship.save()
+                from_friendship.save()
+
+                return HttpResponse("Success!")
+
+    return HttpResponse("Failure!")
+
+@login_required
+@csrf_exempt
+def suggest(request):
+    if request.is_ajax():
+        if request.method == 'GET':
+            current_user = request.user.updoguser
+
+            start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
+            after_today = current_user.downtime_set.filter(start_time__gte=start_date)
+            ordered = after_today.order_by('start_time')
+            if len(ordered) == 0:
+                return HttpResponse(None)
+            my_dt = ordered[0]
+
+            my_friends = current_user.get_friends()
+            if len(my_friends) == 0:
+                return HttpResponse("NoFriends")
+            my_friends_ord = my_friends.order_by('-date_last_seen')
+            minscore = 0
+
+            options = []
+
+            while len(options) == 0:
+                maxscore = len(my_friends_ord)-1
+                amigo = my_friends_ord[int(minscore+(maxscore-minscore)*random.random()**2)].to_user
+                options = amigo.downtime_set.filter(start_time__gte=my_dt.start_time, 
+                    start_time__lte=my_dt.end_time) | amigo.downtime_set.filter(end_time__gte=my_dt.start_time,
+                     end_time__lte=my_dt.end_time) | amigo.downtime_set.filter(start_time__lte=my_dt.start_time,
+                      end_time__gte=my_dt.end_time)
+
+                options = options.exclude(start_time=my_dt.end_time)
+                options = options.exclude(end_time=my_dt.start_time)
+
+                my_friends_ord = my_friends_ord.exclude(to_user = amigo)
+                if len(my_friends_ord) == 0 and len(options) == 0:
+                    return HttpResponse("NoMatch")
+
+            choose = options.order_by('start_time')[0]
+            single = []
+            single.append(get_overlap(my_dt, choose))
+            json_me = serializers.serialize('json',single)
+            return HttpResponse(json_me)
+    else:
+        return HttpResponse("You fuckup!!?!?!?")
+
+def get_overlap(one, two):
+    if one.start_time == two.end_time or one.end_time == two.start_time:
+        return None
+    if one.start_time < two.start_time:
+        if one.end_time < two.end_time:
+            overlap = Event.objects.get_or_create(start_time=two.start_time, end_time=one.end_time,
+             is_confirmed = False)[0]
+        else:
+            overlap = Event.objects.get_or_create(start_time=two.start_time, end_time=two.end_time,
+             is_confirmed = False)[0]
+    else:
+        if one.end_time >= two.end_time:
+            overlap = Event.objects.get_or_create(start_time=one.start_time, end_time=two.end_time,
+             is_confirmed = False)[0]
+        else:
+            overlap = Event.objects.get_or_create(start_time=one.start_time, end_time=one.end_time, 
+                is_confirmed = False)[0]
+    overlap.add_user(one.owner)
+    overlap.add_user(two.owner)
+    return overlap
+
+def display_friend_requests(request):
+    if request.is_ajax():
+        if request.method == 'GET':
+
+            current_uduser = request.user.updoguser
+            
+            if not current_uduser.new_notifications:
+                return HttpResponse("No new notifications")
+
+            else:
+                requests = Friendship.objects.filter(to_user=current_uduser)
+                print requests
+                rl = len(requests)
+                request_list = []
+
+                for i in xrange(0,rl):
+                    request_list.append(requests[i].from_user.user)
+                requests_out = serializers.serialize('json', request_list)
+
+                return HttpResponse(requests_out)
+
+    return HttpResponse("Failure")

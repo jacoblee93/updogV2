@@ -12,6 +12,8 @@ class UpDogUser(models.Model):
     packs = models.ManyToManyField('Pack')
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=False, related_name='friend_to+')
     location = models.CharField(max_length=100)
+    new_notifications = models.BooleanField(default=False)
+    profile_picture = models.ImageField(upload_to='profile_pictures')
 
     def __unicode__(self):
         return self.user.username
@@ -35,7 +37,7 @@ class UpDogUser(models.Model):
         return
 
     def get_friends(self):
-        return Friendship.objects.filter(from_user=self)
+        return Friendship.objects.filter(from_user=self, is_mutual=True)
 
     def get_downtimes_on_day(self, date):
         return self.downtime_set.filter(
@@ -91,6 +93,7 @@ class Event(models.Model):
     end_time = models.DateTimeField()
     activity = models.CharField(max_length=100, null=True, blank=True)
     location = models.CharField(max_length=100, null=True, blank=True)
+    is_confirmed = models.BooleanField(default=True)
 
     def add_user(self, user):
         return self.owners.add(user)
