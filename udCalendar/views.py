@@ -7,7 +7,7 @@ from udCalendar.models import UpDogUser, Friendship, Event, Downtime
 from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
-from datetime import timedelta
+from datetime import date, time, timedelta
 from django.utils.timezone import utc
 from django.db.models import Q
 from dateutil import parser
@@ -230,9 +230,6 @@ def add_downtime(request):
 
     return HttpResponse("Error!")
 
-
-
-
 @login_required
 def add_event(request):
     if request.is_ajax():
@@ -243,10 +240,26 @@ def add_event(request):
                 activity = request.POST['activity']
             if 'location' in request.POST:
                 location = request.POST['location']
+            if 'start_date' in request.POST:
+                start_date = request.POST['start_date']
+            if 'end_date' in request.POST:
+                end_date = request.POST['end_date']
 
-            event = Event(activity=activity, location=location, start_time=timezone.now() + timedelta(hours=23), end_time=(timezone.now() + timedelta(hours=24)))
-            event.save()
-            event.owners.add(request.user.updoguser)
+            start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
+            end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
+            start_time = time(6, 30)
+            end_time = time(7, 30)
+
+            start_datetime = datetime.datetime.combine(start_date, start_time)
+            end_datetime = datetime.datetime.combine(end_date, end_time)
+
+            #event = Event(activity=activity, location=location, start_time=timezone.now() + timedelta(hours=23), end_time=(timezone.now() + timedelta(hours=24)))
+            event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime)
+
+            # don't save the event if the end_date happens before the start_date
+            if (start_date <= end_date):
+                event.save()
+                event.owners.add(request.user.updoguser)
 
             json_event = serializers.serialize("json", [event, ])
 
@@ -262,12 +275,28 @@ def edit_event(request):
                 event.activity = request.POST['activity']
             if 'location' in request.POST:
                 event.location = request.POST['location']
+            if 'start_date' in request.POST:
+                start_date = request.POST['start_date']
+            if 'end_date' in request.POST:
+                end_date = request.POST['end_date']
 
-            event.save()
+            start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
+            end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
+            start_time = time(6, 30)
+            end_time = time(7, 30)
+
+            event.start_time = datetime.datetime.combine(start_date, start_time)
+            event.end_time = datetime.datetime.combine(end_date, end_time)
+
+            # don't save the edited event if the end_date happens before the start_date
+            if (start_date <= end_date):
+                event.save()
 
             json_event = serializers.serialize("json", [event, ])
 
             print event.pk
+
+            print json_event
 
             return HttpResponse(json_event)
     else: return HttpResponse("Failure here!!!!")
@@ -347,7 +376,7 @@ def remove_downtime(request):
             return HttpResponse("Successfully deleted downtime")
 
     return HttpResponse("Invalid request")
-            
+
 @login_required
 def find_friends(request):
     if request.is_ajax():

@@ -485,6 +485,7 @@ function make_events(data, color, owner, hover, is_event) {
       // set the default view to be the agendaWeek view
       defaultView: 'agendaWeek',
       events: downtimes_and_events,
+      allDaySlot: false,
 
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
@@ -504,23 +505,45 @@ function make_events(data, color, owner, hover, is_event) {
           // find where the last index of the substring " in " exists.  Assume what
           // comes before is the activity and what comes after is the location.
           var i = 0;
-          
-          while (event.title.substring(i, event.title.length).indexOf(" in ") != -1) {
-              i = i + event.title.substring(i, event.title.length).indexOf(" in ");
-              // increment i by 3 because we look past the found " in "
-              i = i + 3;
-          }
 
           var activity_text = document.createElement("span");
           activity_text.innerHTML = 'Activity (opt): &nbsp';
           var activity = document.createElement("input");
           activity.setAttribute('type', "text");
           activity.setAttribute('name', "activity");
-          activity.setAttribute('id', 'activity_field'); 
-          if (i != -1) {
-            activity.setAttribute('value', event.title.substring(0, i - 3));
+          activity.setAttribute('id', 'activity_field');
+
+          var location_text = document.createElement("span");
+          location_text.innerHTML = '<br/>Location (opt): ';
+          var location = document.createElement("input");
+          location.setAttribute('type', "text");
+          location.setAttribute('name', "location");
+          location.setAttribute('id', 'location_field');
+
+          // the following handles what shows up in the fields when you click
+          // "edit event" based on the event title
+          if (event.title != "Busy") {
+            if (event.title.substring(0, 8) != "Busy in ") {
+              if (event.title.indexOf(" in ") > -1) {
+                while (event.title.substring(i, event.title.length).indexOf(" in ") != -1) {
+                    i = i + event.title.substring(i, event.title.length).indexOf(" in ");
+                    // increment i by 3 because we look past the found " in "
+                    i = i + 3;
+                }
+                if (i != -1) {
+                  activity.setAttribute('value', event.title.substring(0, i - 3));
+                }
+                else activity.setAttribute('value', event.title);
+                if (i != -1) {
+                  location.setAttribute('value', event.title.substring(i + 1, event.title.length));
+                }
+              }
+              else activity.setAttribute('value', event.title);
+            }
+            else {
+              location.setAttribute('value', event.title.substring(8, event.title.length));
+            }
           }
-          else activity.setAttribute('value', event.title);
 
           // span makes it so there's no newline at the end, while "br" would
           // include the newline
@@ -559,14 +582,8 @@ function make_events(data, color, owner, hover, is_event) {
           if (startDay < 10) {
             startDay = '0' + startDay;
           }
-
-
-
-
           // when editing an event, the start date is displayed
           startDate.setAttribute('value', startMonth + '/' + startDay + '/' + event.start.getFullYear());
-
-
           var lblStartDate = document.createElement('label')
           lblStartDate.htmlFor = "txtStartDate";
           lblStartDate.appendChild(document.createTextNode('fromDate'));
@@ -599,23 +616,6 @@ function make_events(data, color, owner, hover, is_event) {
           lblEndDate.htmlFor = "txtEndDate";
           lblEndDate.appendChild(document.createTextNode('toDate'));
 
-        $('#form-control').datepicker({
-        autoclose: true,
-        todayBtn: true,
-        todayHighlight: true
-
-        // make this value the selected date so they can't have something start on one day and end on a later day
-        //startDate:
-        });
-        $('#datepicker').datepicker({
-        autoclose: true,
-        todayBtn: true,
-        todayHighlight: true
-
-        // make this value the selected date so they can't have something start on one day and end on a later day
-        //startDate:
-        });
-
           // input box
           var start_time = document.createElement("input");
           // you are typing text into the box
@@ -629,17 +629,6 @@ function make_events(data, color, owner, hover, is_event) {
           var end_time = document.createElement("input");
           end_time.setAttribute('type', "test");
           end_time.setAttribute('name', "end_time");
-
-          var location_text = document.createElement("span");
-          location_text.innerHTML = '<br/>Location (opt): ';
-          var location = document.createElement("input");
-          location.setAttribute('type', "text");
-          location.setAttribute('name', "location");
-          location.setAttribute('id', 'location_field');
-
-          if (i != -1) {
-            location.setAttribute('value', event.title.substring(i + 1, event.title.length));
-          }
 
           var newline = document.createElement("span");
           newline.innerHTML = '<br/>';
@@ -706,18 +695,54 @@ function make_events(data, color, owner, hover, is_event) {
               data: {'activity': $('#activity_field').val(),
               'location': $('#location_field').val(),
               'pk': event.id,
-
+              'start_date': $('#txtStartDate').val(),
+              'end_date': $('#txtEndDate').val()
               },
                success: function(data) {
-                  $('#calendar').fullCalendar('removeEvents', event.id);
-
                   // data[0] now holds the event to edit
                   var data = JSON.parse(data);
+                  // this flag will be false if the dates are
+                  // invalid, in which case the event won't be
+                  // added
+                  var valid_dates = true;
 
-                  var edited_event = make_events(data, 'blue', '{{username}}', false, true)[0];
+                  console.log(data[0].fields.start_time);
 
-                  $('#calendar').fullCalendar('renderEvent', edited_event, stick = true);
-                  $dialog.dialog('close');
+                  // get the day, month, and year for the start and end dates
+                  var start_year = data[0].fields.start_time.substring(0,4);
+                  var start_month = data[0].fields.start_time.substring(5,7);
+                  var start_day = data[0].fields.start_time.substring(8, 10);
+                  var end_year = data[0].fields.end_time.substring(0,4);
+                  var end_month = data[0].fields.end_time.substring(5,7);
+                  var end_day = data[0].fields.end_time.substring(8, 10);
+
+                  console.log(start_month + "," + start_day + "," + start_year);
+                  console.log(end_month + "," + end_day + "," + end_year);
+
+                  if (end_year < start_year) {
+                    alert("Your event's start date must occur before its end date.");
+                    valid_dates = false;
+                  }
+                  else if (end_year == start_year) {
+                    if (end_month < start_month) {
+                      alert("Your event's start date must occur before its end date.");
+                      valid_dates = false;
+                    }
+                    else if (end_month == start_month) {
+                      if (end_day < start_day) {
+                        alert("Your event's start date must occur before its end date.");
+                        valid_dates = false
+                      }
+                    }
+                  }
+                  // only edit the event if the dates are valid
+                  if (valid_dates) {
+                    $('#calendar').fullCalendar('removeEvents', event.id);
+                    var edited_event = make_events(data, 'blue', '{{username}}', false, true)[0];
+
+                    $('#calendar').fullCalendar('renderEvent', edited_event, stick = true);
+                    $dialog.dialog('close');
+                  }
                },
             });
           };
@@ -731,7 +756,9 @@ function make_events(data, color, owner, hover, is_event) {
         del.setAttribute('type',"submit");
         del.setAttribute('value', "Delete Event");
         del.onclick = function() {
-          if( confirm( "Are you sure you want to delete event " + event.title + " ?")) {
+          // THE COMMENTED LINE BELOW ASKS IF YOU ARE SURE YOU WANT TO DELETE
+          // THE EVENT
+    //////      if( confirm( "Are you sure you want to delete event " + event.title + " ?")) {
             console.log("Delete Function");
             $.ajax({
               type: "POST",
@@ -748,7 +775,7 @@ function make_events(data, color, owner, hover, is_event) {
             $('#calendar').fullCalendar('rerenderEvents');
             
             $dialog.dialog('close');
-          }
+    ///////      }
         };
 
         $($dialog).empty().append(
@@ -874,7 +901,9 @@ function make_events(data, color, owner, hover, is_event) {
         del.setAttribute('type',"submit");
         del.setAttribute('value', "Delete Downtime");
         del.onclick = function() {
-          if( confirm( "Are you sure you want to delete this downtime?")) {
+          // THE COMMENTED OUT LINE BELOW ASKS IF YOU ARE SURE YOU WANT
+          // TO DELETE AN EVENT
+        ///////  if( confirm( "Are you sure you want to delete this downtime?")) {
             console.log("Delete Function");
             $.ajax({
               type: "POST",
@@ -891,7 +920,7 @@ function make_events(data, color, owner, hover, is_event) {
             $('#calendar').fullCalendar('rerenderEvents');
             
             $dialog.dialog('close');
-          }
+   //////       }
         };
 
         $($dialog).empty().append(
@@ -1029,39 +1058,25 @@ function make_events(data, color, owner, hover, is_event) {
                 // &nbsp is a non-breaking whitespace character
                 start_text.innerHTML = '<br/>Start Time: &nbsp&nbsp&nbsp&nbsp&nbsp';
                 // input box
-                var start_time = document.createElement("input");
+                var startTime = document.createElement("input");
+                startTime.id = "txtStartTime";
+                startTime.type = "text";
+
+
+                startTime.className = 'input-small';
+//                startTime.className = "timepicker";
+
+
+
                 // you are typing text into the box
-                start_time.setAttribute('type', "text");
+          ///////      startTime.setAttribute('type', "text");
                 // can reference this by using "start_time"
-                start_time.setAttribute('name', "start_time");
-               // start_time.innerHTML = '<p><input type="text" id="datepicker"></p>';
+          ////////      startTime.setAttribute('name', "start_time");
 
-
-
-               //$('activity_field').datepicker();
-
-              datepicker = document.createElement("input");
-              datepicker.setAttribute('type', 'date');
-              datepicker.innerHTML = '<input type="date" name="date" id="date" value=""/>';
-
-
-
-              //datepicker.onclick = function() {
-
-                //console.log("HERE!!!!!!")
-              //}    
-
-/*
-               start_time.onclick = function() {
-                  $('#datepicker').datepicker();
-                  $('#datepicker').datepicker('show');
-
-                  console.log("starttime")
-               };
-*/
-
-
-
+               // start_time.setAttribute('value', );
+                var lblStartTime = document.createElement('label')
+                lblStartTime.htmlFor = "txtStartTime";
+                lblStartTime.appendChild(document.createTextNode('fromTime'));
 
 
 
@@ -1081,10 +1096,64 @@ function make_events(data, color, owner, hover, is_event) {
                 var newline = document.createElement("span");
                 newline.innerHTML = '<br/>';
 
+                var startDate = document.createElement("input");
+                startDate.id = "txtStartDate";
+                startDate.type = "text";
+                startDate.className = "datepicker";
+                startDate.style.width = "85px";
+                startDate.readonly = "readonly";
+
+                // January is 0 so we add 1
+                var startMonth = date.getMonth() + 1;
+                if (startMonth < 10) {
+                  startMonth = '0' + startMonth;
+                }
+                var startDay = date.getDate();
+
+
+                console.log(event.title);
+                console.log(event.start);
+                if (startDay < 10) {
+                  startDay = '0' + startDay;
+                }
+                // when editing an event, the start date is displayed
+                startDate.setAttribute('value', startMonth + '/' + startDay + '/' + date.getFullYear());
+                var lblStartDate = document.createElement('label')
+                lblStartDate.htmlFor = "txtStartDate";
+                lblStartDate.appendChild(document.createTextNode('fromDate'));
+
+                to_text = document.createElement("span");
+                // &nbsp is a non-breaking whitespace character
+                to_text.innerHTML = '&nbsp to &nbsp';
+
+                var endDate = document.createElement("input");
+                endDate.id = "txtEndDate";
+                endDate.type = "text";
+                endDate.className = "datepicker";
+                endDate.style.width = "85px";
+                endDate.readonly = "readonly";
+
+                // January is 0 so we add 1
+              /*  var endMonth = event.end.getMonth() + 1;
+                if (endMonth < 10) {
+                  endMonth = '0' + endMonth;
+                }
+                var endDay = event.end.getDate();
+                if (endDay < 10) {
+                  endDay = '0' + endDay;
+                }*/
+
+                // when editing an event, the end date is displayed
+                endDate.setAttribute('value', startMonth + '/' + startDay + '/' + date.getFullYear());
+
+                var lblEndDate = document.createElement('label')
+                lblEndDate.htmlFor = "txtEndDate";
+                lblEndDate.appendChild(document.createTextNode('toDate'));
+
                 $dialog.empty().append(activity_text);
                 $dialog.append(activity);
                 $dialog.append(start_text);
-                $dialog.append(start_time);
+                //////////$dialog.append(start_time);
                 $dialog.append(end_text);
                 $dialog.append(end_time);
 
@@ -1092,17 +1161,29 @@ function make_events(data, color, owner, hover, is_event) {
                 $dialog.append(location);
                 $dialog.append(newline);
 
+                $dialog.append(startDate);
+                $dialog.append(to_text);
+                $dialog.append(endDate);
+                $dialog.append(newline);
 
+                $dialog.append(startTime)
 
+                // the options that our datepicker will use
+                var datePickerOptions = {
+                    autoclose: true,
+                    todayBtn: true,
+                    todayHighlight: true
 
+                    // make this value the selected date so they can't have something start on one day and end on a later day
+                    //startDate:
+                };
 
+                $(startTime).timepicker();
 
+                $(startDate).datepicker(datePickerOptions);
+                $(endDate).datepicker(datePickerOptions);
 
-                $dialog.append(datepicker);
-
-
-
-
+               // $dialog.append(datepicker);
 
                 var cancel = document.createElement("input");
                 cancel.setAttribute('type', "submit");
@@ -1121,23 +1202,55 @@ function make_events(data, color, owner, hover, is_event) {
                     type: "POST",
                     url: "/calendar/add_event/",
                     data: {'activity': $('#activity_field').val(),
-                    'location': $('#location_field').val()
+                    'location': $('#location_field').val(),
+                    'start_date': $('#txtStartDate').val(),
+                    'end_date': $('#txtEndDate').val()
                     },
                     // data is what the server returns
                      success: function(data) {
                         // data[0] now holds the event to add
                         var data = JSON.parse(data);
+                        // this flag will be false if the dates are
+                        // invalid, in which case the event won't be
+                        // added
+                        var valid_dates = true;
 
-                        var added_event = make_events(data, 'blue', '{{username}}', false, true)[0];
+                        console.log(data[0].fields.start_time);
 
-                        console.log( "pk1 = " + data[0].pk );
-                        console.log( "added_event.id = " + added_event.id)
+                        // get the day, month, and year for the start and end dates
+                        var start_year = data[0].fields.start_time.substring(0,4);
+                        var start_month = data[0].fields.start_time.substring(5,7);
+                        var start_day = data[0].fields.start_time.substring(8, 10);
+                        var end_year = data[0].fields.end_time.substring(0,4);
+                        var end_month = data[0].fields.end_time.substring(5,7);
+                        var end_day = data[0].fields.end_time.substring(8, 10);
 
+                        if (end_year < start_year) {
+                          alert("Your event's start date must occur before its end date.");
+                          valid_dates = false;
+                        }
+                        else if (end_year == start_year) {
+                          if (end_month < start_month) {
+                            alert("Your event's start date must occur before its end date.");
+                            valid_dates = false;
+                          }
+                          else if (end_month == start_month) {
+                            if (end_day < start_day) {
+                              alert("Your event's start date must occur before its end date.");
+                              valid_dates = false
+                            }
+                          }
+                        }
+                        // only add the event if the dates are valid
+                        if (valid_dates) {
+                          var added_event = make_events(data, 'blue', '{{username}}', false, true)[0];
 
+                          console.log( "pk1 = " + data[0].pk );
+                          console.log( "added_event.id = " + added_event.id)
 
-                        $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
-
-                        $dialog.dialog('close');
+                          $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
+                          $dialog.dialog('close');
+                        }
                      },
                   });
                 };
@@ -1160,12 +1273,34 @@ function make_events(data, color, owner, hover, is_event) {
   </script>
 
 <script>
-  $('#myDate').datepicker();
+
+  $(document).ready(function() {
+     /* $(function() {
+          $('input.timepicker').timepicker();
+
+
+          
+      });*/
+      $('#timepicker3').timepicker({
+     //   template: 'dropdown',
+     //   modalBackdrop: 'true',
+        minuteStep: 5,
+        showInputs: true,
+        disableFocus: true
+      });
+  });
 </script>
 
-</div>
+<!--<form>
+    <input type="text" class="timepicker" name="time"/>
+</form>
 
-<!-- datepicker calendar is below the calendar 
-<input type="date" name="date" id="date" value="" /> -->
+<div class="bootstrap-timepicker"/><input id="timepicker" data-template="modal" data-minute-step="1" data-modal-backdrop="true" type="text"/></div>-->
+
+<div class="bootstrap-timepicker pull-right">
+            <input id="timepicker3" type="text" class="input-small">
+        </div>
+
+</div>
 
 {% endblock %}
