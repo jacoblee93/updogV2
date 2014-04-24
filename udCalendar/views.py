@@ -11,6 +11,7 @@ from datetime import timedelta
 from django.utils.timezone import utc
 from django.db.models import Q
 from dateutil import parser
+import random
 
 from django.views.decorators.csrf import csrf_exempt
 
@@ -20,6 +21,7 @@ from django.core import serializers
 import json
 
 @login_required
+@csrf_exempt
 # A view in which to test graphics
 def test(request):
     context = RequestContext(request)
@@ -36,6 +38,7 @@ def test(request):
     return render_to_response('updog/base.html', context_dict, context)
 
 @login_required
+@csrf_exempt
 # The calendar view  
 def calendar(request):
     context = RequestContext(request)
@@ -129,6 +132,7 @@ def gimme_downtimes(current_user):
 
 #### TRYING TO have FRONT END REQUEST A FRIENDS EVENTS::::: WE DON:T ACTUALLY NEED THIS *SWITCH TO DOWNTIMES*
 @login_required
+@csrf_exempt
 def get_friends_events(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -146,6 +150,7 @@ def get_friends_events(request):
         return HttpResponse("Failure!!!!")
 
 @login_required
+@csrf_exempt
 def get_friends_downtimes(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -207,11 +212,13 @@ def login(request):
     return render_to_response('updog/login.html', {}, context)
 
 @login_required
+@csrf_exempt
 def logout_user(request):
     logout(request)
     return HttpResponseRedirect('/calendar/login/')
 
 @login_required
+@csrf_exempt
 def add_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -238,6 +245,7 @@ def add_downtime(request):
 
 
 @login_required
+@csrf_exempt
 def add_event(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -258,6 +266,7 @@ def add_event(request):
     else: return HttpResponse("Failure!!!!")
 
 @login_required
+@csrf_exempt
 def edit_event(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -277,6 +286,7 @@ def edit_event(request):
     else: return HttpResponse("Failure here!!!!")
 
 @login_required
+@csrf_exempt
 def edit_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -294,6 +304,7 @@ def edit_downtime(request):
     return HttpResponse("Invalid request")
 
 @login_required
+@csrf_exempt
 def change_event(request):
     if request.is_ajax():
         if request.method == 'POST':            
@@ -313,6 +324,7 @@ def change_event(request):
     else: return HttpResponse("Failure123")
 
 @login_required
+@csrf_exempt
 def change_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -332,6 +344,7 @@ def change_downtime(request):
     else: return HttpResponse("Failure123")
 
 @login_required
+@csrf_exempt
 def remove_event(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -342,6 +355,7 @@ def remove_event(request):
     else: return HttpResponse("Failure here!!!!")
 
 @login_required
+@csrf_exempt
 def remove_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -353,6 +367,7 @@ def remove_downtime(request):
     return HttpResponse("Invalid request")
             
 @login_required
+@csrf_exempt
 def find_friends(request):
     if request.is_ajax():
         if request.method == 'GET':
@@ -370,6 +385,7 @@ def find_friends(request):
     return HttpResponse("Uh-Oh")
 
 @login_required
+@csrf_exempt
 def send_friend_request(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -398,6 +414,7 @@ def send_friend_request(request):
     return HttpResponse("Failure!")
 
 @login_required
+@csrf_exempt
 def accept_friend_request(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -421,6 +438,7 @@ def accept_friend_request(request):
     return HttpResponse("Failure!")
 
 @login_required
+@csrf_exempt
 def reject_friend_request(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -438,6 +456,68 @@ def reject_friend_request(request):
 
     return HttpResponse("Failure!")
 
+@login_required
+@csrf_exempt
+def suggest(request):
+    if request.is_ajax():
+        if request.method == 'GET':
+            current_user = request.user.updoguser
 
+            start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
+            after_today = current_user.downtime_set.filter(start_time__gte=start_date)
+            ordered = after_today.order_by('start_time')
+            if len(ordered) == 0:
+                return HttpResponse(None)
+            my_dt = ordered[0]
 
+            my_friends = current_user.get_friends()
+            if len(my_friends) == 0:
+                return HttpResponse("NoFriends")
+            my_friends_ord = my_friends.order_by('-date_last_seen')
+            minscore = 0
 
+            options = []
+
+            while len(options) == 0:
+                maxscore = len(my_friends_ord)-1
+                amigo = my_friends_ord[int(minscore+(maxscore-minscore)*random.random()**2)].to_user
+                options = amigo.downtime_set.filter(start_time__gte=my_dt.start_time, 
+                    start_time__lte=my_dt.end_time) | amigo.downtime_set.filter(end_time__gte=my_dt.start_time,
+                     end_time__lte=my_dt.end_time) | amigo.downtime_set.filter(start_time__lte=my_dt.start_time,
+                      end_time__gte=my_dt.end_time)
+
+                options = options.exclude(start_time=my_dt.end_time)
+                options = options.exclude(end_time=my_dt.start_time)
+
+                my_friends_ord = my_friends_ord.exclude(to_user = amigo)
+                if len(my_friends_ord) == 0 and len(options) == 0:
+                    return HttpResponse("NoMatch")
+
+            choose = options.order_by('start_time')[0]
+            single = []
+            single.append(get_overlap(my_dt, choose))
+            json_me = serializers.serialize('json',single)
+            return HttpResponse(json_me)
+    else:
+        return HttpResponse("You fuckup!!?!?!?")
+
+def get_overlap(one, two):
+    if one.start_time == two.end_time or one.end_time == two.start_time:
+        return None
+    if one.start_time < two.start_time:
+        if one.end_time < two.end_time:
+            overlap = Event.objects.get_or_create(start_time=two.start_time, end_time=one.end_time,
+             is_confirmed = False)[0]
+        else:
+            overlap = Event.objects.get_or_create(start_time=two.start_time, end_time=two.end_time,
+             is_confirmed = False)[0]
+    else:
+        if one.end_time >= two.end_time:
+            overlap = Event.objects.get_or_create(start_time=one.start_time, end_time=two.end_time,
+             is_confirmed = False)[0]
+        else:
+            overlap = Event.objects.get_or_create(start_time=one.start_time, end_time=one.end_time, 
+                is_confirmed = False)[0]
+    overlap.add_user(one.owner)
+    overlap.add_user(two.owner)
+    return overlap

@@ -91,6 +91,7 @@
               {% if user.is_authenticated %}
                 <li><a href="#preferences">Preferences</a></li>
                 <li><a href="/calendar/logout_user/">Logout</a></li>
+                <li><a onclick="suggest_form()">Suggest</a><li>
               {% else %} 
                 <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
               {% endif %}
@@ -102,6 +103,101 @@
       </nav><!-- /.container -->
     </div>
   <!--  <hr>-->
+  <script>
+
+
+function make_events(data, color, owner, hover, is_event) {
+      if (data.length > 0) {
+        var dlength = data.length;
+        var multiple = [];
+        // in each loop, we add another event to the list of events for this user
+        for (var i = 0; i < dlength; i++) {
+          var single = new Object();
+          single.color = color;
+          if (is_event) {
+            // If event has no activity
+            if (! data[i].fields.activity) {
+              if (! data[i].fields.location) {
+                single.title = "Busy";
+              }
+              else{
+                single.title = "Busy in " + data[i].fields.location;
+              }
+            }
+            // If event has an activity
+            else {
+              if (! data[i].fields.location) {
+                single.title = data[i].fields.activity;
+              }
+              else{
+                single.title = data[i].fields.activity + " in " + data[i].fields.location;
+              }
+            }
+            if (!data[i].fields.is_confirmed) {
+              single.color = 'red';
+            }
+          }
+          else { // for downtimes
+
+            if (!data[i].fields.preferred_activity)
+              single.title = owner + " is free";
+            else single.title = owner + " wants to " + data[i].fields.preferred_activity;
+          }
+
+          single.start = data[i].fields.start_time;
+          single.end = data[i].fields.end_time;
+          single.allDay = false;
+          single.id = data[i].pk;
+          
+          single.owner = owner;
+          single.is_event = is_event; // true for events, false for downtimes
+          if (is_event) {
+            single.editable = true;
+          }
+          if (owner == "{{username}}") {
+            single.editable = true;
+
+          }
+
+          else if (hover) {
+            single.owner = "hover";
+          }
+
+          multiple.push(single);
+        }
+      }
+      return multiple;
+    }
+
+  function suggest_form() {
+    alert("you clicked suggest");
+    $.ajax({
+      type: "GET",
+      url: "/calendar/suggest/",
+      data: {},
+      success: function(data) {
+        if (data === "None") {
+          alert("You have no upcoming downtimes.")
+        }
+        else {
+          if (data == "NoFriends") {
+            alert("You have no friends.")
+          }
+          else {
+            if (data == "NoMatch") {
+              alert("No free times align")
+            }
+            else {
+              var mydata = JSON.parse(data);
+              var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
+              $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+            }
+          }
+        }
+      }
+    });
+  }
+  </script>
   </body>  
   <hr>
 
