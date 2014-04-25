@@ -310,11 +310,21 @@ def add_event(request):
                 start_date = request.POST['start_date']
             if 'end_date' in request.POST:
                 end_date = request.POST['end_date']
+            if 'start_time' in request.POST:
+                start_time = request.POST['start_time']
+            if 'end_time' in request.POST:
+                end_time = request.POST['end_time']
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
-            start_time = time(6, 30)
-            end_time = time(7, 30)
+
+            # create time objects from start_time and end_time
+            start_hour = get_hour(start_time)
+            start_minute = get_minute(start_time)
+            start_time = time(start_hour, start_minute)
+            end_hour = get_hour(end_time)
+            end_minute = get_minute(end_time)
+            end_time = time(end_hour, end_minute)
 
             start_datetime = datetime.datetime.combine(start_date, start_time)
             end_datetime = datetime.datetime.combine(end_date, end_time)
@@ -323,7 +333,7 @@ def add_event(request):
             event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime)
 
             # don't save the event if the end_date happens before the start_date
-            if (start_date <= end_date):
+            if (start_datetime < end_datetime):
                 event.save()
                 event.owners.add(request.user.updoguser)
 
@@ -346,17 +356,27 @@ def edit_event(request):
                 start_date = request.POST['start_date']
             if 'end_date' in request.POST:
                 end_date = request.POST['end_date']
+            if 'start_time' in request.POST:
+                start_time = request.POST['start_time']
+            if 'end_time' in request.POST:
+                end_time = request.POST['end_time']
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
-            start_time = time(6, 30)
-            end_time = time(7, 30)
+            
+            # create time objects from start_time and end_time
+            start_hour = get_hour(start_time)
+            start_minute = get_minute(start_time)
+            start_time = time(start_hour, start_minute)
+            end_hour = get_hour(end_time)
+            end_minute = get_minute(end_time)
+            end_time = time(end_hour, end_minute)
 
             event.start_time = datetime.datetime.combine(start_date, start_time)
             event.end_time = datetime.datetime.combine(end_date, end_time)
 
-            # don't save the edited event if the end_date happens before the start_date
-            if (start_date <= end_date):
+            # don't save the edited event if the end_time happens before the start_time
+            if (event.start_time < event.end_time):
                 event.save()
 
             json_event = serializers.serialize("json", [event, ])
@@ -725,3 +745,38 @@ def display_friend_requests(request):
                 return HttpResponse(requests_out)
 
     return HttpResponse("Failure")
+
+# return the hour of the time variable, where the time variable
+# is formatted as H:MM AP or HH:MM AP, where AP is either AM or
+# PM, and we don't include to digits for the hour if it's
+# less than 10
+def get_hour(time):
+    # the index of the colon in time
+    col_index = int(time.find(':'))
+    # the index of the space in time
+    space_index = int(time.find(' '))
+    # the hour of the start date
+    hour = int(time[:col_index])
+    
+    if time[space_index+1:] == "AM":
+        am_pm = "AM"
+    else: am_pm = "PM"
+    
+    if (hour == 12) and (am_pm == "AM"):
+        hour = 0
+    elif am_pm == "PM":
+        # we don't change 12:00 PM to 24:00 for military time
+        if hour != 12:
+            # use military time (add 12 to hours after 12:00PM)
+            hour = hour + 12
+
+    return hour
+
+# return the minute of the time variable, where the time variable
+# is formatted as H:MM AP or HH:MM AP, where AP is either AM or
+# PM, and we don't include to digits for the hour if it's
+# less than 10
+def get_minute(time):
+    col_index = int(time.find(':'))
+    space_index = int(time.find(' '))
+    return int(time[col_index+1:space_index])
