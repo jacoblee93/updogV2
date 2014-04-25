@@ -939,6 +939,28 @@ function get_friend_requests() {
                   "minute_delta": minuteDelta,
                   "resize": "false",
                 },
+            success: function(data) {
+
+              parsed = JSON.parse(data);
+              if (parsed.length > 1) {
+                event.start = parsed[0].fields.start_time;
+                event.end = parsed[0].fields.end_time;
+                $("#calendar").fullCalendar('renderEvent', event, stick=true);
+                for (var i = 0; i < parsed.length; i++) {
+                  if (parsed[i].pk != event.id) {
+                    $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+                  }
+                }
+              }
+              else {
+                if (parsed.length == 1) {
+                  $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
+                }
+              }
+              if (parsed.length != 0) {
+                $('#calendar').fullCalendar('rerenderEvents'); 
+              }               
+            },
           });
         }
       },
@@ -966,6 +988,28 @@ function get_friend_requests() {
                 "minute_delta": minuteDelta,
                 "resize": "true",
               },
+          success: function(data) {
+            parsed = JSON.parse(data);
+            if (parsed.length > 1) {
+              event.start = parsed[0].fields.start_time;
+              event.end = parsed[0].fields.end_time;
+              $("#calendar").fullCalendar('renderEvent', event, stick=true);
+              for (var i = 0; i < parsed.length; i++) {
+                if (parsed[i].pk != event.id) {
+                  $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+                }
+              }
+            }
+            else {
+              if (parsed.length == 1) {
+                $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
+              }
+            }
+            if (parsed.length != 0) {
+              $('#calendar').fullCalendar('rerenderEvents'); 
+            }
+            
+          },
         });
       }
 
@@ -989,13 +1033,23 @@ function get_friend_requests() {
                 "allDay": allDay,
               },
               success: function(data) {
-
-                console.log(data);
-                var displayed_downtime = make_events(JSON.parse(data), 'green', "{{ username }}", false, false);
-                for (var i = 0; i < displayed_downtime.length; i++) {
-
-                  $("#calendar").fullCalendar('renderEvent', displayed_downtime[i], stick=true);
-                }
+                parsed = JSON.parse(data)
+                if (parsed.length > 0) {
+                  if (parsed.length > 1) {
+                    if (parsed[1].pk != parsed[0].pk) {
+                      var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
+                      $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+                      for (var i = 1; i < displayed_downtime.length; i++) {
+                        $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+                      }
+                      $('#calendar').fullCalendar('rerenderEvents');
+                    }
+                  }
+                  else {
+                    var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
+                    $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+                  }
+                }         
               },
         });
       },
