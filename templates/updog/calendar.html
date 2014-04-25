@@ -127,7 +127,12 @@ div#scroll-able {
               </a>
               <script>
 
-              $( "#friend_{{ friend }}").hover(function on_hover() {
+
+              hover_functions = {
+                sensitivity: 3,
+                interval: 50,
+                timeout: 50,
+                over: function on_hover() {
 
                 var obj = '{{ friend }}';
               $.ajax({
@@ -160,7 +165,8 @@ div#scroll-able {
               },
               });
 
-              }, function off_hover() {
+              },
+              out: function off_hover() {
                 var obj = '{{ friend }}';
                 existing_events = $("#calendar").fullCalendar('clientEvents');
                 for (var i = 0; i < existing_events.length; i++) {
@@ -169,7 +175,11 @@ div#scroll-able {
                   }
                 }
                 $('#calendar').fullCalendar('rerenderEvents');
-              });
+              }
+
+              }
+
+              $( "#friend_{{ friend }}").hoverIntent(hover_functions);
               /*$( "#friend_{{ friend }}").hover(function on_hover() {
                 var obj = '{{ friend }}';
               $.ajax({
@@ -471,26 +481,30 @@ function get_friend_requests() {
         edit.onclick = function() {
 
           $dialog.dialog('close');
-          $dialog.dialog({title:'Edit Event'});
-
-          // find where the last index of the substring " in " exists.  Assume what
-          // comes before is the activity and what comes after is the location.
-          var i = 0;
+          $dialog.dialog(
+            {
+              title:'Edit Event',
+              width: 500,
+              height: 250
+            }
+            );
 
           var activity_text = document.createElement("span");
-          activity_text.innerHTML = 'Activity (opt): &nbsp';
+          activity_text.innerHTML = 'Activity (optional): &nbsp';
           var activity = document.createElement("input");
           activity.setAttribute('type', "text");
           activity.setAttribute('name', "activity");
           activity.setAttribute('id', 'activity_field');
 
           var location_text = document.createElement("span");
-          location_text.innerHTML = '<br/>Location (opt): ';
+          location_text.innerHTML = '<br/>Location (optional): ';
           var location = document.createElement("input");
           location.setAttribute('type', "text");
           location.setAttribute('name', "location");
           location.setAttribute('id', 'location_field');
-
+          // find where the last index of the substring " in " exists.  Assume what
+          // comes before is the activity and what comes after is the location.
+          var i = 0;
           // the following handles what shows up in the fields when you click
           // "edit event" based on the event title
           if (event.title != "Busy") {
@@ -522,19 +536,74 @@ function get_friend_requests() {
           // &nbsp is a non-breaking whitespace character
           start_text.innerHTML = '<br/>Start Time: &nbsp&nbsp&nbsp&nbsp&nbsp';
 
-/*
+
+
+
+          // dialog box's startTime input field
           var startTime = document.createElement("input");
           startTime.id = "txtStartTime";
           startTime.type = "text";
-          startTime.className = "timepicker";
+          startTime.className = 'input-small';
           startTime.style.width = "85px";
-         // startTime.readonly = "readonly";
+          // dialog box's endTime input field
+          var endTime = document.createElement("input");
+          endTime.id = "txtEndTime";
+          endTime.type = "text";
+          endTime.className = 'input-small';
+          endTime.style.width = "85px";
+          // is the time in the morning (AM) or afternoon (PM)
+          var start_am_pm = "PM";
+          var startHour = event.start.getHours();
+          if (startHour == 0) {
+            startHour = 12;
+            start_am_pm = "AM";
+          }
+          else if (startHour < 12) {
+            start_am_pm = "AM";
+          }
+          // if the time is PM, don't use military time (eg. 13:00 ==> 1:00)
+          else if (startHour != 12) {
+            startHour = startHour - 12;
+          }
+          var startMinute = event.start.getMinutes();
+          // set the initial start time to be the time that was clicked to make the event
+          startTime.setAttribute('value', startHour + ':' + startMinute + ' ' + start_am_pm);
 
+          // increment the initial end time to be one hour (3.6e6 milliseconds) later than the initial start time
+          var endDateObject = event.end;
+          var end_am_pm = "PM";
+          var endHour = endDateObject.getHours();
+          if (endHour == 0) {
+            endHour = 12;
+            end_am_pm = "AM";
+          }
+          else if (endHour < 12) {
+            end_am_pm = "AM";
+          }
+          else if (endHour != 12) {
+            endHour = endHour - 12;
+          }
+          var endMinute = endDateObject.getMinutes();
+          // set the initial start time to be the time that was clicked to make the event
+          endTime.setAttribute('value', endHour + ':' + endMinute + ' ' + end_am_pm);
 
+          // the box that holds the startTime timepicker
           var lblStartTime = document.createElement('label')
           lblStartTime.htmlFor = "txtStartTime";
           lblStartTime.appendChild(document.createTextNode('fromTime'));
-*/
+          // the box that holds the endTime timepicker
+          var lblEndTime = document.createElement('label')
+          lblEndTime.htmlFor = "txtEndTime";
+          lblEndTime.appendChild(document.createTextNode('toTime'));
+
+          var newline = document.createElement("span");
+          newline.innerHTML = ' <br/>';
+
+          // span makes it so there's no newline at the end, while "br" would
+          // include the newline
+          date_text = document.createElement("span");
+          // &nbsp is a non-breaking whitespace character
+          date_text.innerHTML = '<br/>Event Dates: ';
 
           var startDate = document.createElement("input");
           startDate.id = "txtStartDate";
@@ -542,7 +611,7 @@ function get_friend_requests() {
           startDate.className = "datepicker";
           startDate.style.width = "85px";
           startDate.readonly = "readonly";
-
+                
           // January is 0 so we add 1
           var startMonth = event.start.getMonth() + 1;
           if (startMonth < 10) {
@@ -601,25 +670,19 @@ function get_friend_requests() {
           end_time.setAttribute('type', "test");
           end_time.setAttribute('name', "end_time");
 
-          var newline = document.createElement("span");
-          newline.innerHTML = '<br/>';
-
           $dialog.empty().append(activity_text);
           $dialog.append(activity);
-          $dialog.append(start_text);
-          $dialog.append(start_time);
-          $dialog.append(end_text);
-          $dialog.append(end_time);
-
           $dialog.append(location_text);
           $dialog.append(location);
-          $dialog.append(newline);
 
+          $dialog.append(date_text);
           $dialog.append(startDate);
-
+          $dialog.append(startTime);
 
           $dialog.append(to_text);
+
           $dialog.append(endDate);
+          $dialog.append(endTime);
           $dialog.append(newline);
 
          //////// $dialog.append(startTime);
@@ -633,6 +696,9 @@ function get_friend_requests() {
               // make this value the selected date so they can't have something start on one day and end on a later day
               //startDate:
           };
+
+          $(startTime).timepicker();
+          $(endTime).timepicker();
 
           $(startDate).datepicker(datePickerOptions);
           $(endDate).datepicker(datePickerOptions);
@@ -667,10 +733,12 @@ function get_friend_requests() {
               'location': $('#location_field').val(),
               'pk': event.id,
               'start_date': $('#txtStartDate').val(),
-              'end_date': $('#txtEndDate').val()
+              'end_date': $('#txtEndDate').val(),
+              'start_time': $('#txtStartTime').val(),
+              'end_time': $('#txtEndTime').val()
               },
                success: function(data) {
-                  // data[0] now holds the event to edit
+                  // data[0] now holds the event to add
                   var data = JSON.parse(data);
                   // this flag will be false if the dates are
                   // invalid, in which case the event won't be
@@ -682,36 +750,35 @@ function get_friend_requests() {
                   // get the day, month, and year for the start and end dates
                   var start_year = data[0].fields.start_time.substring(0,4);
                   var start_month = data[0].fields.start_time.substring(5,7);
-                  var start_day = data[0].fields.start_time.substring(8, 10);
+                  var start_day = data[0].fields.start_time.substring(8,10);
+                  var start_hour = data[0].fields.start_time.substring(11,13);
+                  var start_minute = data[0].fields.start_time.substring(14,16);
+                  var start_second = data[0].fields.start_time.substring(17,19);
+
                   var end_year = data[0].fields.end_time.substring(0,4);
                   var end_month = data[0].fields.end_time.substring(5,7);
                   var end_day = data[0].fields.end_time.substring(8, 10);
+                  var end_hour = data[0].fields.end_time.substring(11,13);
+                  var end_minute = data[0].fields.end_time.substring(14,16);
+                  var end_second = data[0].fields.end_time.substring(17,19);
 
-                  console.log(start_month + "," + start_day + "," + start_year);
-                  console.log(end_month + "," + end_day + "," + end_year);
-
-                  if (end_year < start_year) {
+                  var firstDate = new Date(start_year, start_month, start_day, start_hour, start_minute, start_second, 0);
+                  var secondDate = new Date(end_year, end_month, end_day, end_hour, end_minute, end_second, 0);
+                  
+                  // don't edit the event if the dates aren't chronological
+                  if (firstDate >= secondDate) {
                     alert("Your event's start date must occur before its end date.");
-                    valid_dates = false;
                   }
-                  else if (end_year == start_year) {
-                    if (end_month < start_month) {
-                      alert("Your event's start date must occur before its end date.");
-                      valid_dates = false;
-                    }
-                    else if (end_month == start_month) {
-                      if (end_day < start_day) {
-                        alert("Your event's start date must occur before its end date.");
-                        valid_dates = false
-                      }
-                    }
-                  }
-                  // only edit the event if the dates are valid
-                  if (valid_dates) {
+                  else {
                     $('#calendar').fullCalendar('removeEvents', event.id);
-                    var edited_event = make_events(data, 'blue', '{{username}}', false, true)[0];
+                    $('#calendar').fullCalendar('rerenderEvents');
 
-                    $('#calendar').fullCalendar('renderEvent', edited_event, stick = true);
+                    var added_event = make_events(data, 'blue', '{{username}}', false, true)[0];
+
+                    console.log( "pk1 = " + data[0].pk );
+                    console.log( "added_event.id = " + added_event.id)
+
+                    $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
                     $dialog.dialog('close');
                   }
                },
@@ -787,7 +854,7 @@ function get_friend_requests() {
           $dialog.dialog({title:'Edit Downtime'});
 
           var activity_text = document.createElement("span");
-          activity_text.innerHTML = 'Preferred Activity (opt): &nbsp';
+          activity_text.innerHTML = 'Preferred Activity: &nbsp';
           var activity = document.createElement("input");
           activity.setAttribute('type', "text");
           activity.setAttribute('name', "activity");
@@ -945,6 +1012,28 @@ function get_friend_requests() {
                   "minute_delta": minuteDelta,
                   "resize": "false",
                 },
+            success: function(data) {
+
+              parsed = JSON.parse(data);
+              if (parsed.length > 1) {
+                event.start = parsed[0].fields.start_time;
+                event.end = parsed[0].fields.end_time;
+                $("#calendar").fullCalendar('renderEvent', event, stick=true);
+                for (var i = 0; i < parsed.length; i++) {
+                  if (parsed[i].pk != event.id) {
+                    $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+                  }
+                }
+              }
+              else {
+                if (parsed.length == 1) {
+                  $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
+                }
+              }
+              if (parsed.length != 0) {
+                $('#calendar').fullCalendar('rerenderEvents'); 
+              }               
+            },
           });
         }
       },
@@ -972,6 +1061,28 @@ function get_friend_requests() {
                 "minute_delta": minuteDelta,
                 "resize": "true",
               },
+          success: function(data) {
+            parsed = JSON.parse(data);
+            if (parsed.length > 1) {
+              event.start = parsed[0].fields.start_time;
+              event.end = parsed[0].fields.end_time;
+              $("#calendar").fullCalendar('renderEvent', event, stick=true);
+              for (var i = 0; i < parsed.length; i++) {
+                if (parsed[i].pk != event.id) {
+                  $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+                }
+              }
+            }
+            else {
+              if (parsed.length == 1) {
+                $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
+              }
+            }
+            if (parsed.length != 0) {
+              $('#calendar').fullCalendar('rerenderEvents'); 
+            }
+            
+          },
         });
       }
 
@@ -995,13 +1106,23 @@ function get_friend_requests() {
                 "allDay": allDay,
               },
               success: function(data) {
-
-                console.log(data);
-                var displayed_downtime = make_events(JSON.parse(data), 'green', "{{ username }}", false, false);
-                for (var i = 0; i < displayed_downtime.length; i++) {
-
-                  $("#calendar").fullCalendar('renderEvent', displayed_downtime[i], stick=true);
-                }
+                parsed = JSON.parse(data)
+                if (parsed.length > 0) {
+                  if (parsed.length > 1) {
+                    if (parsed[1].pk != parsed[0].pk) {
+                      var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
+                      $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+                      for (var i = 1; i < displayed_downtime.length; i++) {
+                        $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+                      }
+                      $('#calendar').fullCalendar('rerenderEvents');
+                    }
+                  }
+                  else {
+                    var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
+                    $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+                  }
+                }         
               },
         });
       },
@@ -1014,58 +1135,89 @@ function get_friend_requests() {
                 console.log('Double-click!');
                 doubleClick = null;
 
-                $dialog.dialog({title:'Add Event'});
+                $dialog.dialog(
+                  {
+                    title:'Add Event',
+                    width: 500,
+                    height: 200
+                  }
+                );
 
+                // dialog box's activity text
                 var activity_text = document.createElement("span");
                 activity_text.innerHTML = 'Activity (opt): &nbsp';
+                // dialog box's activity input field
                 var activity = document.createElement("input");
                 activity.setAttribute('type', "text");
                 activity.setAttribute('name', "activity");
                 activity.setAttribute('id', 'activity_field'); 
-
-                // span makes it so there's no newline at the end, while "br" would
-                // include the newline
-                start_text = document.createElement("span");
-                // &nbsp is a non-breaking whitespace character
-                start_text.innerHTML = '<br/>Start Time: &nbsp&nbsp&nbsp&nbsp&nbsp';
-                // input box
-                var startTime = document.createElement("input");
-                startTime.id = "txtStartTime";
-                startTime.type = "text";
-
-
-                startTime.className = 'input-small';
-//                startTime.className = "timepicker";
-
-
-
-                // you are typing text into the box
-          ///////      startTime.setAttribute('type', "text");
-                // can reference this by using "start_time"
-          ////////      startTime.setAttribute('name', "start_time");
-
-               // start_time.setAttribute('value', );
-                var lblStartTime = document.createElement('label')
-                lblStartTime.htmlFor = "txtStartTime";
-                lblStartTime.appendChild(document.createTextNode('fromTime'));
-
-
-
-                end_text = document.createElement("span");
-                end_text.innerHTML = '<br/>End Time: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
-                var end_time = document.createElement("input");
-                end_time.setAttribute('type', "test");
-                end_time.setAttribute('name', "end_time");
-
+                // dialog box's location input field
                 var location_text = document.createElement("span");
                 location_text.innerHTML = '<br/>Location (opt): ';
                 var location = document.createElement("input");
                 location.setAttribute('type', "text");
                 location.setAttribute('name', "location");
                 location.setAttribute('id', 'location_field'); 
+                // dialog box's startTime input field
+                var startTime = document.createElement("input");
+                startTime.id = "txtStartTime";
+                startTime.type = "text";
+                startTime.className = 'input-small';
+                startTime.style.width = "85px";
+                // dialog box's endTime input field
+                var endTime = document.createElement("input");
+                endTime.id = "txtEndTime";
+                endTime.type = "text";
+                endTime.className = 'input-small';
+                endTime.style.width = "85px";
+                // is the time in the morning (AM) or afternoon (PM)
+                var start_am_pm = "PM";
+                var startHour = date.getHours();
+                if (startHour == 0) {
+                  startHour = 12;
+                  start_am_pm = "AM";
+                }
+                else if (startHour < 12) {
+                  start_am_pm = "AM";
+                }
+                // if the time is PM, don't use military time (eg. 13:00 ==> 1:00)
+                else if (startHour != 12) {
+                  startHour = startHour - 12;
+                }
+                var startMinute = date.getMinutes();
+                // set the initial start time to be the time that was clicked to make the event
+                startTime.setAttribute('value', startHour + ':' + startMinute + ' ' + start_am_pm);
+
+                // increment the initial end time to be one hour (3.6e6 milliseconds) later than the initial start time
+                var endDateObject = new Date();
+                endDateObject.setTime(date.getTime() + (60*60*1000));
+                var end_am_pm = "PM";
+                var endHour = endDateObject.getHours();
+                if (endHour == 0) {
+                  endHour = 12;
+                  end_am_pm = "AM";
+                }
+                else if (endHour < 12) {
+                  end_am_pm = "AM";
+                }
+                else if (endHour != 12) {
+                  endHour = endHour - 12;
+                }
+                var endMinute = endDateObject.getMinutes();
+                // set the initial start time to be the time that was clicked to make the event
+                endTime.setAttribute('value', endHour + ':' + endMinute + ' ' + end_am_pm);
+
+                // the box that holds the startTime timepicker
+                var lblStartTime = document.createElement('label')
+                lblStartTime.htmlFor = "txtStartTime";
+                lblStartTime.appendChild(document.createTextNode('fromTime'));
+                // the box that holds the endTime timepicker
+                var lblEndTime = document.createElement('label')
+                lblEndTime.htmlFor = "txtEndTime";
+                lblEndTime.appendChild(document.createTextNode('toTime'));
 
                 var newline = document.createElement("span");
-                newline.innerHTML = '<br/>';
+                newline.innerHTML = ' <br/>';
 
                 var startDate = document.createElement("input");
                 startDate.id = "txtStartDate";
@@ -1074,6 +1226,12 @@ function get_friend_requests() {
                 startDate.style.width = "85px";
                 startDate.readonly = "readonly";
 
+                // span makes it so there's no newline at the end, while "br" would
+                // include the newline
+                date_text = document.createElement("span");
+                // &nbsp is a non-breaking whitespace character
+                date_text.innerHTML = '<br/>Event Dates: ';
+
                 // January is 0 so we add 1
                 var startMonth = date.getMonth() + 1;
                 if (startMonth < 10) {
@@ -1081,14 +1239,12 @@ function get_friend_requests() {
                 }
                 var startDay = date.getDate();
 
-
-                console.log(event.title);
-                console.log(event.start);
                 if (startDay < 10) {
                   startDay = '0' + startDay;
                 }
                 // when editing an event, the start date is displayed
                 startDate.setAttribute('value', startMonth + '/' + startDay + '/' + date.getFullYear());
+
                 var lblStartDate = document.createElement('label')
                 lblStartDate.htmlFor = "txtStartDate";
                 lblStartDate.appendChild(document.createTextNode('fromDate'));
@@ -1105,17 +1261,18 @@ function get_friend_requests() {
                 endDate.readonly = "readonly";
 
                 // January is 0 so we add 1
-              /*  var endMonth = event.end.getMonth() + 1;
+                var endMonth = endDateObject.getMonth() + 1;
                 if (endMonth < 10) {
                   endMonth = '0' + endMonth;
                 }
-                var endDay = event.end.getDate();
+                var endDay = endDateObject.getDate();
+
                 if (endDay < 10) {
                   endDay = '0' + endDay;
-                }*/
+                }
 
                 // when editing an event, the end date is displayed
-                endDate.setAttribute('value', startMonth + '/' + startDay + '/' + date.getFullYear());
+                endDate.setAttribute('value', endMonth + '/' + endDay + '/' + endDateObject.getFullYear());
 
                 var lblEndDate = document.createElement('label')
                 lblEndDate.htmlFor = "txtEndDate";
@@ -1123,38 +1280,61 @@ function get_friend_requests() {
 
                 $dialog.empty().append(activity_text);
                 $dialog.append(activity);
-                $dialog.append(start_text);
-                //////////$dialog.append(start_time);
-                $dialog.append(end_text);
-                $dialog.append(end_time);
 
                 $dialog.append(location_text);
                 $dialog.append(location);
-                $dialog.append(newline);
 
+                $dialog.append(date_text)
                 $dialog.append(startDate);
-                $dialog.append(to_text);
-                $dialog.append(endDate);
-                $dialog.append(newline);
+                $dialog.append(startTime);
 
-                $dialog.append(startTime)
+                $dialog.append(to_text);
+
+                $dialog.append(endDate);
+                $dialog.append(endTime);
+                $dialog.append(newline);
 
                 // the options that our datepicker will use
                 var datePickerOptions = {
                     autoclose: true,
                     todayBtn: true,
                     todayHighlight: true
-
-                    // make this value the selected date so they can't have something start on one day and end on a later day
-                    //startDate:
                 };
 
+
+             /*   $(endTime).timepicker();
+
+
+                startDate.onclick = function() {
+                  $(endTime).timepicker(hideWidget);
+                };*/
+
+
+
                 $(startTime).timepicker();
+                
+                // this function is trigged when we hide the timepicker
+               /* $(startTime).timepicker().on('hide.timepicker', function(e) {
+                    
+                  $(endTime).timepicker({
+                    hideWidget: true
+                  });
+
+
+                }*/
+
+                  /*{
+
+                  modalBackdrop: true,
+                  onSelect: function() {
+                    console.log("here???????")
+                  },
+                }*/
+                ////////);
+                $(endTime).timepicker();
 
                 $(startDate).datepicker(datePickerOptions);
                 $(endDate).datepicker(datePickerOptions);
-
-               // $dialog.append(datepicker);
 
                 var cancel = document.createElement("input");
                 cancel.setAttribute('type', "submit");
@@ -1175,7 +1355,9 @@ function get_friend_requests() {
                     data: {'activity': $('#activity_field').val(),
                     'location': $('#location_field').val(),
                     'start_date': $('#txtStartDate').val(),
-                    'end_date': $('#txtEndDate').val()
+                    'end_date': $('#txtEndDate').val(),
+                    'start_time': $('#txtStartTime').val(),
+                    'end_time': $('#txtEndTime').val()
                     },
                     // data is what the server returns
                      success: function(data) {
@@ -1191,29 +1373,26 @@ function get_friend_requests() {
                         // get the day, month, and year for the start and end dates
                         var start_year = data[0].fields.start_time.substring(0,4);
                         var start_month = data[0].fields.start_time.substring(5,7);
-                        var start_day = data[0].fields.start_time.substring(8, 10);
+                        var start_day = data[0].fields.start_time.substring(8,10);
+                        var start_hour = data[0].fields.start_time.substring(11,13);
+                        var start_minute = data[0].fields.start_time.substring(14,16);
+                        var start_second = data[0].fields.start_time.substring(17,19);
+
                         var end_year = data[0].fields.end_time.substring(0,4);
                         var end_month = data[0].fields.end_time.substring(5,7);
                         var end_day = data[0].fields.end_time.substring(8, 10);
+                        var end_hour = data[0].fields.end_time.substring(11,13);
+                        var end_minute = data[0].fields.end_time.substring(14,16);
+                        var end_second = data[0].fields.end_time.substring(17,19);
 
-                        if (end_year < start_year) {
+                        var firstDate = new Date(start_year, start_month, start_day, start_hour, start_minute, start_second, 0);
+                        var secondDate = new Date(end_year, end_month, end_day, end_hour, end_minute, end_second, 0);
+                        
+                        // don't add the event if the dates aren't chronological
+                        if (firstDate >= secondDate) {
                           alert("Your event's start date must occur before its end date.");
-                          valid_dates = false;
                         }
-                        else if (end_year == start_year) {
-                          if (end_month < start_month) {
-                            alert("Your event's start date must occur before its end date.");
-                            valid_dates = false;
-                          }
-                          else if (end_month == start_month) {
-                            if (end_day < start_day) {
-                              alert("Your event's start date must occur before its end date.");
-                              valid_dates = false
-                            }
-                          }
-                        }
-                        // only add the event if the dates are valid
-                        if (valid_dates) {
+                        else {
                           var added_event = make_events(data, 'blue', '{{username}}', false, true)[0];
 
                           console.log( "pk1 = " + data[0].pk );
@@ -1243,6 +1422,8 @@ function get_friend_requests() {
 });
   </script>
 
+
+<!--
 <script>
 
   $(document).ready(function() {
@@ -1262,15 +1443,9 @@ function get_friend_requests() {
   });
 </script>
 
-<!--<form>
-    <input type="text" class="timepicker" name="time"/>
-</form>
-
-<div class="bootstrap-timepicker"/><input id="timepicker" data-template="modal" data-minute-step="1" data-modal-backdrop="true" type="text"/></div>-->
-
 <div class="bootstrap-timepicker pull-right">
             <input id="timepicker3" type="text" class="input-small">
-        </div>
+        </div>-->
 
 </div>
 

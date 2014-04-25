@@ -51,16 +51,16 @@ def calendar(request):
 
     current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
-    #current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
+    current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
 
-    #test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
-    #test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
-    #test_to_friendship.is_mutual= True
-    #test_from_friendship.is_mutual = True
-    #test_to_friendship.is_new = False
-    #test_from_friendship.is_new = False
-    #test_to_friendship.save()
-    #test_from_friendship.save()
+    test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
+    test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
+    test_to_friendship.is_mutual= True
+    test_from_friendship.is_mutual = True
+    test_to_friendship.is_new = False
+    test_from_friendship.is_new = False
+    test_to_friendship.save()
+    test_from_friendship.save()
 
     # Alex - friend request to build notifications bar
     #test_to_request = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
@@ -250,8 +250,49 @@ def add_downtime(request):
             endDate = endDate.strip("\"")
             endDate = parser.parse(endDate)
 
-            new_downtime = Downtime.objects.get_or_create(owner=request.user.updoguser, start_time=startDate, end_time=endDate)[0]
-            return HttpResponse(serializers.serialize('json',[new_downtime, ]))
+            me = request.user.updoguser
+            
+            existing_dt = me.downtime_set.filter(start_time__gte=startDate, 
+                start_time__lte=endDate) | me.downtime_set.filter(end_time__gte=startDate,
+                end_time__lte=endDate) | me.downtime_set.filter(start_time__lte=startDate,
+                end_time__gte=endDate)
+
+            existing_dt = existing_dt.exclude(start_time=endDate)
+            existing_dt = existing_dt.exclude(end_time=startDate)
+            merged = False
+            if len(existing_dt) == 0:
+                new_downtime = Downtime.objects.get_or_create(owner=me, start_time=startDate, end_time=endDate)[0]
+                response = serializers.serialize('json',[new_downtime, ])
+            else:
+                min_startDate = startDate
+                max_endDate = endDate
+                remove_me = []
+
+                for dt in existing_dt:
+                    if dt.preferred_activity == None:
+                        if not (dt.start_time <= startDate and dt.end_time >= endDate):
+                            min_startDate = min(min_startDate, dt.start_time)
+                            max_endDate = max(max_endDate, dt.end_time)
+                            remove_me.append(dt)
+                        else:
+                            return HttpResponse(serializers.serialize('json',[]))
+                        merged = True
+                        
+                if not merged:
+                    new_downtime = Downtime.objects.get_or_create(owner=me, start_time=startDate, end_time=endDate)[0]
+                    response = serializers.serialize('json',[new_downtime, ])
+
+                else:
+                    
+                    new_downtime=Downtime.objects.get_or_create(owner=me, start_time=min_startDate, 
+                        end_time=max_endDate)[0]
+                    remove_me.insert(0, new_downtime)
+                    response = serializers.serialize('json',remove_me)
+                    for dt in remove_me:
+                        if dt != new_downtime:
+                            dt.delete()
+                    
+            return HttpResponse(response)
 
     return HttpResponse("Error!")
 
@@ -270,11 +311,21 @@ def add_event(request):
                 start_date = request.POST['start_date']
             if 'end_date' in request.POST:
                 end_date = request.POST['end_date']
+            if 'start_time' in request.POST:
+                start_time = request.POST['start_time']
+            if 'end_time' in request.POST:
+                end_time = request.POST['end_time']
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
-            start_time = time(6, 30)
-            end_time = time(7, 30)
+
+            # create time objects from start_time and end_time
+            start_hour = get_hour(start_time)
+            start_minute = get_minute(start_time)
+            start_time = time(start_hour, start_minute)
+            end_hour = get_hour(end_time)
+            end_minute = get_minute(end_time)
+            end_time = time(end_hour, end_minute)
 
             start_datetime = datetime.datetime.combine(start_date, start_time)
             end_datetime = datetime.datetime.combine(end_date, end_time)
@@ -283,7 +334,7 @@ def add_event(request):
             event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime)
 
             # don't save the event if the end_date happens before the start_date
-            if (start_date <= end_date):
+            if (start_datetime < end_datetime):
                 event.save()
                 event.owners.add(request.user.updoguser)
 
@@ -306,17 +357,27 @@ def edit_event(request):
                 start_date = request.POST['start_date']
             if 'end_date' in request.POST:
                 end_date = request.POST['end_date']
+            if 'start_time' in request.POST:
+                start_time = request.POST['start_time']
+            if 'end_time' in request.POST:
+                end_time = request.POST['end_time']
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
-            start_time = time(6, 30)
-            end_time = time(7, 30)
+            
+            # create time objects from start_time and end_time
+            start_hour = get_hour(start_time)
+            start_minute = get_minute(start_time)
+            start_time = time(start_hour, start_minute)
+            end_hour = get_hour(end_time)
+            end_minute = get_minute(end_time)
+            end_time = time(end_hour, end_minute)
 
             event.start_time = datetime.datetime.combine(start_date, start_time)
             event.end_time = datetime.datetime.combine(end_date, end_time)
 
-            # don't save the edited event if the end_date happens before the start_date
-            if (start_date <= end_date):
+            # don't save the edited event if the end_time happens before the start_time
+            if (event.start_time < event.end_time):
                 event.save()
 
             json_event = serializers.serialize("json", [event, ])
@@ -375,14 +436,65 @@ def change_downtime(request):
             time_changes = timedelta(days = int(request.POST['day_delta']), 
                 minutes = int(request.POST['minute_delta']))
 
-            downtime.end_time = downtime.end_time + time_changes
+            endDate = downtime.end_time + time_changes
 
             if request.POST['resize'] == "false":
-                downtime.start_time = downtime.start_time + time_changes
+                startDate = downtime.start_time + time_changes
+            else:
+                startDate = downtime.start_time
 
-            downtime.save()
+            ##=============================
+            me = request.user.updoguser
+            
+            existing_dt = me.downtime_set.filter(start_time__gte=startDate, 
+                start_time__lte=endDate) | me.downtime_set.filter(end_time__gte=startDate,
+                end_time__lte=endDate) | me.downtime_set.filter(start_time__lte=startDate,
+                end_time__gte=endDate)
 
-        return HttpResponse("Success123")
+            existing_dt = existing_dt.exclude(start_time=endDate)
+            existing_dt = existing_dt.exclude(end_time=startDate)
+            existing_dt = existing_dt.exclude(pk=downtime.pk)
+
+            merged = False
+            if len(existing_dt) == 0:
+                downtime.start_time = startDate
+                downtime.end_time = endDate
+                downtime.save()
+                return HttpResponse(serializers.serialize('json',[]))
+            else:
+                min_startDate = startDate
+                max_endDate = endDate
+                remove_me = []
+
+                for dt in existing_dt:
+                    if dt.preferred_activity == downtime.preferred_activity: # only merge if they have the same pref activity
+                        if not (dt.start_time <= startDate and dt.end_time >= endDate):
+                            min_startDate = min(min_startDate, dt.start_time)
+                            max_endDate = max(max_endDate, dt.end_time)
+                            remove_me.append(dt)
+                        else:
+                            response = serializers.serialize('json', [downtime, ])
+                            downtime.delete()
+                            return HttpResponse(response)
+                        merged = True
+                        
+                if not merged:
+                    downtime.start_time = startDate
+                    downtime.end_time = endDate
+                    downtime.save()
+                    return HttpResponse(serializers.serialize('json',[]))
+                else:
+                    downtime.start_time = min_startDate
+                    downtime.end_time = max_endDate
+                    downtime.save()
+                    remove_me.insert(0, downtime)
+                    response = serializers.serialize('json',remove_me)
+                    for dt in remove_me:
+                        if dt != downtime:
+                            dt.delete()
+                    
+            return HttpResponse(response)
+            ##======================================
 
     else: return HttpResponse("Failure123")
 
@@ -552,7 +664,8 @@ def suggest(request):
         return HttpResponse("You fuckup!!?!?!?")
 
 def get_overlap(one, two):
-    if one.start_time == two.end_time or one.end_time == two.start_time:
+
+    if one.start_time >= two.end_time or one.end_time <= two.start_time:
         return None
     if one.start_time < two.start_time:
         if one.end_time < two.end_time:
@@ -594,3 +707,38 @@ def display_friend_requests(request):
                 return HttpResponse(requests_out)
 
     return HttpResponse("Failure")
+
+# return the hour of the time variable, where the time variable
+# is formatted as H:MM AP or HH:MM AP, where AP is either AM or
+# PM, and we don't include to digits for the hour if it's
+# less than 10
+def get_hour(time):
+    # the index of the colon in time
+    col_index = int(time.find(':'))
+    # the index of the space in time
+    space_index = int(time.find(' '))
+    # the hour of the start date
+    hour = int(time[:col_index])
+    
+    if time[space_index+1:] == "AM":
+        am_pm = "AM"
+    else: am_pm = "PM"
+    
+    if (hour == 12) and (am_pm == "AM"):
+        hour = 0
+    elif am_pm == "PM":
+        # we don't change 12:00 PM to 24:00 for military time
+        if hour != 12:
+            # use military time (add 12 to hours after 12:00PM)
+            hour = hour + 12
+
+    return hour
+
+# return the minute of the time variable, where the time variable
+# is formatted as H:MM AP or HH:MM AP, where AP is either AM or
+# PM, and we don't include to digits for the hour if it's
+# less than 10
+def get_minute(time):
+    col_index = int(time.find(':'))
+    space_index = int(time.find(' '))
+    return int(time[col_index+1:space_index])

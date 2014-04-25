@@ -27,6 +27,7 @@
 
     <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
     <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/jquery.hoverIntent.js' %}"></script>
     <script src="{% static 'js/jquery-ui.custom.min.js' %}"></script>
     <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
     <script src="{% static 'js/fullcalendar.js' %}"></script>
@@ -248,7 +249,6 @@ function make_events(data, color, owner, hover, is_event) {
     }
 
   function suggest_form() {
-    alert("you clicked suggest");
     $.ajax({
       type: "GET",
       url: "/calendar/suggest/",
