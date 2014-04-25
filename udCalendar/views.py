@@ -283,8 +283,8 @@ def add_downtime(request):
 
                 else:
                     
-                    new_downtime=Downtime.objects.get_or_create(owner=me, start_time=min(startDate, dt.start_time), 
-                        end_time=max(endDate, dt.end_time))[0]
+                    new_downtime=Downtime.objects.get_or_create(owner=me, start_time=min_startDate, 
+                        end_time=max_endDate)[0]
                     remove_me.insert(0, new_downtime)
                     response = serializers.serialize('json',remove_me)
                     for dt in remove_me:
@@ -415,14 +415,65 @@ def change_downtime(request):
             time_changes = timedelta(days = int(request.POST['day_delta']), 
                 minutes = int(request.POST['minute_delta']))
 
-            downtime.end_time = downtime.end_time + time_changes
+            endDate = downtime.end_time + time_changes
 
             if request.POST['resize'] == "false":
-                downtime.start_time = downtime.start_time + time_changes
+                startDate = downtime.start_time + time_changes
+            else:
+                startDate = downtime.start_time
 
-            downtime.save()
+            ##=============================
+            me = request.user.updoguser
+            
+            existing_dt = me.downtime_set.filter(start_time__gte=startDate, 
+                start_time__lte=endDate) | me.downtime_set.filter(end_time__gte=startDate,
+                end_time__lte=endDate) | me.downtime_set.filter(start_time__lte=startDate,
+                end_time__gte=endDate)
 
-        return HttpResponse("Success123")
+            existing_dt = existing_dt.exclude(start_time=endDate)
+            existing_dt = existing_dt.exclude(end_time=startDate)
+            existing_dt = existing_dt.exclude(pk=downtime.pk)
+
+            merged = False
+            if len(existing_dt) == 0:
+                downtime.start_time = startDate
+                downtime.end_time = endDate
+                downtime.save()
+                return HttpResponse(serializers.serialize('json',[]))
+            else:
+                min_startDate = startDate
+                max_endDate = endDate
+                remove_me = []
+
+                for dt in existing_dt:
+                    if dt.preferred_activity == downtime.preferred_activity: # only merge if they have the same pref activity
+                        if not (dt.start_time <= startDate and dt.end_time >= endDate):
+                            min_startDate = min(min_startDate, dt.start_time)
+                            max_endDate = max(max_endDate, dt.end_time)
+                            remove_me.append(dt)
+                        else:
+                            response = serializers.serialize('json', [downtime, ])
+                            downtime.delete()
+                            return HttpResponse(response)
+                        merged = True
+                        
+                if not merged:
+                    downtime.start_time = startDate
+                    downtime.end_time = endDate
+                    downtime.save()
+                    return HttpResponse(serializers.serialize('json',[]))
+                else:
+                    downtime.start_time = min_startDate
+                    downtime.end_time = max_endDate
+                    downtime.save()
+                    remove_me.insert(0, downtime)
+                    response = serializers.serialize('json',remove_me)
+                    for dt in remove_me:
+                        if dt != downtime:
+                            dt.delete()
+                    
+            return HttpResponse(response)
+            ##======================================
 
     else: return HttpResponse("Failure123")
 
