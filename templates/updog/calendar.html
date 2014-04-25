@@ -422,6 +422,7 @@ function get_friend_requests() {
 
     else if (downtimes) downtimes_and_events = downtimes;
 
+
     var date = new Date();
     var d = date.getDate();
     var m = date.getMonth();
@@ -461,6 +462,7 @@ function get_friend_requests() {
       defaultView: 'agendaWeek',
       events: downtimes_and_events,
       allDaySlot: false,
+      firstDay: date.getDay(),
 
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
