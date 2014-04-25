@@ -128,7 +128,12 @@ div#scroll-able {
               </a>
               <script>
 
-              $( "#friend_{{ friend }}").hover(function on_hover() {
+
+              hover_functions = {
+                sensitivity: 3,
+                interval: 50,
+                timeout: 50,
+                over: function on_hover() {
 
                 var obj = '{{ friend }}';
               $.ajax({
@@ -161,7 +166,8 @@ div#scroll-able {
               },
               });
 
-              }, function off_hover() {
+              },
+              out: function off_hover() {
                 var obj = '{{ friend }}';
                 existing_events = $("#calendar").fullCalendar('clientEvents');
                 for (var i = 0; i < existing_events.length; i++) {
@@ -170,7 +176,11 @@ div#scroll-able {
                   }
                 }
                 $('#calendar').fullCalendar('rerenderEvents');
-              });
+              }
+
+              }
+
+              $( "#friend_{{ friend }}").hoverIntent(hover_functions);
               /*$( "#friend_{{ friend }}").hover(function on_hover() {
                 var obj = '{{ friend }}';
               $.ajax({
