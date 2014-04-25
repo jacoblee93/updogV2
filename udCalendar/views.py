@@ -665,7 +665,6 @@ def suggest(request):
 
             if 'pk' in request.GET:
                 my_dt = Downtime.objects.filter(pk=request.GET['pk'])[0]
-                print request.GET['pk']
             else:
                 start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
                 after_today = current_user.downtime_set.filter(start_time__gte=start_date)

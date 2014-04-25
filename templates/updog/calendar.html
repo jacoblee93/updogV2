@@ -850,6 +850,7 @@ function get_friend_requests() {
           url: "/calendar/suggest/",
           data: {'pk': event.id},
           success: function(data) {
+            // Make the unconfirmed event show up in your calendar
             if (data === "None") {
               alert("You have no upcoming downtimes.")
             }
@@ -862,14 +863,43 @@ function get_friend_requests() {
                   alert("No free times align")
                 }
                 else {
-                  var mydata = JSON.parse(data);
-                  var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
-                  $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+                  var r = confirm("Send Request?");
+                  // if user clicked Okay:
+                  if (r == true) {
+                    // send the other user a request:
+                    //************** SEND EVENT NOTIFICATION *******************//
+
+
+
+
+
+
+
+                    //************** SEND EVENT NOTIFICATION *******************//
+
+                    // display the unconfirmed event on the initiator's calendar
+                    var mydata = JSON.parse(data);
+                    var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
+                    $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+                  }
+                  // if user clicked Cancel:
+                  else {
+                    // remove the unconfirmed event from the back end
+                    $.ajax({
+                        type: "POST",
+                        url: "/calendar/remove_event/",
+                        data: {"pk": JSON.parse(data)[0].pk},
+                      });
+
+                    }
+
+                  
                 }
               }
             }
           }
         });
+        $dialog.dialog('close');
         };
 
         var edit = document.createElement("input");
@@ -994,18 +1024,18 @@ function get_friend_requests() {
           // THE COMMENTED OUT LINE BELOW ASKS IF YOU ARE SURE YOU WANT
           // TO DELETE AN EVENT
         ///////  if( confirm( "Are you sure you want to delete this downtime?")) {
-            console.log("Delete Function");
+            //console.log("Delete Function");
             $.ajax({
               type: "POST",
               url: "/calendar/remove_downtime/",
               data: {"pk": event.id},
                success: function(data) {
-                  console.log( "ajax to remove!!!" );
+                  //console.log( "ajax to remove!!!" );
 
                   // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
                   /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
                },
-            })
+            });
             $('#calendar').fullCalendar('removeEvents', event.id);
             $('#calendar').fullCalendar('rerenderEvents');
             
