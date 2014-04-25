@@ -249,8 +249,49 @@ def add_downtime(request):
             endDate = endDate.strip("\"")
             endDate = parser.parse(endDate)
 
-            new_downtime = Downtime.objects.get_or_create(owner=request.user.updoguser, start_time=startDate, end_time=endDate)[0]
-            return HttpResponse(serializers.serialize('json',[new_downtime, ]))
+            me = request.user.updoguser
+            
+            existing_dt = me.downtime_set.filter(start_time__gte=startDate, 
+                start_time__lte=endDate) | me.downtime_set.filter(end_time__gte=startDate,
+                end_time__lte=endDate) | me.downtime_set.filter(start_time__lte=startDate,
+                end_time__gte=endDate)
+
+            existing_dt = existing_dt.exclude(start_time=endDate)
+            existing_dt = existing_dt.exclude(end_time=startDate)
+            merged = False
+            if len(existing_dt) == 0:
+                new_downtime = Downtime.objects.get_or_create(owner=me, start_time=startDate, end_time=endDate)[0]
+                response = serializers.serialize('json',[new_downtime, ])
+            else:
+                min_startDate = startDate
+                max_endDate = endDate
+                remove_me = []
+
+                for dt in existing_dt:
+                    if dt.preferred_activity == None:
+                        if not (dt.start_time <= startDate and dt.end_time >= endDate):
+                            min_startDate = min(min_startDate, dt.start_time)
+                            max_endDate = max(max_endDate, dt.end_time)
+                            remove_me.append(dt)
+                        else:
+                            return HttpResponse(serializers.serialize('json',[]))
+                        merged = True
+                        
+                if not merged:
+                    new_downtime = Downtime.objects.get_or_create(owner=me, start_time=startDate, end_time=endDate)[0]
+                    response = serializers.serialize('json',[new_downtime, ])
+
+                else:
+                    
+                    new_downtime=Downtime.objects.get_or_create(owner=me, start_time=min(startDate, dt.start_time), 
+                        end_time=max(endDate, dt.end_time))[0]
+                    remove_me.insert(0, new_downtime)
+                    response = serializers.serialize('json',remove_me)
+                    for dt in remove_me:
+                        if dt != new_downtime:
+                            dt.delete()
+                    
+            return HttpResponse(response)
 
     return HttpResponse("Error!")
 
@@ -549,7 +590,8 @@ def suggest(request):
         return HttpResponse("You fuckup!!?!?!?")
 
 def get_overlap(one, two):
-    if one.start_time == two.end_time or one.end_time == two.start_time:
+
+    if one.start_time >= two.end_time or one.end_time <= two.start_time:
         return None
     if one.start_time < two.start_time:
         if one.end_time < two.end_time:

@@ -989,13 +989,23 @@ function get_friend_requests() {
                 "allDay": allDay,
               },
               success: function(data) {
-
-                console.log(data);
-                var displayed_downtime = make_events(JSON.parse(data), 'green', "{{ username }}", false, false);
-                for (var i = 0; i < displayed_downtime.length; i++) {
-
-                  $("#calendar").fullCalendar('renderEvent', displayed_downtime[i], stick=true);
-                }
+                parsed = JSON.parse(data)
+                if (parsed.length > 0) {
+                  if (parsed.length > 1) {
+                    if (parsed[1].pk != parsed[0].pk.id) {
+                      var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
+                      $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+                      for (var i = 1; i < displayed_downtime.length; i++) {
+                        $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+                      }
+                      $('#calendar').fullCalendar('rerenderEvents');
+                    }
+                  }
+                  else {
+                    var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
+                    $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+                  }
+                }         
               },
         });
       },
