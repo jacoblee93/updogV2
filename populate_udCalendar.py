@@ -25,7 +25,7 @@ def populate():
     p.add_user(ud5)
 
     dt1 = add_downtime(ud1, datetime(2014, 4, 8, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 8, 8, 30, 0, tzinfo=utc))
-    dt2 = add_downtime(ud2, datetime(2014, 4, 22, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 22, 8, 30, 0, tzinfo=utc))
+    dt2 = add_downtime(ud2, datetime(2014, 4, 26, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 26, 8, 30, 0, tzinfo=utc))
     dt3 = add_downtime(ud3, datetime(2014, 4, 20, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 20, 8, 30, 0, tzinfo=utc))
     dt4 = add_downtime(ud4, datetime(2014, 4, 21, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 21, 8, 30, 0, tzinfo=utc))
     dt5 = add_downtime(ud5, datetime(2014, 4, 20, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 20, 8, 30, 0, tzinfo=utc))

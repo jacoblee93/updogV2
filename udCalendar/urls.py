@@ -26,5 +26,6 @@ urlpatterns = patterns('',
         url(r'^send_friend_request/$', views.send_friend_request, name='send_friend_request'),
         url(r'^accept_friend_request/$', views.accept_friend_request, name='accept_friend_request'),
         url(r'^reject_friend_request/$', views.reject_friend_request, name='reject_friend_request'),
+        url(r'^suggest/$', views.suggest, name='suggest'),
         url(r'^display_friend_requests/$', views.display_friend_requests, name='display_friend_requests'),
 )
