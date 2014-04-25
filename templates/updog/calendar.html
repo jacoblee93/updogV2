@@ -463,6 +463,7 @@ function get_friend_requests() {
       events: downtimes_and_events,
       allDaySlot: false,
       firstDay: date.getDay(),
+      firstHour: 8,
 
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
@@ -840,6 +841,36 @@ function get_friend_requests() {
       else if (event.owner == '{{ username }}') {
         
         $dialog.dialog({title:event.title});
+        var suggest = document.createElement("input");
+        suggest.setAttribute('type', "submit");
+        suggest.setAttribute('value', "Suggest");
+        suggest.onclick = function() {
+          $.ajax({
+          type: "GET",
+          url: "/calendar/suggest/",
+          data: {'pk': event.id},
+          success: function(data) {
+            if (data === "None") {
+              alert("You have no upcoming downtimes.")
+            }
+            else {
+              if (data == "NoFriends") {
+                alert("You have no friends.")
+              }
+              else {
+                if (data == "NoMatch") {
+                  alert("No free times align")
+                }
+                else {
+                  var mydata = JSON.parse(data);
+                  var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
+                  $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+                }
+              }
+            }
+          }
+        });
+        };
 
         var edit = document.createElement("input");
         edit.setAttribute('type', "submit");
@@ -873,12 +904,13 @@ function get_friend_requests() {
           start_time.setAttribute('type', "text");
           // can reference this by using "start_time"
           start_time.setAttribute('name', "start_time");
-
+          start_time.setAttribute('id', 'st_field');
           end_text = document.createElement("span");
           end_text.innerHTML = '<br/>End Time: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
           var end_time = document.createElement("input");
           end_time.setAttribute('type', "test");
           end_time.setAttribute('name', "end_time");
+          end_time.setAttribute('id', 'et_field');
 
           var newline = document.createElement("span");
           newline.innerHTML = '<br/>';
@@ -910,6 +942,8 @@ function get_friend_requests() {
               url: "/calendar/edit_downtime/",
               data: {'activity': $('#activity_field').val(),
               'pk': event.id,
+              'starttime': $('#st_field').val(),
+              'endtime': $('#et_field').val(),
 
               },
                   success: function(data) {
@@ -1002,8 +1036,7 @@ function get_friend_requests() {
         $($dialog).append(edit);
         $($dialog).append(del);
         $dialog.dialog('open');
-
-
+        $dialog.append(suggest);
         }
       },
       eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {

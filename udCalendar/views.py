@@ -663,12 +663,16 @@ def suggest(request):
         if request.method == 'GET':
             current_user = request.user.updoguser
 
-            start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
-            after_today = current_user.downtime_set.filter(start_time__gte=start_date)
-            ordered = after_today.order_by('start_time')
-            if len(ordered) == 0:
-                return HttpResponse(None)
-            my_dt = ordered[0]
+            if 'pk' in request.GET:
+                my_dt = Downtime.objects.filter(pk=request.GET['pk'])[0]
+                print request.GET['pk']
+            else:
+                start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
+                after_today = current_user.downtime_set.filter(start_time__gte=start_date)
+                ordered = after_today.order_by('start_time')
+                if len(ordered) == 0:
+                    return HttpResponse(None)
+                my_dt = ordered[0]
 
             my_friends = current_user.get_friends()
             if len(my_friends) == 0:
@@ -720,7 +724,7 @@ def get_overlap(one, two):
             overlap = Event.objects.get_or_create(start_time=one.start_time, end_time=one.end_time, 
                 is_confirmed = False)[0]
     overlap.add_user(one.owner)
-    overlap.add_user(two.owner)
+    #overlap.add_user(two.owner)
     return overlap
 
 def display_friend_requests(request):
