@@ -853,17 +853,39 @@ function get_friend_requests() {
               'pk': event.id,
 
               },
-               success: function(data) {
-                  $('#calendar').fullCalendar('removeEvents', event.id);
+                  success: function(data) {
 
-                  // data[0] now holds the event to edit
-                  var data = JSON.parse(data);
+                    parsed = JSON.parse(data);
+                    if ($('#activity_field').val().length == 0) {
+                      event.title = event.title.split(" ")[0] + ' is free';
+                    }
+                    else {
+                      event.title = event.title.split(" ")[0] + ' wants to ' + $('#activity_field').val();
+                    }
+                    
+                    $("#calendar").fullCalendar('renderEvent', event, stick=true);
+                    if (parsed.length > 1) {
+                      event.start = parsed[0].fields.start_time;
+                      event.end = parsed[0].fields.end_time;
+                      $("#calendar").fullCalendar('renderEvent', event, stick=true);
+                      for (var i = 0; i < parsed.length; i++) {
+                        if (parsed[i].pk != event.id) {
+                          $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+                        }
+                      }
+                    }
+                    else {
+                      if (parsed.length == 1) {
+                        $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
+                      }
+                    }
+                    if (parsed.length != 0) {
+                      $('#calendar').fullCalendar('rerenderEvents'); 
+                    }
+                    $dialog.dialog('close');
+                  },
 
-                  var edited_event = make_events(data, 'green', '{{username}}', false, false)[0];
-
-                  $('#calendar').fullCalendar('renderEvent', edited_event, stick = true);
-                  $dialog.dialog('close');
-               },
+                  
             });
           };
 

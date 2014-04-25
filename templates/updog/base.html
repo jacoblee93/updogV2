@@ -219,7 +219,9 @@ function make_events(data, color, owner, hover, is_event) {
 
             if (!data[i].fields.preferred_activity)
               single.title = owner + " is free";
-            else single.title = owner + " wants to " + data[i].fields.preferred_activity;
+            else {
+              single.title = owner + " wants to " + data[i].fields.preferred_activity;
+            }
           }
 
           single.start = data[i].fields.start_time;

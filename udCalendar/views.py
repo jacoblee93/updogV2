@@ -376,13 +376,54 @@ def edit_downtime(request):
             downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
             if 'activity' in request.POST:
                 downtime.preferred_activity = request.POST['activity']
+                if len(request.POST['activity']) == 0:
+                    downtime.preferred_activity = None
             downtime.save()
 
-            json_downtime = serializers.serialize("json", [downtime, ])
+            me = request.user.updoguser
+            
+            existing_dt = me.downtime_set.filter(start_time__gte=downtime.start_time, 
+                start_time__lte=downtime.end_time) | me.downtime_set.filter(end_time__gte=downtime.start_time,
+                end_time__lte=downtime.end_time) | me.downtime_set.filter(start_time__lte=downtime.start_time,
+                end_time__gte=downtime.end_time)
+            existing_dt = existing_dt.exclude(start_time=downtime.end_time)
+            existing_dt = existing_dt.exclude(end_time=downtime.start_time)
+            existing_dt = existing_dt.exclude(pk=downtime.pk)
+            existing_dt = existing_dt.filter(preferred_activity=downtime.preferred_activity)
+            merged = False
+            if len(existing_dt) == 0:
+                return HttpResponse(serializers.serialize('json',[]))
+            else:
+                min_startDate = downtime.start_time
+                max_endDate = downtime.end_time
+                remove_me = []
 
-            print json_downtime
-
-            return HttpResponse(json_downtime)
+                for dt in existing_dt:
+                    if (dt.preferred_activity == downtime.preferred_activity): # only merge if they have the same pref activity
+                        if not (dt.start_time <= downtime.start_time and dt.end_time >= downtime.end_time):
+                            min_startDate = min(min_startDate, dt.start_time)
+                            max_endDate = max(max_endDate, dt.end_time)
+                            remove_me.append(dt)
+                        else:
+                            response = serializers.serialize('json', [downtime, ])
+                            downtime.delete()
+                            return HttpResponse(response)
+                        merged = True
+                        
+                if not merged:
+    
+                    return HttpResponse(serializers.serialize('json',[]))
+                else:
+                    downtime.start_time = min_startDate
+                    downtime.end_time = max_endDate
+                    downtime.save()
+                    remove_me.insert(0, downtime)
+                    response = serializers.serialize('json',remove_me)
+                    for dt in remove_me:
+                        if dt != downtime:
+                            dt.delete()
+                    
+            return HttpResponse(response)
 
     return HttpResponse("Invalid request")
 
