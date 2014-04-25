@@ -93,6 +93,7 @@ class Event(models.Model):
     end_time = models.DateTimeField()
     activity = models.CharField(max_length=100, null=True, blank=True)
     location = models.CharField(max_length=100, null=True, blank=True)
+    is_confirmed = models.BooleanField(default=True)
 
     def add_user(self, user):
         return self.owners.add(user)
