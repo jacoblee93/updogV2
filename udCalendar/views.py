@@ -48,17 +48,19 @@ def calendar(request):
     # Alex - for local use when redesigning friends tab
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
-    #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
 
-    test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
-    test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
-    test_to_friendship.is_mutual= True
-    test_from_friendship.is_mutual = True
-    test_to_friendship.is_new = False
-    test_from_friendship.is_new = False
-    test_to_friendship.save()
-    test_from_friendship.save()
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
+
+    #test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
+    #test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
+    #test_to_friendship.is_mutual= True
+    #test_from_friendship.is_mutual = True
+    #test_to_friendship.is_new = False
+    #test_from_friendship.is_new = False
+    #test_to_friendship.save()
+    #test_from_friendship.save()
 
     # Alex - friend request to build notifications bar
     #test_to_request = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
@@ -70,6 +72,7 @@ def calendar(request):
     #test_from_request.is_mutual = False
     #test_from_request.save()
     #test_to_request.save()
+    #current_user.save()
 
     
     ships_list = current_user.get_friends()
@@ -574,8 +577,8 @@ def find_friends(request):
     if request.is_ajax():
         if request.method == 'GET':
             l = len(request.GET["search"])
-            # problems: only matches full string, is also case sensitive
-            friends_list = UpDogUser.objects.filter(Q(user__first_name=request.GET["search"]) | Q(user__last_name=request.GET["search"]) | Q(user__username=request.GET["search"]))
+
+            friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
             fl = len(friends_list)
             user_list = []
 
@@ -591,14 +594,16 @@ def find_friends(request):
 def send_friend_request(request):
     if request.is_ajax():
         if request.method == 'POST':
-            if 'new_friend' in request.POST:
+
+            if 'new_friend' in request.POST and 'i' in request.POST:
+                i = request.POST['i']
                 new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
                 current_user = request.user.updoguser
 
                 to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
 
-                #if to_friendship:
-                 #   return HttpResponse("Request Pending")
+                if to_friendship:
+                    return HttpResponse("Request Pending," + i)
 
                 current_user.add_friend(new_friend)
 
@@ -611,7 +616,7 @@ def send_friend_request(request):
                 to_friendship.save()
                 new_friend.save()
 
-                return HttpResponse("Success")
+                return HttpResponse("Success," + i)
 
     return HttpResponse("Failure!")
 
@@ -743,7 +748,7 @@ def display_friend_requests(request):
                 return HttpResponse("No new notifications")
 
             else:
-                requests = Friendship.objects.filter(to_user=current_uduser)
+                requests = Friendship.objects.filter(to_user=current_uduser, is_new = True)
                 print requests
                 rl = len(requests)
                 request_list = []

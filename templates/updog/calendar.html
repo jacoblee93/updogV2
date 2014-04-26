@@ -69,7 +69,6 @@ div#scroll-able {
                 userhtml = "";
 
                 for (var i = 0; i < dlength; i++) {
-                  // to do: firstname/lastname in friends tab, show current and pending friends in search, w/o add button, add notifications dropdown to navbar
                   isFriend = 0;
                   {% if friends_list %}
                     {% for friend in friends_list %}
@@ -84,9 +83,9 @@ div#scroll-able {
                 };
               }
               if (users.length != 0) {
-                for (var i = 0; i < dlength; i++) {
+                for (var i = 0; i < users.length; i++) {
                   console.log(mydata[i].fields);
-                userhtml = userhtml + '<div><a class="list-group-item"><img src="/media/profile_pictures/' + users[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + mydata[i].fields.first_name + ' ' +  mydata[i].fields.last_name + '<div style="float:right"><button type="button" onclick="send_friend_request(\'' + users[i] + '\')"> add </button></div></a></div>';
+                userhtml = userhtml + '<div><a class="list-group-item"><img src="/media/profile_pictures/' + users[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + mydata[i].fields.first_name + ' ' +  mydata[i].fields.last_name + '<div style="float:right"><button type="button" onclick="send_friend_request(\'' + users[i] + '\', \'' + i +'\')"> add </button></div><div id="div' + i + '"></div></a></div>';
                 }
               }
                 $('.error').fadeOut(200).hide();
@@ -210,14 +209,21 @@ div#scroll-able {
       
 <script>
 
-function send_friend_request(new_friend) {
+function send_friend_request(new_friend, i) {
   $.ajax({
     type: "POST",
     url: "/calendar/send_friend_request/",
-    data: {'new_friend': new_friend},
+    data: {'new_friend': new_friend, 'i': i},
     success: function(data) {
-
-      console.log(data);
+      var s = data.indexOf(',');
+      var data1 = data.substring(0,s);
+      var data2 = data.substring(s+1, data.length);
+      if (data1 === "Request Pending") {
+        $("#div"+data2).text("Request Pending");
+      }
+      else {
+        $("#div"+data2).text("friend request sent");
+      }
     }
 
   });
