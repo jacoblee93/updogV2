@@ -29,4 +29,5 @@ urlpatterns = patterns('',
         url(r'^suggest/$', views.suggest, name='suggest'),
         url(r'^display_friend_requests/$', views.display_friend_requests, name='display_friend_requests'),
         url(r'^get_friends/$', views.get_friends, name='get_friends'),
+        url(r'^display/$', views.display, name='display'),
 )

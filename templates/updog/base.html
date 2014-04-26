@@ -220,7 +220,9 @@ function make_events(data, color, owner, hover, is_event) {
 
             if (!data[i].fields.preferred_activity)
               single.title = owner + " is free";
-            else single.title = owner + " wants to " + data[i].fields.preferred_activity;
+            else {
+              single.title = owner + " wants to " + data[i].fields.preferred_activity;
+            }
           }
 
           single.start = data[i].fields.start_time;
@@ -254,24 +256,54 @@ function make_events(data, color, owner, hover, is_event) {
       url: "/calendar/suggest/",
       data: {},
       success: function(data) {
-        if (data === "None") {
-          alert("You have no upcoming downtimes.")
-        }
-        else {
-          if (data == "NoFriends") {
-            alert("You have no friends.")
+          // Make the unconfirmed event show up in your calendar
+          if (data === "None") {
+            alert("You have no upcoming downtimes.")
           }
           else {
-            if (data == "NoMatch") {
-              alert("No free times align")
+            if (data == "NoFriends") {
+              alert("You have no friends.")
             }
             else {
-              var mydata = JSON.parse(data);
-              var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
-              $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+              if (data == "NoMatch") {
+                alert("No free times align")
+              }
+              else {
+                var r = confirm("Send Request?");
+                // if user clicked Okay:
+                if (r == true) {
+                  // send the other user a request:
+                  //************** SEND EVENT NOTIFICATION *******************//
+
+
+
+
+
+
+
+                  //************** SEND EVENT NOTIFICATION *******************//
+
+                  // display the unconfirmed event on the initiator's calendar
+                  var mydata = JSON.parse(data);
+                  var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
+                  $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+                }
+                // if user clicked Cancel:
+                else {
+                  // remove the unconfirmed event from the back end
+                  $.ajax({
+                      type: "POST",
+                      url: "/calendar/remove_event/",
+                      data: {"pk": JSON.parse(data)[0].pk},
+                    });
+
+                  }
+
+                
+              }
             }
           }
-        }
+
       }
     });
   }
