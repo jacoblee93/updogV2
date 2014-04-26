@@ -184,7 +184,8 @@
   <script>
 
 
-function make_events(data, color, owner, hover, is_event) {
+function make_events(data, color, owners, hover, is_event) {
+
       if (data.length > 0) {
         var dlength = data.length;
         var multiple = [];
@@ -214,13 +215,15 @@ function make_events(data, color, owner, hover, is_event) {
             if (!data[i].fields.is_confirmed) {
               single.color = 'red';
             }
+            // create an empty invite list
+            single.invitelist = [];
           }
           else { // for downtimes
 
             if (!data[i].fields.preferred_activity)
-              single.title = owner + " is free";
+              single.title = owners[0] + " is free";
             else {
-              single.title = owner + " wants to " + data[i].fields.preferred_activity;
+              single.title = owners[0] + " wants to " + data[i].fields.preferred_activity;
             }
           }
 
@@ -229,17 +232,24 @@ function make_events(data, color, owner, hover, is_event) {
           single.allDay = false;
           single.id = data[i].pk;
           
-          single.owner = owner;
+          able = false;
+          single.owners = [];
+          for (var j = 0; j < owners.length; j++) {
+            single.owners.push(owners[j]);
+            if (owners[j] == "{{username}}") able = true;
+          }
+          
           single.is_event = is_event; // true for events, false for downtimes
           if (is_event) {
             single.editable = true;
 
           }
-          if (owner == "{{username}}") {
+          if (able) {
             single.editable = true;
           }
           else if (hover) {
-            single.owner = "hover";
+            single.owners = [];
+            single.owners.push("hover");
           }
 
           time_delta = data[i].fields.repeating_time_delta;
@@ -286,7 +296,7 @@ function make_events(data, color, owner, hover, is_event) {
 
                   // display the unconfirmed event on the initiator's calendar
                   var mydata = JSON.parse(data);
-                  var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
+                  var unconf = make_events(mydata, 'orange', ['{{ username }}'], false, true);
                   $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
                 }
                 // if user clicked Cancel:
@@ -308,7 +318,90 @@ function make_events(data, color, owner, hover, is_event) {
       }
     });
   }
-  </script>
+</script>
+
+<script>
+function get_friends(user) {
+  $.ajax({
+    type: "GET",
+    url: "/calendar/get_friends/",
+    data: {'user': user},
+    success: function(data) {
+      //real_data = JSON.parse(data);
+      //return real_data;
+      real_data = JSON.parse(data);
+      fl = real_data.length;
+      userhtml = '';
+        if (fl != 0) {
+        userhtml = userhtml + '<a class="list-group-item active">Friends:</a>';
+        
+          for (var i = 0; i < fl; i++) {
+            userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].fields.username + '"><div><img src="/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
+          };
+        } else {
+          userhtml = '<strong>No friends.</strong>';
+      };
+      $(".frandz").html(userhtml);
+      for (var i = 0; i < fl; i++) {
+        hover_stuff(real_data[i]);
+      };
+    } 
+  });
+}
+
+function hover_stuff(friend) {
+hover_functions = {
+  sensitivity: 3,
+  interval: 50,
+  timeout: 50,
+  over: function on_hover() {
+    var obj = friend.fields.username;
+  $.ajax({
+    type: "POST",
+    url: "/calendar/get_friends_downtimes/",
+    data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
+    success: function(data) {
+
+      var our_data = JSON.parse(data);
+      var get_some_events = make_events(our_data, 'orange', [obj], true, false);
+
+      if (get_some_events) {
+        existing_events = $("#calendar").fullCalendar('clientEvents');
+    
+        for (var i = 0; i < get_some_events.length; i++) {
+          var is_unique = true;
+          for (var j = 0; j < existing_events.length; j++) {
+            if (get_some_events[i].id == existing_events[j].id) {
+              is_unique = false;
+            }
+          }
+          if (is_unique) {
+            $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+          }
+        }
+
+      }
+    },
+    });
+
+    },
+    out: function off_hover() {
+    var obj = friend;
+    existing_events = $("#calendar").fullCalendar('clientEvents');
+    for (var i = 0; i < existing_events.length; i++) {
+      if (existing_events[i].owners[0]=== "hover") {
+        $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+      }
+    }
+    $('#calendar').fullCalendar('rerenderEvents');
+      }
+    }
+    $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
+    }
+
+  var x = get_friends('{{ user }}');
+</script>
+
   </body>  
   <hr>
 
