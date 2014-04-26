@@ -83,23 +83,84 @@
         data: {"username": '{{ user.username }}',
         },
         success: function(data) {
-        mydata = JSON.parse(data);
-        var dlength = mydata.length;
-        var users = [];
-        userhtml = "";
+          if (data == "No new notifications") return;
+          mydata = JSON.parse(data);
+          var dlength = mydata.length;
+          var users = [];
+          userhtml = "";
 
-        for (var i = 0; i < dlength; i++) {
-          users.push(mydata[i]);
-        }
-
-        if (users.length != 0) {
           for (var i = 0; i < dlength; i++) {
-            userhtml = userhtml + '<li><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="40" height="40"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<br><div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li>';
+            users.push(mydata[i]);
           }
+
+          if (users.length != 0) {
+            for (var i = 0; i < dlength; i++) {
+              userhtml = userhtml + '<li><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="40" height="40"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<br><div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li>';
+            }
+          }
+          $(".friend_requests").html(userhtml);
         }
-        $(".notifications").html(userhtml);
+      });
+    }
+    function display_notifications() {
+      $.ajax({
+        type: "GET",
+        url: "/calendar/get_notifications/",
+        success: function(data) {
+          console.log(data);
+          if (!data) return;
+          mydata = JSON.parse(data);
+          var dlength = mydata.length;
+          var items = [];
+          userhtml = "";
+
+          for (var i = 0; i < dlength; i++) {
+            items.push(mydata[i]);
+          }
+
+          if (items.length != 0) {
+            for (var i = 0; i < dlength; i++) {
+              if (!items[i].fields.is_reply) {
+                userhtml = userhtml + '<li><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="40" height="40"> ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + ' wants to hang out!' + '<br><div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li>';
+              }
+              else {
+                userhtml = userhtml + '<li><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="40" height="40"> You are now hanging out with ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + '!</li>';
+              }
+            }
+          }
+          $(".notifications").html(userhtml);
+        }
+     });
+   }
+
+  function respond_yes_to_event_notification(notification_pk) {
+
+    $.ajax({
+      type: "POST",
+      url: "/calendar/respond_to_event_notification/",
+      data: {'notification': notification_pk,
+              'response': 'accept'
+            },
+      success: function(data) {
+
+        console.log("Success!")
       }
-    });
+    })
+  }
+
+  function respond_no_to_event_notification(notification_pk) {
+
+    $.ajax({
+      type: "POST",
+      url: "/calendar/respond_to_event_notification/",
+      data: {'notification': notification_pk,
+              'response': 'decline'
+            },
+      success: function(data) {
+
+        console.log("Success!")
+      }
+    })
   }
 
   function accept_friend_request(new_friend) {
@@ -159,12 +220,18 @@
               
               {% if user.is_authenticated %}
                 <li><a href="#preferences">Preferences</a></li>
-                <li><div class=></li>
                 <!--<li><a onclick = "display_friend_requests()"> Notifications 
                   <div class="notifications"></div>
                 </a></li>-->
+
                 <li class="dropdown">
-                  <a onclick="display_friend_requests()" class="dropdown-toggle" data-toggle="dropdown" >Notifications <b class="caret"></b></a>
+                  <a onclick="display_friend_requests()" class="dropdown-toggle" data-toggle="dropdown" >Friend Requests <b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <div class="friend_requests"></div>
+                  </ul>
+                </li>
+                <li class="dropdown">
+                  <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="dropdown" >Notifications <b class="caret"></b></a>
                   <ul class="dropdown-menu">
                     <div class="notifications"></div>
                   </ul>

@@ -12,8 +12,8 @@ class UpDogUser(models.Model):
     packs = models.ManyToManyField('Pack')
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=False, related_name='friend_to+')
     location = models.CharField(max_length=100)
-    new_notifications = models.BooleanField(default=False)
-    profile_picture = models.ImageField(upload_to='profile_pictures')
+    new_friend_requests = models.BooleanField(default=False)
+    profile_picture = models.ImageField(upload_to='profile_pictures', blank=True, null=True)
 
     def __unicode__(self):
         return self.user.username
@@ -58,6 +58,19 @@ class Friendship(models.Model):
     
     def __unicode__(self):
         return "From %s to %s" % (self.from_user, self.to_user)
+
+class EventNotification(models.Model):
+
+    to_user = models.ForeignKey(UpDogUser, related_name='incoming_event_notifications')
+    from_user = models.ForeignKey(UpDogUser, related_name='outgoing_event_notifications')
+    event = models.ForeignKey('Event', related_name='event_notifications')
+    is_reply = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        if not self.is_reply:
+            return 'Event Notification from %s to %s about event %s at %s' % (self.from_user, self.to_user, self.event, self.date)
+        else: return 'Reply Notification from %s to %s about event %s at %s' % (self.from_user, self.to_user, self.event, self.date) 
         
 class Pack(models.Model):
     

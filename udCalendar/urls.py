@@ -28,4 +28,7 @@ urlpatterns = patterns('',
         url(r'^reject_friend_request/$', views.reject_friend_request, name='reject_friend_request'),
         url(r'^suggest/$', views.suggest, name='suggest'),
         url(r'^display_friend_requests/$', views.display_friend_requests, name='display_friend_requests'),
+        url(r'^get_notifications/$', views.get_notifications, name='get_notifications'),
+        url(r'^send_event_notifications/$', views.send_event_notifications, name='send_event_notifications'),
+        url(r'^respond_to_event_notification/$', views.respond_to_event_notification, name='respond_to_event_notification'),
 )
