@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from udCalendar.models import UpDogUser, Friendship, Event, Downtime
+from udCalendar.models import UpDogUser, Friendship, Event, Downtime, EventNotification
 from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
@@ -104,7 +104,7 @@ def calendar(request):
     #test_to_request = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
     #test_from_request = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
     #test_from_request.is_new = True
-    #current_user.new_notifications = True
+    #current_user.new_friend_requests = True
     #test_to_request.is_new = False
     #test_to_request.is_mutual = False
     #test_from_request.is_mutual = False
@@ -627,7 +627,9 @@ def remove_event(request):
     if request.is_ajax():
         if request.method == 'POST':
             event = Event.objects.filter(pk=request.POST['pk'])[0]
-            event.delete()
+            event.owners.remove(request.user.updoguser)
+            if not event.owners:
+                event.delete()
 
             return HttpResponse("Success here!!!!!")
     else: return HttpResponse("Failure here!!!!")
@@ -723,7 +725,7 @@ def send_friend_request(request):
                 from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
 
                 to_friendship.is_new = True
-                new_friend.new_notifications = True
+                new_friend.new_friend_requests = True
 
                 to_friendship.save()
                 new_friend.save()
@@ -769,8 +771,6 @@ def reject_friend_request(request):
                 to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
                 from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
 
-                print to_friendship
-                print from_friendship
                 to_friendship.is_new = False
                 from_friendship.is_new = False
                 to_friendship.save()
@@ -823,6 +823,7 @@ def suggest(request):
             choose = options.order_by('start_time')[0]
             single = []
             single.append(get_overlap(my_dt, choose))
+            single.append(amigo)
             json_me = serializers.serialize('json',single)
             return HttpResponse(json_me)
     else:
@@ -857,7 +858,7 @@ def display_friend_requests(request):
 
             current_uduser = request.user.updoguser
             
-            if not current_uduser.new_notifications:
+            if not current_uduser.new_friend_requests:
                 return HttpResponse("No new notifications")
 
             else:
@@ -873,6 +874,72 @@ def display_friend_requests(request):
                 return HttpResponse(requests_out)
 
     return HttpResponse("Failure")
+
+@login_required
+def get_notifications(request):
+    #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=True)
+    #test_notif.save()
+    if request.is_ajax():
+        if request.method == 'GET':
+
+            current_uduser = request.user.updoguser
+            event_notifications = EventNotification.objects.filter(to_user=current_uduser) 
+            if event_notifications:
+                event_notifications = serializers.serialize('json', event_notifications)
+
+
+            else: 
+                event_notifications = []
+
+            return HttpResponse(event_notifications)
+
+    return HttpResponse("Failure")
+
+@login_required
+def send_event_notifications(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+
+            current_uduser = request.user.updoguser
+
+            if 'event' in request.POST:
+                event = Event.objects.filter(pk=request.POST['event'])[0]
+                if 'to_users' in request.POST:
+                    to_users = json.loads(request.POST['to_users'])
+
+                    for key in to_users:
+                        recipient = UpDogUser.objects.filter(pk=key)[0]
+                        event_notification = EventNotification(to_user=recipient, from_user=current_uduser, event=event)
+                        event_notification.save()
+
+
+                return HttpResponse("Success")
+
+
+    return HttpResponse("Failure")
+
+@login_required
+def respond_to_event_notification(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+
+            current_uduser = request.user.updoguser
+
+            if 'notification' in request.POST:
+                notification = EventNotification.objects.filter(pk=request.POST['notification'])[0]
+
+                if 'response' in request.POST:
+                    response = request.POST['response']
+
+                    if response == 'accept':
+                        notification.event.add_user(current_uduser)
+                        notification.event.save()
+                        reply_notification = EventNotification(to_user=notification.from_user, from_user=current_uduser, event=notification.event, is_reply=True)
+
+                    return HttpResponse("Success")
+
+    return HttpResponse("Failure")
+
 
 # return the hour of the time variable, where the time variable
 # is formatted as H:MM AP or HH:MM AP, where AP is either AM or
