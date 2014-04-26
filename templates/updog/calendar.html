@@ -135,11 +135,12 @@ div#scroll-able {
                 timeout: 50,
                 over: function on_hover() {
 
-                var obj = '{{ friend }}';
+
+              var obj = '{{ friend }}';
               $.ajax({
               type: "POST",
               url: "/calendar/get_friends_downtimes/",
-              data: {'friend': obj},
+              data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
               success: function(data) {
 
               var our_data = JSON.parse(data);
@@ -181,48 +182,7 @@ div#scroll-able {
               }
 
               $( "#friend_{{ friend }}").hoverIntent(hover_functions);
-              /*$( "#friend_{{ friend }}").hover(function on_hover() {
-                var obj = '{{ friend }}';
-              $.ajax({
-              type: "POST",
-              url: "/calendar/get_friends_events/",
-              data: {'friend': obj},
-              success: function(data) {
-
-              var our_data = JSON.parse(data);
-              var get_some_events = make_events(our_data, 'red', obj, true, true);
-              if (get_some_events) {
-    
-              existing_events = $("#calendar").fullCalendar('clientEvents');
-    
-              for (var i = 0; i < get_some_events.length; i++) {
-                var is_unique = true;
-                for (var j = 0; j < existing_events.length; j++) {
-                  if (get_some_events[i].id == existing_events[j].id) {
-                    is_unique = false;
-                  }
-
-                }
-                if (is_unique) {
-                  $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
-                  
-                }
-              }
-
-              }
-              },
-              });
-
-              }, function off_hover() {
-                var obj = '{{ friend }}';
-                existing_events = $("#calendar").fullCalendar('clientEvents');
-                for (var i = 0; i < existing_events.length; i++) {
-                  if (existing_events[i].owner === "hover") {
-                    $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
-                  }
-                }
-                $('#calendar').fullCalendar('rerenderEvents');
-              });*/
+              
 
               </script>
             {% endfor %}
@@ -283,7 +243,7 @@ function get_friend_requests() {
       $.ajax({
       type: "POST",
       url: "/calendar/get_friends_downtimes/",
-      data: {'friend': obj},
+      data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
       success: function(data) {
 
         var our_data = JSON.parse(data);
@@ -334,62 +294,7 @@ function get_friend_requests() {
 
 
     }
-    /*
-    function getevents(obj) {
-      $.ajax({
-      type: "POST",
-      url: "/calendar/get_friends_events/",
-      data: {'friend': obj},
-      success: function(data) {
 
-        var our_data = JSON.parse(data);
-        var get_some_events = make_events(our_data, 'red', obj, false, true);
-        if (get_some_events) {
-  
-            existing_events = $("#calendar").fullCalendar('clientEvents');
-  
-            for (var i = 0; i < get_some_events.length; i++) {
-              var is_unique = true;
-              for (var j = 0; j < existing_events.length; j++) {
-                if (get_some_events[i].id == existing_events[j].id) {
-                  if (existing_events[j].owner != "hover") {
-                    is_unique = false;
-                  }
-                  // existing event owner is hover
-                  else {
-                    $('#calendar').fullCalendar('removeEvents', existing_events[j].id); // remove the one with 'hover' owner
-                  }
-
-                }
-              }
-              if (is_unique) {
-                $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
-                
-              }
-            }
-            var test = document.getElementById('friend_'+obj);  
-            test.setAttribute("onclick", "erase_events("+JSON.stringify(obj)+")");
-
-                }
-       },
-      });
-
-    }
-    function erase_events(obj) {
-  
-      existing_events = $("#calendar").fullCalendar('clientEvents');
-      for (var i = 0; i < existing_events.length; i++) {
-        if (existing_events[i].owner == obj) {
-          $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
-        }
-      }
-      $('#calendar').fullCalendar('rerenderEvents');
-
-      var test = document.getElementById('friend_'+obj);
-      test.setAttribute("onclick", "getevents("+JSON.stringify(obj)+")");
-
-
-    }    */
 </script>
 
 <div>
@@ -402,9 +307,10 @@ function get_friend_requests() {
       return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
     } 
     $(document).ready(function() {
-      {% autoescape off %}
+
+      /*{% autoescape off %}
         var data = {{ events_list }};
-        var downtime_data = {{ downtimes }}
+        var downtime_data = {{ downtimes }};
       {% endautoescape %}
 
     var multiple = make_events(data, 'blue', '{{ username }}', false, true);
@@ -420,7 +326,7 @@ function get_friend_requests() {
       else downtimes_and_events = multiple;
     }
 
-    else if (downtimes) downtimes_and_events = downtimes;
+    else if (downtimes) downtimes_and_events = downtimes;*/
 
 
     var date = new Date();
@@ -448,7 +354,90 @@ function get_friend_requests() {
         }
     }); 
 
-      $('#calendar').fullCalendar({
+      $('#calendar').fullCalendar(
+      {
+      
+
+
+      /*console.log("called this function");
+      var arrow_left = $('.fc-button .fc-button-prev .fc-state-default .fc-corner-left');
+      console.log(arrow_left);
+      arrow_left.setAttribute("onclick", "console.log('hi')");
+      var d = $('#calendar').fullCalendar('getDate');
+      console.log(d);
+      $.ajax({
+
+      type: "POST",
+      url: "/calendar/display/",
+      data: {'test': "JSON.stringify(d)"},
+      success: function(data) {
+
+        console.log(data);
+
+      }
+
+      });*/
+
+      viewDisplay: function(view) {
+        var d = $('#calendar').fullCalendar('getDate');
+        console.log(d);
+        $.ajax({
+
+        type: "POST",
+        url: "/calendar/display/",
+        data: {'display_date': d.toUTCString()},
+        success: function(data) {
+          var my_data = JSON.parse(data);
+          console.log(my_data);
+          var downtimes_vd = [];
+          var events_vd = [];
+
+          existing_events = $("#calendar").fullCalendar('clientEvents');
+          for (var i = 0; i < my_data.length; i++) {
+            unique = true;
+            for (var j = 0; j < existing_events.length; j++) {
+              if (existing_events[j].id == my_data[i].pk && ((my_data[i].model == "udCalendar.downtime" && existing_events[j].is_event == false) || (my_data[i].model == "udCalendar.event" && existing_events[j].is_event == true))) {
+                unique = false;
+              }
+
+            }
+
+            if (unique) {
+              if (my_data[i].model == "udCalendar.downtime") {
+
+                downtimes_vd.push(my_data[i]);
+
+              }
+              else {
+                events_vd.push(my_data[i]);
+              }
+            }
+          }
+          var multiple_evs = make_events(events_vd, 'blue', '{{ username }}', false, true);
+          var multiple_dts = make_events(downtimes_vd, 'green', '{{ username }}', false, false);
+          var dts_and_evs;
+          if (multiple_evs) {
+
+            if (multiple_dts) {
+
+              dts_and_evs = multiple_evs.concat(multiple_dts);
+            }
+
+            else dts_and_evs = multiple_evs;
+          }
+
+          else if (multiple_dts) dts_and_evs = multiple_dts;
+          console.log(dts_and_evs);
+
+          for (var i = 0; i < dts_and_evs.length; i++) {
+            $('#calendar').fullCalendar('renderEvent', dts_and_evs[i], stick = true);
+          }
+
+
+        }
+
+        });
+        },
       header: {
       left: 'prev,next today',
       center: 'title',
@@ -460,7 +449,7 @@ function get_friend_requests() {
       editable: false, // TESTING IT OUT AS FALSE, DONT KILL ME FRANKLYN
       // set the default view to be the agendaWeek view
       defaultView: 'agendaWeek',
-      events: downtimes_and_events,
+      //events: downtimes_and_events,
       allDaySlot: false,
       firstDay: date.getDay(),
       firstHour: 8,
@@ -806,7 +795,14 @@ function get_friend_requests() {
                   /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
                },
             })
-            $('#calendar').fullCalendar('removeEvents', event.id);
+            $('#calendar').fullCalendar('removeEvents', function (our_event) {
+              if (our_event.id == event.id) {
+                if (our_event.is_event == event.is_event) {
+                  return true;
+                }
+              }
+              return false;
+            });
             $('#calendar').fullCalendar('rerenderEvents');
             
             $dialog.dialog('close');
@@ -1036,7 +1032,15 @@ function get_friend_requests() {
                   /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
                },
             });
-            $('#calendar').fullCalendar('removeEvents', event.id);
+
+            $('#calendar').fullCalendar('removeEvents', function (our_event) {
+                  if (our_event.id == event.id) {
+                    if (our_event.is_event == event.is_event) {
+                      return true;
+                    }
+                  }
+                  return false;
+              });
             $('#calendar').fullCalendar('rerenderEvents');
             
             $dialog.dialog('close');
@@ -1499,8 +1503,27 @@ function get_friend_requests() {
                 }, 500);
             }
         },
-    });
+
+
+
+
+    }
+
+
+
+
+    );
+
+
 });
+
+
+      
+
+    
+
+
+
   </script>
 
 
