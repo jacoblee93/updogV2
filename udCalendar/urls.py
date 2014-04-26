@@ -31,4 +31,6 @@ urlpatterns = patterns('',
         url(r'^get_notifications/$', views.get_notifications, name='get_notifications'),
         url(r'^send_event_notifications/$', views.send_event_notifications, name='send_event_notifications'),
         url(r'^respond_to_event_notification/$', views.respond_to_event_notification, name='respond_to_event_notification'),
+        url(r'^get_friends/$', views.get_friends, name='get_friends'),
+        url(r'^display/$', views.display, name='display'),
 )

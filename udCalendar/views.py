@@ -42,25 +42,25 @@ def test(request):
 # The calendar view  
 def calendar(request):
     context = RequestContext(request)
-
     current_user = request.user.updoguser
     #current_user = UpDogUser.objects.order_by('-user')[2]
     ## sort user's friendships from by decr. meet count
     # Alex - for local use when redesigning friends tab
 
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
 
     current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
-    #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
+    current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
 
-    #test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
-    #test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
-    #test_to_friendship.is_mutual= True
-    #test_from_friendship.is_mutual = True
-    #test_to_friendship.is_new = False
-    #test_from_friendship.is_new = False
-    #test_to_friendship.save()
-    #test_from_friendship.save()
+    test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
+    test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
+    test_to_friendship.is_mutual= True
+    test_from_friendship.is_mutual = True
+    test_to_friendship.is_new = False
+    test_from_friendship.is_new = False
+    test_to_friendship.save()
+    test_from_friendship.save()
 
     # Alex - friend request to build notifications bar
     #test_to_request = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
@@ -74,6 +74,7 @@ def calendar(request):
     #test_to_request.save()
     #current_user.save()
 
+    
     ships_list = current_user.get_friends()
 
     ordered_ships_list = ships_list.order_by('-meeting_count')
@@ -86,18 +87,21 @@ def calendar(request):
 
     context_dict = {'friends_list': friends_list}#json_friends}
 
-    json_events = serializers.serialize("json", gimme_events(current_user))
-    json_downtimes = serializers.serialize("json", gimme_downtimes(current_user))
+    #display = parser.parse(request.POST['display_date'].strip("\""))
+    display = datetime.datetime.utcnow().replace(tzinfo=utc)
+
+    json_events = serializers.serialize("json", gimme_events(current_user, display))
+    json_downtimes = serializers.serialize("json", gimme_downtimes(current_user, display))
     context_dict['events_list'] = json_events
     context_dict['downtimes'] = json_downtimes
     context_dict['username'] = request.user.username;
 
     return render_to_response('updog/calendar.html', context_dict, context)
 
-def gimme_events(current_user):
-    ## events for 60 days, starting today
+def gimme_events(current_user, date):
+    ## events for 60 days, surrounding date
     i = 0
-    start_date = datetime.datetime.utcnow().replace(tzinfo=utc) # shouldn't start on today
+    start_date = date
     events_list = []
     while i < 30:
         days_events = current_user.get_events_on_day(start_date)
@@ -107,7 +111,7 @@ def gimme_events(current_user):
         start_date = start_date + datetime.timedelta(days=1)
         i = i + 1
     i = 0
-    start_date = datetime.datetime.utcnow().replace(tzinfo=utc) # shouldn't start on today
+    start_date = date
     start_date = start_date - datetime.timedelta(days=1)
     while i < 30:
         days_events = current_user.get_events_on_day(start_date)
@@ -119,10 +123,10 @@ def gimme_events(current_user):
 
     return events_list
 
-def gimme_downtimes(current_user):
+def gimme_downtimes(current_user, date):
     ## downtimes for 60 days, surrounding today
     i = 0
-    start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
+    start_date = date
     dts_list = []
     while i < 30:
         days_dts = current_user.get_downtimes_on_day(start_date)
@@ -132,7 +136,8 @@ def gimme_downtimes(current_user):
         start_date = start_date + datetime.timedelta(days=1)
         i = i + 1
     i = 0
-    start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
+    start_date = date
+
     start_date = start_date - datetime.timedelta(days=1)
     while i < 30:
         days_dts = current_user.get_downtimes_on_day(start_date)
@@ -154,7 +159,9 @@ def get_friends_events(request):
                 friend = request.POST['friend']
                 friend = User.objects.filter(username=friend)[0]
                 if friend:
-                    friend_events = gimme_events(friend.updoguser)
+                    display = parser.parse(request.POST['display_date'].strip("\""))
+
+                    friend_events = gimme_events(friend.updoguser, display)
                     json_events = serializers.serialize("json", friend_events)
 
                     return HttpResponse(json_events)
@@ -172,7 +179,9 @@ def get_friends_downtimes(request):
                 friend = request.POST['friend']
                 friend = User.objects.filter(username=friend)[0]
                 if friend:
-                    friend_downtimes = gimme_downtimes(friend.updoguser)
+                    display = parser.parse(request.POST['display_date'].strip("\""))
+
+                    friend_downtimes = gimme_downtimes(friend.updoguser, display)
                     json_downtimes = serializers.serialize("json", friend_downtimes)
 
                     return HttpResponse(json_downtimes)
@@ -315,6 +324,8 @@ def add_event(request):
                 start_time = request.POST['start_time']
             if 'end_time' in request.POST:
                 end_time = request.POST['end_time']
+            if 'repeating_event_length' in request.POST:
+                repeating_event_length = request.POST['repeating_event_length']
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
@@ -330,15 +341,27 @@ def add_event(request):
             start_datetime = datetime.datetime.combine(start_date, start_time)
             end_datetime = datetime.datetime.combine(end_date, end_time)
 
-            #event = Event(activity=activity, location=location, start_time=timezone.now() + timedelta(hours=23), end_time=(timezone.now() + timedelta(hours=24)))
-            event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime)
+            event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+            repeating_events = [event,]
 
             # don't save the event if the end_date happens before the start_date
             if (start_datetime < end_datetime):
                 event.save()
                 event.owners.add(request.user.updoguser)
+                
+                # if we have repeating events, create and save them
+                if int(repeating_event_length) != -1:
+                    for i in range(100):
+                        start_datetime = start_datetime + timedelta(days=int(repeating_event_length))
+                        end_datetime = end_datetime + timedelta(days=int(repeating_event_length))
+                        event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+                        repeating_events.append(event)
+                        event.save()
+                        event.owners.add(request.user.updoguser)
 
-            json_event = serializers.serialize("json", [event, ])
+                        print start_datetime
+
+            json_event = serializers.serialize("json", repeating_events)
 
             return HttpResponse(json_event)
     else: return HttpResponse("Failure!!!!")
@@ -361,6 +384,8 @@ def edit_event(request):
                 start_time = request.POST['start_time']
             if 'end_time' in request.POST:
                 end_time = request.POST['end_time']
+            if 'repeating_event_length' in request.POST:
+                repeating_event_length = request.POST['repeating_event_length']
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
@@ -373,21 +398,40 @@ def edit_event(request):
             end_minute = get_minute(end_time)
             end_time = time(end_hour, end_minute)
 
+            start_datetime = datetime.datetime.combine(start_date, start_time)
+            end_datetime = datetime.datetime.combine(end_date, end_time)
+
             event.start_time = datetime.datetime.combine(start_date, start_time)
             event.end_time = datetime.datetime.combine(end_date, end_time)
+
+            repeating_events = [event,]
 
             # don't save the edited event if the end_time happens before the start_time
             if (event.start_time < event.end_time):
                 event.save()
+                # if we have repeating events, create and save them
+                if int(repeating_event_length) != -1:
+                    # repeat 30 times
+                    for i in range(30):
+                        print repeating_event_length
+                        print start_datetime
 
-            json_event = serializers.serialize("json", [event, ])
 
-            print event.pk
+                        start_datetime = start_datetime + timedelta(days=int(repeating_event_length))
+                        end_datetime = end_datetime + timedelta(days=int(repeating_event_length))
+                        print "here4"
+                        event = Event(activity=event.activity, location=event.location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+                        repeating_events.append(event)
+                        print "here5"
+                        event.save()
+                        event.owners.add(request.user.updoguser)
 
-            print json_event
+                        print start_datetime
+
+            json_event = serializers.serialize("json", repeating_events)
 
             return HttpResponse(json_event)
-    else: return HttpResponse("Failure here!!!!")
+    else: return HttpResponse("Failure!!!!")
 
 @login_required
 @csrf_exempt
@@ -397,13 +441,54 @@ def edit_downtime(request):
             downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
             if 'activity' in request.POST:
                 downtime.preferred_activity = request.POST['activity']
+                if len(request.POST['activity']) == 0:
+                    downtime.preferred_activity = None
             downtime.save()
 
-            json_downtime = serializers.serialize("json", [downtime, ])
+            me = request.user.updoguser
+            
+            existing_dt = me.downtime_set.filter(start_time__gte=downtime.start_time, 
+                start_time__lte=downtime.end_time) | me.downtime_set.filter(end_time__gte=downtime.start_time,
+                end_time__lte=downtime.end_time) | me.downtime_set.filter(start_time__lte=downtime.start_time,
+                end_time__gte=downtime.end_time)
+            existing_dt = existing_dt.exclude(start_time=downtime.end_time)
+            existing_dt = existing_dt.exclude(end_time=downtime.start_time)
+            existing_dt = existing_dt.exclude(pk=downtime.pk)
+            existing_dt = existing_dt.filter(preferred_activity=downtime.preferred_activity)
+            merged = False
+            if len(existing_dt) == 0:
+                return HttpResponse(serializers.serialize('json',[]))
+            else:
+                min_startDate = downtime.start_time
+                max_endDate = downtime.end_time
+                remove_me = []
 
-            print json_downtime
-
-            return HttpResponse(json_downtime)
+                for dt in existing_dt:
+                    if (dt.preferred_activity == downtime.preferred_activity): # only merge if they have the same pref activity
+                        if not (dt.start_time <= downtime.start_time and dt.end_time >= downtime.end_time):
+                            min_startDate = min(min_startDate, dt.start_time)
+                            max_endDate = max(max_endDate, dt.end_time)
+                            remove_me.append(dt)
+                        else:
+                            response = serializers.serialize('json', [downtime, ])
+                            downtime.delete()
+                            return HttpResponse(response)
+                        merged = True
+                        
+                if not merged:
+    
+                    return HttpResponse(serializers.serialize('json',[]))
+                else:
+                    downtime.start_time = min_startDate
+                    downtime.end_time = max_endDate
+                    downtime.save()
+                    remove_me.insert(0, downtime)
+                    response = serializers.serialize('json',remove_me)
+                    for dt in remove_me:
+                        if dt != downtime:
+                            dt.delete()
+                    
+            return HttpResponse(response)
 
     return HttpResponse("Invalid request")
 
@@ -524,6 +609,24 @@ def remove_downtime(request):
     return HttpResponse("Invalid request")
 
 @login_required
+def get_friends(request):
+    if request.is_ajax():
+        if request.method == "GET":
+            current_user = request.GET["user"]
+            user = UpDogUser.objects.filter(user__username = current_user)[0]
+            friendships_list = Friendship.objects.filter(to_user = user, is_mutual = True)
+
+            fl = len(friendships_list)
+            friends = []
+
+            for i in xrange(0, fl):
+                friends.append(friendships_list[i].from_user.user)
+            friends = serializers.serialize('json', friends)
+            return HttpResponse(friends)
+
+    return HttpResponse("Uh-Oh")
+
+@login_required
 @csrf_exempt
 def find_friends(request):
     if request.is_ajax():
@@ -533,6 +636,7 @@ def find_friends(request):
             friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
             fl = len(friends_list)
             user_list = []
+            
 
             for i in xrange(0,fl):
                 user_list.append(friends_list[i].user)
@@ -625,12 +729,15 @@ def suggest(request):
         if request.method == 'GET':
             current_user = request.user.updoguser
 
-            start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
-            after_today = current_user.downtime_set.filter(start_time__gte=start_date)
-            ordered = after_today.order_by('start_time')
-            if len(ordered) == 0:
-                return HttpResponse(None)
-            my_dt = ordered[0]
+            if 'pk' in request.GET:
+                my_dt = Downtime.objects.filter(pk=request.GET['pk'])[0]
+            else:
+                start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
+                after_today = current_user.downtime_set.filter(start_time__gte=start_date)
+                ordered = after_today.order_by('start_time')
+                if len(ordered) == 0:
+                    return HttpResponse(None)
+                my_dt = ordered[0]
 
             my_friends = current_user.get_friends()
             if len(my_friends) == 0:
@@ -658,6 +765,7 @@ def suggest(request):
             choose = options.order_by('start_time')[0]
             single = []
             single.append(get_overlap(my_dt, choose))
+            single.append(amigo)
             json_me = serializers.serialize('json',single)
             return HttpResponse(json_me)
     else:
@@ -682,7 +790,7 @@ def get_overlap(one, two):
             overlap = Event.objects.get_or_create(start_time=one.start_time, end_time=one.end_time, 
                 is_confirmed = False)[0]
     overlap.add_user(one.owner)
-    overlap.add_user(two.owner)
+    #overlap.add_user(two.owner)
     return overlap
 
 @login_required
@@ -738,11 +846,11 @@ def send_event_notifications(request):
 
             if 'event' in request.POST:
                 event = Event.objects.filter(pk=request.POST['event'])[0]
-
                 if 'to_users' in request.POST:
                     to_users = json.loads(request.POST['to_users'])
 
-                    for recipient in to_users:
+                    for key in to_users:
+                        recipient = UpDogUser.objects.filter(pk=key)[0]
                         event_notification = EventNotification(to_user=recipient, from_user=current_uduser, event=event)
                         event_notification.save()
 
@@ -784,6 +892,12 @@ def get_hour(time):
     col_index = int(time.find(':'))
     # the index of the space in time
     space_index = int(time.find(' '))
+
+    # error messages to help with future potential bugs
+    if col_index == -1:
+        print "In get_minute method: time is in incorrect format"
+    if space_index == -1:
+        print "In get_minute method: time is in incorrect format"
     # the hour of the start date
     hour = int(time[:col_index])
     
@@ -808,4 +922,24 @@ def get_hour(time):
 def get_minute(time):
     col_index = int(time.find(':'))
     space_index = int(time.find(' '))
+
+    # error messages to help with future potential bugs
+    if col_index == -1:
+        print "In get_minute method: time is in incorrect format"
+    if space_index == -1:
+        print "In get_minute method: time is in incorrect format"
+
     return int(time[col_index+1:space_index])
+
+@login_required
+@csrf_exempt
+def display(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            current_user = request.user.updoguser
+            display = parser.parse(request.POST['display_date'].strip("\""))
+            print display
+            json_events = gimme_events(current_user, display) + gimme_downtimes(current_user, display)
+            return HttpResponse(serializers.serialize('json', json_events))
+    else:
+        return HttpResponse("You fuckup!!?!?!?")
