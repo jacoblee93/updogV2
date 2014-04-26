@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from time import gmtime, strftime
+from datetime import timedelta
 
 # Create your models here.
 class UpDogUser(models.Model):
@@ -94,6 +95,9 @@ class Event(models.Model):
     activity = models.CharField(max_length=100, null=True, blank=True)
     location = models.CharField(max_length=100, null=True, blank=True)
     is_confirmed = models.BooleanField(default=True)
+    # if this value is -1, then we don't have a repeating event.  Otherwise,
+    # this float value will be the number of days between repeating events.
+    repeating_time_delta = models.FloatField(default=-1)
 
     def add_user(self, user):
         return self.owners.add(user)

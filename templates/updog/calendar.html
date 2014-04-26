@@ -15,6 +15,34 @@
 </div>
 
 <script>
+  var varRepeatingEvent = "<br/>Event does not repeat";
+  // this function is called when a user selects "None" for
+  // repeating events
+  function clickedNone() {
+    console.log("clicked None!");
+    return "<br/>Event does not repeat";
+  }
+  function clickedEveryDay() {
+    console.log("clicked Every Day!");
+    return "<br/>Event repeats every day";
+  }
+  function clickedEveryWeek() {
+    console.log("clicked Every Week!");
+    return "<br/>Event repeats every week";
+  }
+  function clickedEvery2Weeks() {
+    console.log("clicked Every 2 Weeks!");
+    return "<br/>Event repeats every 2 weeks";
+  }
+  function clickedEveryMonth() {
+    console.log("clicked Every Month!");
+    return "<br/>Event repeats every month";
+  }
+  function clickedEveryYear() {
+    console.log("clicked Every Year!");
+    return "<br/>Event repeats every year";
+  }
+
   $(document).ready(function() {
     $("#testForm").submit(function(event) {
         event.preventDefault();
@@ -263,10 +291,6 @@ function send_friend_request(new_friend) {
   });
 }
 
-</script>
-
-<script>
-
 function get_friend_requests() {
   $.ajax({
     type: "GET",
@@ -275,10 +299,6 @@ function get_friend_requests() {
   })
 
 }
-
-</script>
-
-<script>
     function getevents(obj) {
       $.ajax({
       type: "POST",
@@ -465,12 +485,17 @@ function get_friend_requests() {
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
       eventClick: function(event, jsEvent, view) {
+        console.log(event);
         console.log(event.color);
         if (event.is_event) {
         $dialog.dialog({title:event.title});
 
-        var edit = document.createElement("input");
+        var edit = document.createElement("button");
+        edit.className = "btn btn-primary";
         edit.setAttribute('type', "submit");
+        var textEdit = document.createTextNode("Edit Event");
+        edit.appendChild(textEdit);
+
         edit.setAttribute('value', "Edit Event");
         edit.onclick = function() {
 
@@ -529,9 +554,6 @@ function get_friend_requests() {
           start_text = document.createElement("span");
           // &nbsp is a non-breaking whitespace character
           start_text.innerHTML = '<br/>Start Time: &nbsp&nbsp&nbsp&nbsp&nbsp';
-
-
-
 
           // dialog box's startTime input field
           var startTime = document.createElement("input");
@@ -664,6 +686,81 @@ function get_friend_requests() {
           end_time.setAttribute('type', "test");
           end_time.setAttribute('name', "end_time");
 
+          // if this is -1, there is no repeating event.  Otherwise, the
+          // integer value of repeating_event_length will be the number of
+          // days
+          var repeating_event_length = -1;
+
+          var repeatingEvent = document.createElement("button");
+          repeatingEvent.className = "btn btn-primary";
+          repeatingEvent.setAttribute("data-toggle", "modal");
+          repeatingEvent.setAttribute("data-target", ".bs-example-modal-sm");
+          repeatingEvent.value = "Repeating Event!!!"
+          var textRepeatingEvent = document.createTextNode("Repeating Event");
+          repeatingEvent.appendChild(textRepeatingEvent);
+
+          var repeating_text = document.createElement("span");
+          repeating_text.innerHTML = varRepeatingEvent;
+
+          var repeatNone = document.getElementById('None');
+          repeatNone.onclick = function() {
+            repeating_text.innerHTML = "<br/>Event does not repeat";
+            repeating_event_length = -1;
+            console.log("Click None blah!!!!!");
+          };
+          var repeatDay = document.getElementById('EveryDay');
+          repeatDay.onclick = function() {
+            repeating_text.innerHTML = "<br/>Event repeats every day";
+            repeating_event_length = 1;
+            console.log("Click every day blah!!!!!");
+          };
+          var repeatWeek = document.getElementById('EveryWeek');
+          repeatWeek.onclick = function() {
+            repeating_text.innerHTML = "<br/>Event repeats every week";
+            repeating_event_length = 7;
+            console.log("Click every week blah!!!!!");
+          };
+          var repeat2Weeks = document.getElementById('Every2Weeks');
+          repeat2Weeks.onclick = function() {
+            repeating_text.innerHTML = "<br/>Event repeats every two weeks";
+            repeating_event_length = 14;
+            console.log("Click every 2 weeks blah!!!!!");
+          };
+          var repeatMonth = document.getElementById('Every4Weeks');
+          repeatMonth.onclick = function() {
+            repeating_text.innerHTML = "<br/>Event repeats every four weeks";
+            repeating_event_length = 28;
+            console.log("Click every 4 weeks blah!!!!!");
+          };
+          var del = document.createElement("button");
+          del.className = "btn btn-primary";
+          del.setAttribute('type',"submit");
+          var textDel = document.createTextNode("Delete Event");
+          del.appendChild(textDel);
+
+          del.onclick = function() {
+            // THE COMMENTED LINE BELOW ASKS IF YOU ARE SURE YOU WANT TO DELETE
+            // THE EVENT
+      //////      if( confirm( "Are you sure you want to delete event " + event.title + " ?")) {
+              console.log("Delete Function");
+              $.ajax({
+                type: "POST",
+                url: "/calendar/remove_event/",
+                data: {"pk": event.id},
+                 success: function(data) {
+                    console.log( "ajax to remove!!!" );
+
+                    // IF EVENT!!!! IS AN EVENT, IT WILL POPULATE THE CALENDAR IMMEDIATELY
+                    /////$('#calendar').fullCalendar('renderEvent', EVENT!!!!)
+                 },
+              })
+              $('#calendar').fullCalendar('removeEvents', event.id);
+              $('#calendar').fullCalendar('rerenderEvents');
+              
+              $dialog.dialog('close');
+      ///////      }
+          };
+
           $dialog.empty().append(activity_text);
           $dialog.append(activity);
           $dialog.append(location_text);
@@ -678,6 +775,9 @@ function get_friend_requests() {
           $dialog.append(endDate);
           $dialog.append(endTime);
           $dialog.append(newline);
+
+          $dialog.append(repeatingEvent);
+          $dialog.append(del);
 
          //////// $dialog.append(startTime);
 
@@ -697,25 +797,22 @@ function get_friend_requests() {
           $(startDate).datepicker(datePickerOptions);
           $(endDate).datepicker(datePickerOptions);
 
-/*
-          var timePickerOptions = {
-            useSelect: true
-          };
-
-          console.log(startTime.className);
-          $(startTime).pickatime();*/
-
-          var cancel = document.createElement("input");
+          var cancel = document.createElement("button");
+          // this makes the Cancel button look nice
+          cancel.className = "btn btn-primary";
           cancel.setAttribute('type', "submit");
-          cancel.setAttribute('value', "Cancel");
+          var textCancel = document.createTextNode("Cancel");
+          cancel.appendChild(textCancel);
 
           cancel.onclick = function() {
             $dialog.dialog('close');
           };
 
-          var submit = document.createElement("input");
+          var submit = document.createElement("button");
+          submit.className = "btn btn-primary";
           submit.setAttribute('type',"submit");
-          submit.setAttribute('value', "Submit Change");
+          var textSubmit = document.createTextNode("Submit");
+          submit.appendChild(textSubmit);
 
           submit.onclick = function() {
             console.log("paoisjdfpoiasjdfpoiajsdpfoiajsdpf");
@@ -729,64 +826,71 @@ function get_friend_requests() {
               'start_date': $('#txtStartDate').val(),
               'end_date': $('#txtEndDate').val(),
               'start_time': $('#txtStartTime').val(),
-              'end_time': $('#txtEndTime').val()
+              'end_time': $('#txtEndTime').val(),
+              // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
+              'repeating_event_length': repeating_event_length
               },
-               success: function(data) {
-                  // data[0] now holds the event to add
-                  var data = JSON.parse(data);
-                  // this flag will be false if the dates are
-                  // invalid, in which case the event won't be
-                  // added
-                  var valid_dates = true;
+                    // data is what the server returns
+                     success: function(data) {
+                        // data[0] now holds the event to add
+                        var data = JSON.parse(data);
 
-                  console.log(data[0].fields.start_time);
+                        console.log(data);
 
-                  // get the day, month, and year for the start and end dates
-                  var start_year = data[0].fields.start_time.substring(0,4);
-                  var start_month = data[0].fields.start_time.substring(5,7);
-                  var start_day = data[0].fields.start_time.substring(8,10);
-                  var start_hour = data[0].fields.start_time.substring(11,13);
-                  var start_minute = data[0].fields.start_time.substring(14,16);
-                  var start_second = data[0].fields.start_time.substring(17,19);
+                        // get the day, month, and year for the start and end dates
+                        var start_year = data[0].fields.start_time.substring(0,4);
+                        var start_month = data[0].fields.start_time.substring(5,7);
+                        var start_day = data[0].fields.start_time.substring(8,10);
+                        var start_hour = data[0].fields.start_time.substring(11,13);
+                        var start_minute = data[0].fields.start_time.substring(14,16);
+                        var start_second = data[0].fields.start_time.substring(17,19);
 
-                  var end_year = data[0].fields.end_time.substring(0,4);
-                  var end_month = data[0].fields.end_time.substring(5,7);
-                  var end_day = data[0].fields.end_time.substring(8, 10);
-                  var end_hour = data[0].fields.end_time.substring(11,13);
-                  var end_minute = data[0].fields.end_time.substring(14,16);
-                  var end_second = data[0].fields.end_time.substring(17,19);
+                        var end_year = data[0].fields.end_time.substring(0,4);
+                        var end_month = data[0].fields.end_time.substring(5,7);
+                        var end_day = data[0].fields.end_time.substring(8, 10);
+                        var end_hour = data[0].fields.end_time.substring(11,13);
+                        var end_minute = data[0].fields.end_time.substring(14,16);
+                        var end_second = data[0].fields.end_time.substring(17,19);
 
-                  var firstDate = new Date(start_year, start_month, start_day, start_hour, start_minute, start_second, 0);
-                  var secondDate = new Date(end_year, end_month, end_day, end_hour, end_minute, end_second, 0);
-                  
-                  // don't edit the event if the dates aren't chronological
-                  if (firstDate >= secondDate) {
-                    alert("Your event's start date must occur before its end date.");
-                  }
-                  else {
-                    $('#calendar').fullCalendar('removeEvents', event.id);
-                    $('#calendar').fullCalendar('rerenderEvents');
+                        var firstDate = new Date(start_year, start_month, start_day, start_hour, start_minute, start_second, 0);
+                        var secondDate = new Date(end_year, end_month, end_day, end_hour, end_minute, end_second, 0);
 
-                    var added_event = make_events(data, 'blue', '{{username}}', false, true)[0];
+                        console.log("firstDate >= secondDate: " + (firstDate >= secondDate));
 
-                    console.log( "pk1 = " + data[0].pk );
-                    console.log( "added_event.id = " + added_event.id)
 
-                    $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
-                    $dialog.dialog('close');
-                  }
-               },
-            });
+                        // don't add the event if the dates aren't chronological
+                        if (firstDate >= secondDate) {
+                          alert("Your event's start date must occur before its end date.");
+                        }
+                        else {
+                          $('#calendar').fullCalendar('removeEvents', event.id);
+                          $('#calendar').fullCalendar('rerenderEvents');
+
+
+                          for (var i = 0; i < data.length; i++) {
+                          var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
+                          $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
+                          }
+                          $dialog.dialog('close');
+                        }
+
+                  },
+               })
           };
-
           $dialog.append(cancel);
           $dialog.append(submit);
+          $dialog.append(repeating_text);
           $dialog.dialog('open');
-        };
+        }
+       // };
+      //}
 
-        var del = document.createElement("input");
+        var del = document.createElement("button");
+        del.className = "btn btn-primary";
         del.setAttribute('type',"submit");
-        del.setAttribute('value', "Delete Event");
+        var textDel = document.createTextNode("Delete Event");
+        del.appendChild(textDel);
+
         del.onclick = function() {
           // THE COMMENTED LINE BELOW ASKS IF YOU ARE SURE YOU WANT TO DELETE
           // THE EVENT
@@ -821,9 +925,38 @@ function get_friend_requests() {
           $('<p />').text(event.allDay ? 'All day event' : getTime(event.start) + '-' + getTime(event.end))
         );
 
-        var cancel = document.createElement("input");
+
+        var del = document.createElement("button");
+        del.className = "btn btn-primary";
+        del.setAttribute('type',"submit");
+        var textDel = document.createTextNode("Delete Event");
+        del.appendChild(textDel);
+
+        del.onclick = function() {
+          // THE COMMENTED LINE BELOW ASKS IF YOU ARE SURE YOU WANT TO DELETE
+          // THE EVENT
+    //////      if( confirm( "Are you sure you want to delete event " + event.title + " ?")) {
+            console.log("Delete Function");
+            $.ajax({
+              type: "POST",
+              url: "/calendar/remove_event/",
+              data: {"pk": event.id},
+               success: function(data) {
+                  console.log( "ajax to remove!!!" );
+               },
+            })
+            $('#calendar').fullCalendar('removeEvents', event.id);
+            $('#calendar').fullCalendar('rerenderEvents');
+            
+            $dialog.dialog('close');
+    ///////      }
+        };
+
+        var cancel = document.createElement("button");
+        cancel.className = "btn btn-primary";
         cancel.setAttribute('type', "submit");
-        cancel.setAttribute('value', "Cancel");
+        var textCancel = document.createTextNode("Cancel");
+        cancel.appendChild(textCancel);
 
         cancel.onclick = function() {
           $dialog.dialog('close');
@@ -839,9 +972,13 @@ function get_friend_requests() {
         
         $dialog.dialog({title:event.title});
 
-        var edit = document.createElement("input");
+        var edit = document.createElement("button");
+        edit.className = "btn btn-primary";
         edit.setAttribute('type', "submit");
+        var textEdit = document.createTextNode("Edit Downtime");
+        edit.appendChild(textEdit);
         edit.setAttribute('value', "Edit Downtime");
+
         edit.onclick = function() {
 
           $dialog.dialog('close');
@@ -889,17 +1026,22 @@ function get_friend_requests() {
           $dialog.append(end_time);
           $dialog.append(newline);
 
-          var cancel = document.createElement("input");
+          var cancel = document.createElement("button");
+          // this makes the Cancel button look nice
+          cancel.className = "btn btn-primary";
           cancel.setAttribute('type', "submit");
-          cancel.setAttribute('value', "Cancel");
+          var textCancel = document.createTextNode("Cancel");
+          cancel.appendChild(textCancel);
 
           cancel.onclick = function() {
             $dialog.dialog('close');
           };
 
-          var submit = document.createElement("input");
+          var submit = document.createElement("button");
+          submit.className = "btn btn-primary";
           submit.setAttribute('type',"submit");
-          submit.setAttribute('value', "Submit Change");
+          var textSubmit = document.createTextNode("Submit");
+          submit.appendChild(textSubmit);
 
           submit.onclick = function() {
 
@@ -929,9 +1071,13 @@ function get_friend_requests() {
           $dialog.dialog('open');
         };
 
-        var del = document.createElement("input");
+        var del = document.createElement("button");
+        del.className = "btn btn-primary";
         del.setAttribute('type',"submit");
+        var textDel = document.createTextNode("Delete Downtime");
+        del.appendChild(textDel);
         del.setAttribute('value', "Delete Downtime");
+
         del.onclick = function() {
           // THE COMMENTED OUT LINE BELOW ASKS IF YOU ARE SURE YOU WANT
           // TO DELETE AN EVENT
@@ -966,9 +1112,12 @@ function get_friend_requests() {
           $('<p />').text(event.allDay ? 'All day event' : getTime(event.start) + '-' + getTime(event.end))
         );
 
-        var cancel = document.createElement("input");
+        var cancel = document.createElement("button");
+        // this makes the Cancel button look nice
+        cancel.className = "btn btn-primary";
         cancel.setAttribute('type', "submit");
-        cancel.setAttribute('value', "Cancel");
+        var textCancel = document.createTextNode("Cancel");
+        cancel.appendChild(textCancel);
 
         cancel.onclick = function() {
           $dialog.dialog('close');
@@ -1268,9 +1417,56 @@ function get_friend_requests() {
                 // when editing an event, the end date is displayed
                 endDate.setAttribute('value', endMonth + '/' + endDay + '/' + endDateObject.getFullYear());
 
-                var lblEndDate = document.createElement('label')
+                var lblEndDate = document.createElement('label');
                 lblEndDate.htmlFor = "txtEndDate";
                 lblEndDate.appendChild(document.createTextNode('toDate'));
+
+                // if this is -1, there is no repeating event.  Otherwise, the
+                // integer value of repeating_event_length will be the number of
+                // days
+                var repeating_event_length = -1;
+
+                var repeatingEvent = document.createElement("button");
+                repeatingEvent.className = "btn btn-primary";
+                repeatingEvent.setAttribute("data-toggle", "modal");
+                repeatingEvent.setAttribute("data-target", ".bs-example-modal-sm");
+                repeatingEvent.value = "Repeating Event!!!"
+                var textRepeatingEvent = document.createTextNode("Repeating Event");
+                repeatingEvent.appendChild(textRepeatingEvent);
+
+                var repeating_text = document.createElement("span");
+                repeating_text.innerHTML = varRepeatingEvent;
+
+                var repeatNone = document.getElementById('None');
+                repeatNone.onclick = function() {
+                  repeating_text.innerHTML = "<br/>Event does not repeat";
+                  repeating_event_length = -1;
+                  console.log("Click None blah!!!!!");
+                };
+                var repeatDay = document.getElementById('EveryDay');
+                repeatDay.onclick = function() {
+                  repeating_text.innerHTML = "<br/>Event repeats every day";
+                  repeating_event_length = 1;
+                  console.log("Click every day blah!!!!!");
+                };
+                var repeatWeek = document.getElementById('EveryWeek');
+                repeatWeek.onclick = function() {
+                  repeating_text.innerHTML = "<br/>Event repeats every week";
+                  repeating_event_length = 7;
+                  console.log("Click every week blah!!!!!");
+                };
+                var repeat2Weeks = document.getElementById('Every2Weeks');
+                repeat2Weeks.onclick = function() {
+                  repeating_text.innerHTML = "<br/>Event repeats every two weeks";
+                  repeating_event_length = 14;
+                  console.log("Click every 2 weeks blah!!!!!");
+                };
+                var repeatMonth = document.getElementById('Every4Weeks');
+                repeatMonth.onclick = function() {
+                  repeating_text.innerHTML = "<br/>Event repeats every four weeks";
+                  repeating_event_length = 28;
+                  console.log("Click every 4 weeks blah!!!!!");
+                };
 
                 $dialog.empty().append(activity_text);
                 $dialog.append(activity);
@@ -1288,6 +1484,8 @@ function get_friend_requests() {
                 $dialog.append(endTime);
                 $dialog.append(newline);
 
+                $dialog.append(repeatingEvent);
+
                 // the options that our datepicker will use
                 var datePickerOptions = {
                     autoclose: true,
@@ -1295,52 +1493,28 @@ function get_friend_requests() {
                     todayHighlight: true
                 };
 
-
-             /*   $(endTime).timepicker();
-
-
-                startDate.onclick = function() {
-                  $(endTime).timepicker(hideWidget);
-                };*/
-
-
-
                 $(startTime).timepicker();
-                
-                // this function is trigged when we hide the timepicker
-               /* $(startTime).timepicker().on('hide.timepicker', function(e) {
-                    
-                  $(endTime).timepicker({
-                    hideWidget: true
-                  });
-
-
-                }*/
-
-                  /*{
-
-                  modalBackdrop: true,
-                  onSelect: function() {
-                    console.log("here???????")
-                  },
-                }*/
-                ////////);
                 $(endTime).timepicker();
 
                 $(startDate).datepicker(datePickerOptions);
                 $(endDate).datepicker(datePickerOptions);
 
-                var cancel = document.createElement("input");
+                var cancel = document.createElement("button");
+                // this makes the Cancel button look nice
+                cancel.className = "btn btn-primary";
                 cancel.setAttribute('type', "submit");
-                cancel.setAttribute('value', "Cancel");
+                var textCancel = document.createTextNode("Cancel");
+                cancel.appendChild(textCancel);
 
                 cancel.onclick = function() {
                   $dialog.dialog('close');
                 };
 
-                var submit = document.createElement("input");
+                var submit = document.createElement("button");
+                submit.className = "btn btn-primary";
                 submit.setAttribute('type',"submit");
-                submit.setAttribute('value', "Submit");
+                var textSubmit = document.createTextNode("Submit");
+                submit.appendChild(textSubmit);
 
                 submit.onclick = function() {
                   $.ajax({
@@ -1351,18 +1525,14 @@ function get_friend_requests() {
                     'start_date': $('#txtStartDate').val(),
                     'end_date': $('#txtEndDate').val(),
                     'start_time': $('#txtStartTime').val(),
-                    'end_time': $('#txtEndTime').val()
+                    'end_time': $('#txtEndTime').val(),
+                    // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
+                    'repeating_event_length': repeating_event_length
                     },
                     // data is what the server returns
                      success: function(data) {
                         // data[0] now holds the event to add
                         var data = JSON.parse(data);
-                        // this flag will be false if the dates are
-                        // invalid, in which case the event won't be
-                        // added
-                        var valid_dates = true;
-
-                        console.log(data[0].fields.start_time);
 
                         // get the day, month, and year for the start and end dates
                         var start_year = data[0].fields.start_time.substring(0,4);
@@ -1381,25 +1551,24 @@ function get_friend_requests() {
 
                         var firstDate = new Date(start_year, start_month, start_day, start_hour, start_minute, start_second, 0);
                         var secondDate = new Date(end_year, end_month, end_day, end_hour, end_minute, end_second, 0);
-                        
+
                         // don't add the event if the dates aren't chronological
                         if (firstDate >= secondDate) {
                           alert("Your event's start date must occur before its end date.");
                         }
                         else {
-                          var added_event = make_events(data, 'blue', '{{username}}', false, true)[0];
-
-                          console.log( "pk1 = " + data[0].pk );
-                          console.log( "added_event.id = " + added_event.id)
-
+                          for (var i = 0; i < data.length; i++) {
+                          var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
                           $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
+                          }
                           $dialog.dialog('close');
                         }
-                     },
+                      },
                   });
                 };
                 $dialog.append(cancel);
                 $dialog.append(submit);
+                $dialog.append(repeating_text);
                 $dialog.dialog('open');
             }
             // single click
@@ -1415,6 +1584,56 @@ function get_friend_requests() {
     });
 });
   </script>
+
+
+<!-- Adjust the style of the modal Repeating Events box.  margin-left of the
+     modal should be -(widthOfModal / 2) -->
+<style>
+body .modal.fade.bs-example-modal-sm {
+  max-width: 212px;
+  margin-left: 40%;
+}
+body .modal-footer {
+  max-width: 212px;
+}
+</style>
+
+<button class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-sm">Small modal</button>
+
+<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modal-sm">
+ <!--       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>-->
+        <h4 class="modal-title">Repeating Event</h4>
+      </div>
+      <div class="modal-body">
+  <!--      <p>One fine body&hellip;</p>-->
+        <div class="btn-group-vertical">
+          <button type="button" onclick="varRepeatingEvent=clickedNone()" class="btn btn-default" data-dismiss="modal" id="None">None</button>
+          <button type="button" onclick="varRepeatingEvent=clickedEveryDay()" class="btn btn-default" data-dismiss="modal" id="EveryDay">Every Day</button>
+          <button type="button" onclick="varRepeatingEvent=clickedEveryWeek()" class="btn btn-default" data-dismiss="modal" id="EveryWeek">Every Week</button>
+          <button type="button" onclick="varRepeatingEvent=clickedEvery2Weeks()" class="btn btn-default" data-dismiss="modal" id="Every2Weeks">Every 2 Weeks</button>
+          <button type="button" onclick="varRepeatingEvent=clickedEveryMonth()" class="btn btn-default" data-dismiss="modal" id="Every4Weeks">Every 4 Weeks</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <!--<button type="button" class="btn btn-primary">Done</button>-->
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div>
+
+<!--
+<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      
+
+    </div>
+  </div>
+</div>-->
 
 
 <!--
