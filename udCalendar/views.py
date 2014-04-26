@@ -51,16 +51,16 @@ def calendar(request):
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
-    #current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
+    current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
 
-    #test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
-    #test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
-    #test_to_friendship.is_mutual= True
-    #test_from_friendship.is_mutual = True
-    #test_to_friendship.is_new = False
-    #test_from_friendship.is_new = False
-    #test_to_friendship.save()
-    #test_from_friendship.save()
+    test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
+    test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
+    test_to_friendship.is_mutual= True
+    test_from_friendship.is_mutual = True
+    test_to_friendship.is_new = False
+    test_from_friendship.is_new = False
+    test_to_friendship.save()
+    test_from_friendship.save()
 
     # Alex - friend request to build notifications bar
     #test_to_request = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
@@ -803,7 +803,6 @@ def display(request):
         if request.method == 'POST':
             current_user = request.user.updoguser
             display = parser.parse(request.POST['display_date'].strip("\""))
-            print display
             json_events = gimme_events(current_user, display) + gimme_downtimes(current_user, display)
             return HttpResponse(serializers.serialize('json', json_events))
     else:

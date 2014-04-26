@@ -136,6 +136,7 @@ div#scroll-able {
 
 
               var obj = '{{ friend }}';
+              console.log(obj);
               $.ajax({
               type: "POST",
               url: "/calendar/get_friends_downtimes/",
@@ -169,6 +170,7 @@ div#scroll-able {
               },
               out: function off_hover() {
                 var obj = '{{ friend }}';
+
                 existing_events = $("#calendar").fullCalendar('clientEvents');
                 for (var i = 0; i < existing_events.length; i++) {
                   if (existing_events[i].owner === "hover") {
@@ -188,6 +190,7 @@ div#scroll-able {
           {% else %}
             <strong>No friends.</strong>
           {% endif %}
+
         </div>
       </div>
       <!-- this is the searchbar -->
@@ -334,7 +337,6 @@ function get_friend_requests() {
 
     else if (downtimes) downtimes_and_events = downtimes;*/
 
-
     var date = new Date();
     var d = date.getDate();
     var m = date.getMonth();
@@ -362,29 +364,9 @@ function get_friend_requests() {
 
       $('#calendar').fullCalendar(
       {
-      
-
-
-      /*console.log("called this function");
-      var arrow_left = $('.fc-button .fc-button-prev .fc-state-default .fc-corner-left');
-      console.log(arrow_left);
-      arrow_left.setAttribute("onclick", "console.log('hi')");
-      var d = $('#calendar').fullCalendar('getDate');
-      console.log(d);
-      $.ajax({
-
-      type: "POST",
-      url: "/calendar/display/",
-      data: {'test': "JSON.stringify(d)"},
-      success: function(data) {
-
-        console.log(data);
-
-      }
-
-      });*/
-
       viewDisplay: function(view) {
+
+        // Displaying users events + downtimes in calendar
         var d = $('#calendar').fullCalendar('getDate');
         console.log(d);
         $.ajax({
@@ -394,7 +376,6 @@ function get_friend_requests() {
         data: {'display_date': d.toUTCString()},
         success: function(data) {
           var my_data = JSON.parse(data);
-          console.log(my_data);
           var downtimes_vd = [];
           var events_vd = [];
 
@@ -433,11 +414,12 @@ function get_friend_requests() {
           }
 
           else if (multiple_dts) dts_and_evs = multiple_dts;
-          console.log(dts_and_evs);
-
-          for (var i = 0; i < dts_and_evs.length; i++) {
-            $('#calendar').fullCalendar('renderEvent', dts_and_evs[i], stick = true);
+          if (dts_and_evs) {
+            for (var i = 0; i < dts_and_evs.length; i++) {
+              $('#calendar').fullCalendar('renderEvent', dts_and_evs[i], stick = true);
+            }
           }
+          
 
 
         }
