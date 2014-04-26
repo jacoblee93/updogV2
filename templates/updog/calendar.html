@@ -429,7 +429,15 @@ $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
       right: 'month,agendaWeek',
       },
 
-      selectable: true,
+      //selectable: true,
+
+
+      selectable: {
+            month: false,
+            agenda: true
+      },
+
+
       selecthelper: true,
       editable: false, // TESTING IT OUT AS FALSE, DONT KILL ME FRANKLYN
       // set the default view to be the agendaWeek view
@@ -438,10 +446,13 @@ $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
       allDaySlot: false,
       firstDay: date.getDay(),
       firstHour: 8,
+      
 
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
       eventClick: function(event, jsEvent, view) {
+        if (view.name != 'month') {
+
         console.log(event.color);
         if (event.is_event) {
         $dialog.dialog({title:event.title});
@@ -1057,9 +1068,9 @@ $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
         $dialog.dialog('open');
         $dialog.append(suggest);
         }
+      }
       },
       eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
-
         if (event.is_event) {
           $.ajax({
             type: "POST",
@@ -1106,9 +1117,11 @@ $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
             },
           });
         }
+      
       },
       eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
-
+      var view = $('#calendar').fullCalendar('getView');
+      if (view.name != 'month') {
       if (event.is_event) {
         $.ajax({
           type: "POST",
@@ -1156,11 +1169,11 @@ $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
         });
       }
 
-
+    }
     },
 
       select: function(startDate, endDate, allDay, jsEvent, view) {
-
+        if (view.name != 'month') {
         if (startDate - endDate == -1800000) return;
 
         startDateOffset = startDate.getTimezoneOffset();
@@ -1195,9 +1208,11 @@ $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
                 }         
               },
         });
+      }
       },
 
       dayClick:function( date, allDay, jsEvent, view ) {
+        if (view.name != 'month') {
             var singleClick = date.toUTCString();
 
             // double click
@@ -1487,12 +1502,15 @@ $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
                     clearInterval(clickTimer);
                 }, 500);
             }
+        }
         },
 
 
 
 
     }
+  
+
 
 
 
