@@ -77,7 +77,7 @@ div#scroll-able {
                     {% endfor %}
                   {% endif %}
 
-                  if (mydata[i].fields.username != '{{ user.username }}') {
+                  if (mydata[i].fields.username != '{{ user.username }}' && isFriend == 0) {
                     users.push(mydata[i].fields.username);
                   }
                 };
@@ -99,7 +99,6 @@ div#scroll-able {
   </script>
 </div>
 
-
 <!-- THIS IS THE CALENDAR!!! -->
 <div class="span12">
   <div class="row-fluid">
@@ -115,7 +114,8 @@ div#scroll-able {
     <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
       <div id="scroll-able"> 
         <div class="list-group">
-          {% if friends_list %}
+          <div class="frandz"></div>
+            <!--{% if friends_list %}
             <a class="list-group-item active">
               Friends:
             </a>  
@@ -124,7 +124,7 @@ div#scroll-able {
                <div><img src="/media/profile_pictures/{{ friend }}-social.jpg" alt = "profpic" width = "50" height = "50">
                <span class="frand">{{ friend.first_name }} {{ friend.last_name }}</span>
                </div>
-              </a>
+              </a>-->
               <script>
 
 
@@ -135,94 +135,50 @@ div#scroll-able {
                 over: function on_hover() {
 
                 var obj = '{{ friend }}';
-              $.ajax({
-              type: "POST",
-              url: "/calendar/get_friends_downtimes/",
-              data: {'friend': obj},
-              success: function(data) {
+                $.ajax({
+                  type: "POST",
+                  url: "/calendar/get_friends_downtimes/",
+                  data: {'friend': obj},
+                  success: function(data) {
 
-              var our_data = JSON.parse(data);
-              var get_some_events = make_events(our_data, 'orange', obj, true, false);
+                    var our_data = JSON.parse(data);
+                    var get_some_events = make_events(our_data, 'orange', obj, true, false);
 
-              if (get_some_events) {
-              existing_events = $("#calendar").fullCalendar('clientEvents');
+                    if (get_some_events) {
+                      existing_events = $("#calendar").fullCalendar('clientEvents');
     
-              for (var i = 0; i < get_some_events.length; i++) {
-                var is_unique = true;
-                for (var j = 0; j < existing_events.length; j++) {
-                  if (get_some_events[i].id == existing_events[j].id) {
-                    is_unique = false;
+                      for (var i = 0; i < get_some_events.length; i++) {
+                        var is_unique = true;
+                        for (var j = 0; j < existing_events.length; j++) {
+                          if (get_some_events[i].id == existing_events[j].id) {
+                            is_unique = false;
+                          }
+
+                        }
+                        if (is_unique) {
+                          $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+                          }
+                        }
+
+                      }
+                    },
+                  });
+
+                },
+                out: function off_hover() {
+                  var obj = '{{ friend }}';
+                  existing_events = $("#calendar").fullCalendar('clientEvents');
+                  for (var i = 0; i < existing_events.length; i++) {
+                    if (existing_events[i].owner === "hover") {
+                      $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+                    }
                   }
-
+                  $('#calendar').fullCalendar('rerenderEvents');
                 }
-                if (is_unique) {
-                  $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
-                  
-                }
-              }
-
-              }
-              },
-              });
-
-              },
-              out: function off_hover() {
-                var obj = '{{ friend }}';
-                existing_events = $("#calendar").fullCalendar('clientEvents');
-                for (var i = 0; i < existing_events.length; i++) {
-                  if (existing_events[i].owner === "hover") {
-                    $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
-                  }
-                }
-                $('#calendar').fullCalendar('rerenderEvents');
-              }
 
               }
 
               $( "#friend_{{ friend }}").hoverIntent(hover_functions);
-              /*$( "#friend_{{ friend }}").hover(function on_hover() {
-                var obj = '{{ friend }}';
-              $.ajax({
-              type: "POST",
-              url: "/calendar/get_friends_events/",
-              data: {'friend': obj},
-              success: function(data) {
-
-              var our_data = JSON.parse(data);
-              var get_some_events = make_events(our_data, 'red', obj, true, true);
-              if (get_some_events) {
-    
-              existing_events = $("#calendar").fullCalendar('clientEvents');
-    
-              for (var i = 0; i < get_some_events.length; i++) {
-                var is_unique = true;
-                for (var j = 0; j < existing_events.length; j++) {
-                  if (get_some_events[i].id == existing_events[j].id) {
-                    is_unique = false;
-                  }
-
-                }
-                if (is_unique) {
-                  $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
-                  
-                }
-              }
-
-              }
-              },
-              });
-
-              }, function off_hover() {
-                var obj = '{{ friend }}';
-                existing_events = $("#calendar").fullCalendar('clientEvents');
-                for (var i = 0; i < existing_events.length; i++) {
-                  if (existing_events[i].owner === "hover") {
-                    $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
-                  }
-                }
-                $('#calendar').fullCalendar('rerenderEvents');
-              });*/
-
               </script>
             {% endfor %}
           {% else %}
@@ -246,7 +202,7 @@ div#scroll-able {
     <br>
   </div>
 </div>
-      
+
 <script>
 
 function send_friend_request(new_friend, i) {
@@ -272,16 +228,88 @@ function send_friend_request(new_friend, i) {
 </script>
 
 <script>
-
-function get_friend_requests() {
+function get_friends(user) {
   $.ajax({
     type: "GET",
-    url: "/calendar/get_friend_request/"
+    url: "/calendar/get_friends/",
+    data: {'user': user},
+    success: function(data) {
+      real_data = JSON.parse(data);
+      // everything before this pulls friends
+      fl = real_data.length
+      userhtml = ''
+        if (fl != 0) {
+        userhtml = userhtml + '<a class="list-group-item active">Friends:</a>';
+        
+          for (var i = 0; i < fl; i++) {
+            userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i] + '\')" id="friend_' + real_data[i].fields.username + '"><div><img src="/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
+            hover_stuff(real_data[i]);
+          };
+        } else {
+          userhtml = '<strong>No friends.</strong>';
+      };
+      $(".frandz").html(userhtml);
+    } 
+  });
+}
+</script>
 
-  })
+<script>
 
+function hover_stuff(friend) {
+hover_functions = {
+  sensitivity: 3,
+  interval: 50,
+  timeout: 50,
+  over: function on_hover() {
+  console.log(friend);
+  $.ajax({
+    type: "POST",
+    url: "/calendar/get_friends_downtimes/",
+    data: {'friend': obj},
+    success: function(data) {
+
+      var our_data = JSON.parse(data);
+      var get_some_events = make_events(our_data, 'orange', obj, true, false);
+
+      if (get_some_events) {
+        existing_events = $("#calendar").fullCalendar('clientEvents');
+    
+        for (var i = 0; i < get_some_events.length; i++) {
+          var is_unique = true;
+          for (var j = 0; j < existing_events.length; j++) {
+            if (get_some_events[i].id == existing_events[j].id) {
+              is_unique = false;
+            }
+          }
+          if (is_unique) {
+            $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+          }
+        }
+
+      }
+    },
+  });
+
+  },
+  out: function off_hover() {
+    var obj = friend;
+    existing_events = $("#calendar").fullCalendar('clientEvents');
+    for (var i = 0; i < existing_events.length; i++) {
+      if (existing_events[i].owner === "hover") {
+        $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+      }
+    }
+    $('#calendar').fullCalendar('rerenderEvents');
+  }
 }
 
+$( "friend_" + friend.fields.username).hoverIntent(hover_functions);
+}
+</script>
+
+<script>
+  var x = get_friends('{{ user }}');
 </script>
 
 <script>
