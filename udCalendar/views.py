@@ -49,8 +49,10 @@ def calendar(request):
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
 
+
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
+
     current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
 
     test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
@@ -572,6 +574,24 @@ def remove_downtime(request):
     return HttpResponse("Invalid request")
 
 @login_required
+def get_friends(request):
+    if request.is_ajax():
+        if request.method == "GET":
+            current_user = request.GET["user"]
+            user = UpDogUser.objects.filter(user__username = current_user)[0]
+            friendships_list = Friendship.objects.filter(to_user = user, is_mutual = True)
+
+            fl = len(friendships_list)
+            friends = []
+
+            for i in xrange(0, fl):
+                friends.append(friendships_list[i].from_user.user)
+            friends = serializers.serialize('json', friends)
+            return HttpResponse(friends)
+
+    return HttpResponse("Uh-Oh")
+
+@login_required
 @csrf_exempt
 def find_friends(request):
     if request.is_ajax():
@@ -581,6 +601,7 @@ def find_friends(request):
             friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
             fl = len(friends_list)
             user_list = []
+            
 
             for i in xrange(0,fl):
                 user_list.append(friends_list[i].user)
@@ -738,6 +759,7 @@ def get_overlap(one, two):
     #overlap.add_user(two.owner)
     return overlap
 
+@login_required
 def display_friend_requests(request):
     if request.is_ajax():
         if request.method == 'GET':
