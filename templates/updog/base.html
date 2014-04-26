@@ -237,12 +237,13 @@ function make_events(data, color, owner, hover, is_event) {
           }
           if (owner == "{{username}}") {
             single.editable = true;
-
           }
-
           else if (hover) {
             single.owner = "hover";
           }
+
+          time_delta = data[i].fields.repeating_time_delta;
+          single.repeating_time_delta = time_delta;
 
           multiple.push(single);
         }

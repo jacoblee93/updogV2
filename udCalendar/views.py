@@ -326,6 +326,8 @@ def add_event(request):
                 start_time = request.POST['start_time']
             if 'end_time' in request.POST:
                 end_time = request.POST['end_time']
+            if 'repeating_event_length' in request.POST:
+                repeating_event_length = request.POST['repeating_event_length']
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
@@ -341,15 +343,27 @@ def add_event(request):
             start_datetime = datetime.datetime.combine(start_date, start_time)
             end_datetime = datetime.datetime.combine(end_date, end_time)
 
-            #event = Event(activity=activity, location=location, start_time=timezone.now() + timedelta(hours=23), end_time=(timezone.now() + timedelta(hours=24)))
-            event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime)
+            event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+            repeating_events = [event,]
 
             # don't save the event if the end_date happens before the start_date
             if (start_datetime < end_datetime):
                 event.save()
                 event.owners.add(request.user.updoguser)
+                
+                # if we have repeating events, create and save them
+                if int(repeating_event_length) != -1:
+                    for i in range(100):
+                        start_datetime = start_datetime + timedelta(days=int(repeating_event_length))
+                        end_datetime = end_datetime + timedelta(days=int(repeating_event_length))
+                        event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+                        repeating_events.append(event)
+                        event.save()
+                        event.owners.add(request.user.updoguser)
 
-            json_event = serializers.serialize("json", [event, ])
+                        print start_datetime
+
+            json_event = serializers.serialize("json", repeating_events)
 
             return HttpResponse(json_event)
     else: return HttpResponse("Failure!!!!")
@@ -372,6 +386,8 @@ def edit_event(request):
                 start_time = request.POST['start_time']
             if 'end_time' in request.POST:
                 end_time = request.POST['end_time']
+            if 'repeating_event_length' in request.POST:
+                repeating_event_length = request.POST['repeating_event_length']
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
@@ -384,21 +400,40 @@ def edit_event(request):
             end_minute = get_minute(end_time)
             end_time = time(end_hour, end_minute)
 
+            start_datetime = datetime.datetime.combine(start_date, start_time)
+            end_datetime = datetime.datetime.combine(end_date, end_time)
+
             event.start_time = datetime.datetime.combine(start_date, start_time)
             event.end_time = datetime.datetime.combine(end_date, end_time)
+
+            repeating_events = [event,]
 
             # don't save the edited event if the end_time happens before the start_time
             if (event.start_time < event.end_time):
                 event.save()
+                # if we have repeating events, create and save them
+                if int(repeating_event_length) != -1:
+                    # repeat 30 times
+                    for i in range(30):
+                        print repeating_event_length
+                        print start_datetime
 
-            json_event = serializers.serialize("json", [event, ])
 
-            print event.pk
+                        start_datetime = start_datetime + timedelta(days=int(repeating_event_length))
+                        end_datetime = end_datetime + timedelta(days=int(repeating_event_length))
+                        print "here4"
+                        event = Event(activity=event.activity, location=event.location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+                        repeating_events.append(event)
+                        print "here5"
+                        event.save()
+                        event.owners.add(request.user.updoguser)
 
-            print json_event
+                        print start_datetime
+
+            json_event = serializers.serialize("json", repeating_events)
 
             return HttpResponse(json_event)
-    else: return HttpResponse("Failure here!!!!")
+    else: return HttpResponse("Failure!!!!")
 
 @login_required
 @csrf_exempt
@@ -792,6 +827,12 @@ def get_hour(time):
     col_index = int(time.find(':'))
     # the index of the space in time
     space_index = int(time.find(' '))
+
+    # error messages to help with future potential bugs
+    if col_index == -1:
+        print "In get_minute method: time is in incorrect format"
+    if space_index == -1:
+        print "In get_minute method: time is in incorrect format"
     # the hour of the start date
     hour = int(time[:col_index])
     
@@ -816,6 +857,13 @@ def get_hour(time):
 def get_minute(time):
     col_index = int(time.find(':'))
     space_index = int(time.find(' '))
+
+    # error messages to help with future potential bugs
+    if col_index == -1:
+        print "In get_minute method: time is in incorrect format"
+    if space_index == -1:
+        print "In get_minute method: time is in incorrect format"
+
     return int(time[col_index+1:space_index])
 
 @login_required
