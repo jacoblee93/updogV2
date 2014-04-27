@@ -49,13 +49,13 @@ def calendar(request):
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
 
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[5])
+ #   current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
+  #  current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
+   # current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[5])
 
-    test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
+    getridofit = """test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
     test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
     test_to_friendship.is_mutual= True
     test_from_friendship.is_mutual = True
@@ -110,7 +110,7 @@ def calendar(request):
     #test_from_request.is_mutual = False
     #test_from_request.save()
     #test_to_request.save()
-    #current_user.save()
+    #current_user.save()"""
 
     
     ships_list = current_user.get_friends()
