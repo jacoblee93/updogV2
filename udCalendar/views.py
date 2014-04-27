@@ -945,6 +945,9 @@ def respond_to_event_notification(request):
                         notification.event.add_user(current_uduser)
                         notification.event.save()
                         reply_notification = EventNotification(to_user=notification.from_user, from_user=current_uduser, event=notification.event, is_reply=True)
+                        reply_notification.save()
+
+                    notification.delete()
 
                     return HttpResponse("Success")
 
