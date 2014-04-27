@@ -33,4 +33,5 @@ urlpatterns = patterns('',
         url(r'^respond_to_event_notification/$', views.respond_to_event_notification, name='respond_to_event_notification'),
         url(r'^get_friends/$', views.get_friends, name='get_friends'),
         url(r'^display/$', views.display, name='display'),
+        url(r'^invite_search/$', views.invite_search, name='invite_search'),
 )
