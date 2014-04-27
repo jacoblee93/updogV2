@@ -697,7 +697,6 @@ def invite_search(request):
             for i in xrange(0,fl):
                 if Friendship.objects.filter(to_user=request.user.updoguser, from_user=friends_list[i], is_mutual=True):
                     user_list.append(friends_list[i].user)
-            print user_list
             user_list = serializers.serialize('json', user_list)
             return HttpResponse(user_list)
 

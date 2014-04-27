@@ -1799,13 +1799,25 @@ body .modal-footer {
     $("#sch_" + user).html("");
     // add sonia below
     addedhtml = "";
-    addedhtml = addedhtml + '<div id="added_' + user + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right"></div></a></div>';
+    addedhtml = addedhtml + '<div id="added_' + user + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right"><button type="button" onclick="uninvite(\'' + user + '\', \'' + user_firstname + '\', \'' + user_lastname+ '\', \'' + event_id + '\' )">Uninvite</button></div></a></div>';
     $(".Invite-list").append(addedhtml);
 
     // retrieve the event (on the front end) that we're editing
     var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
+    console.log(event_obj.invitelist);
     event_obj.invitelist.push(user);
 
+  }
+
+  function uninvite(user, user_firstname, user_lastname, event_id) {
+    // delete sonia from response list
+    //$("#added_" + user).html("");
+    $("#added_" + user).remove();
+    var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
+    var index = event_obj.invitelist.indexOf(user);
+    if (index > -1) {
+      event_obj.invitelist.splice(index, 1);
+    }
   }
   
   function send_invite() {

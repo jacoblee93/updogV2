@@ -421,8 +421,7 @@ function get_friends(user) {
     url: "/calendar/get_friends/",
     data: {'user': user},
     success: function(data) {
-      //real_data = JSON.parse(data);
-      //return real_data;
+
       real_data = JSON.parse(data);
       fl = real_data.length;
       userhtml = '';
@@ -493,7 +492,9 @@ hover_functions = {
     $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
     }
 
+{% if user.is_authenticated %}
   var x = get_friends('{{ user }}');
+{% endif %}
 </script>
 
   </body>  
