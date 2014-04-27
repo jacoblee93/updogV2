@@ -84,7 +84,7 @@ div#scroll-able {
               }
               if (users.length != 0) {
                 for (var i = 0; i < users.length; i++) {
-                userhtml = userhtml + '<div><a class="list-group-item"><img src="/media/profile_pictures/' + users[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + mydata[i].fields.first_name + ' ' +  mydata[i].fields.last_name + '<div style="float:right"><button type="button" onclick="send_friend_request(\'' + users[i] + '\', \'' + i +'\')"> add </button></div><div id="div' + i + '"></div></a></div>';
+                userhtml = userhtml + '<div><a class="list-group-item"><img src="/media/profile_pictures/' + users[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + mydata[i].fields.first_name + ' ' +  mydata[i].fields.last_name + '<div style="float:right"><div id="add-button' + users[i] + '"><button type="button" onclick="send_friend_request(\'' + users[i] + '\', \'' + i +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
                 }
               }
                 $('.error').fadeOut(200).hide();
@@ -200,6 +200,7 @@ div#scroll-able {
       </div>
     {% endif %}
     <br>
+    </div>
   </div>
 </div>
 
@@ -214,6 +215,7 @@ function send_friend_request(new_friend, i) {
       var s = data.indexOf(',');
       var data1 = data.substring(0,s);
       var data2 = data.substring(s+1, data.length);
+      $("#add-button"+new_friend).html("");
       if (data1 === "Request Pending") {
         $("#div"+data2).text("Request Pending");
       }
@@ -228,7 +230,7 @@ function send_friend_request(new_friend, i) {
 </script>
 
 <script>
-function get_friends(user) {
+/*function get_friends(user) {
   $.ajax({
     type: "GET",
     url: "/calendar/get_friends/",
@@ -253,12 +255,12 @@ function get_friends(user) {
       };
     } 
   });
-}
+}*/
 </script>
 
 <script>
 
-function hover_stuff(friend) {
+/*function hover_stuff(friend) {
 hover_functions = {
   sensitivity: 3,
   interval: 50,
@@ -306,14 +308,11 @@ hover_functions = {
   }
 }
 $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
-}
+}*/
 </script>
 
 <script>
-  var x = get_friends('{{ user }}');
-</script>
 
-<script>
     function getevents(obj) {
       $.ajax({
       type: "POST",
