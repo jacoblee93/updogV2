@@ -94,7 +94,7 @@
 
         if (users.length != 0) {
           for (var i = 0; i < users.length; i++) {
-            userhtml = userhtml + '<li style="width: 275px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50">' + users[i].fields.first_name + ' ' + users[i].fields.last_name +'<div style="float:right"><button type="button" onclick="accept_friend_request('+ users[i].fields.username +')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li><li class="divider"></li>';
+            userhtml = userhtml + '<li style="width: 275px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50">' + ' ' + users[i].fields.first_name + ' ' + users[i].fields.last_name +'<div style="float:right"><button type="button" onclick="accept_friend_request('+ users[i].fields.username +')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li><li class="divider"></li>';
           }
         }
         $(".notifications").html(userhtml);
