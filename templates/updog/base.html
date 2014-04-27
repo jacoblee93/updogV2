@@ -170,7 +170,7 @@
       url: "/calendar/accept_friend_request/",
       data: {'new_friend': new_friend},
       success: function(data){
-        
+        get_friends('{{ user }}')
       }
     });
   }
