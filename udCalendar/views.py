@@ -397,8 +397,6 @@ def add_event(request):
                         event.save()
                         event.owners.add(request.user.updoguser)
 
-                        print start_datetime
-
             json_event = serializers.serialize("json", repeating_events)
 
             return HttpResponse(json_event)
@@ -1010,3 +1008,31 @@ def display(request):
             return HttpResponse(serializers.serialize('json', json_events))
     else:
         return HttpResponse("You fuckup!!?!?!?")
+
+@login_required
+@csrf_exempt
+def get_event_owners(request):
+    if request.is_ajax():
+        if request.method == 'GET':
+            if 'type' in request.GET:
+                # if this is an event
+                if request.GET['type'] == "true":
+                    if 'pk' in request.GET:
+                        event = Event.objects.filter(pk=request.GET['pk'])[0]
+                        event_owners = []
+                        owners =  event.owners.all()
+                        for owner in owners:
+                            event_owners.append(owner.user)
+                        
+                        return HttpResponse(serializers.serialize('json', event_owners))
+                # else this is a downtime
+                else:
+                    if 'pk' in request.GET:
+                        downtime = Downtime.objects.filter(pk=request.GET['pk'])[0]
+                        return HttpResponse(serializers.serialize('json', [downtime.owner.user]))
+    else:
+        return HttpResponse("Failure.")
+
+
+
+

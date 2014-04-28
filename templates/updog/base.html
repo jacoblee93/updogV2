@@ -107,7 +107,6 @@
         type: "GET",
         url: "/calendar/get_notifications/",
         success: function(data) {
-          console.log(data);
           if (!data) return;
           mydata = JSON.parse(data);
           var dlength = mydata.length;
@@ -214,10 +213,6 @@
 	     <div class="navbar-collapse collapse" id="bs-example-navbar-collapse-6">
 	  
         <ul class="nav navbar-nav">
-            
-	      <li class="active"><a href="http://www.crossfit.com">Home</a></li>
-              <li><a href="http://www.wikipedia.com">About</a></li>
-              <li><a href="#contact">Contact</a></li>
               
               {% if user.is_authenticated %}
                 <li><a href="#preferences">Preferences</a></li>
@@ -300,18 +295,36 @@ function make_events(data, color, owners, hover, is_event) {
           single.end = data[i].fields.end_time;
           single.allDay = false;
           single.id = data[i].pk;
-          
-          able = false;
+
+          var able = false;
           single.owners = [];
-          for (var j = 0; j < owners.length; j++) {
-            single.owners.push(owners[j]);
-            if (owners[j] == "{{username}}") able = true;
-          }
-          
+          $.ajax({
+            type: "GET",
+            url: "/calendar/get_event_owners/",
+            async: false,
+            data: {
+              "pk": single.id,
+              "type": is_event,
+            },
+            success: function(data) {
+              var my_data = JSON.parse(data);
+              if (my_data.length > 0) {
+                for (var i = 0; i < my_data.length; i++) {
+                  
+                  if (my_data[i].fields.username == "{{username}}") {
+                    able = true;
+                  }
+                  if (single.owners.indexOf(my_data[i].fields.username) == -1)
+                    single.owners.push(my_data[i].fields.username);
+
+                }
+
+              }
+            }
+          });
           single.is_event = is_event; // true for events, false for downtimes
           if (is_event) {
             single.editable = true;
-
           }
           if (able) {
             single.editable = true;
@@ -353,7 +366,6 @@ function make_events(data, color, owners, hover, is_event) {
                 // if user clicked Okay:
                 if (r == true) {
                   var alldata = JSON.parse(data);
-                  console.log(alldata);
                   mydata = [];
                   var friends = [];
                   for (var i = 0; i < alldata.length; i++) {
@@ -483,7 +495,13 @@ hover_functions = {
     var obj = friend;
     existing_events = $("#calendar").fullCalendar('clientEvents');
     for (var i = 0; i < existing_events.length; i++) {
-      if (existing_events[i].owners[0]=== "hover") {
+      able = false;
+      for (var j = 0; j < existing_events[i].owners.length; j++) {
+        if (existing_events[i].owners[j] === "hover") {
+          able = true;
+        }
+      }
+      if (able) {
         $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
       }
     }

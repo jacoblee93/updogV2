@@ -34,4 +34,5 @@ urlpatterns = patterns('',
         url(r'^get_friends/$', views.get_friends, name='get_friends'),
         url(r'^display/$', views.display, name='display'),
         url(r'^invite_search/$', views.invite_search, name='invite_search'),
+        url(r'^get_event_owners/$', views.get_event_owners, name='get_event_owners'),
 )

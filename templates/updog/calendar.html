@@ -51,7 +51,6 @@
        url: "/calendar/test_ajax/",
        success: function(data) {
         console.log( "ajax worked" );
-        alert(data);
       },
     });
     });
@@ -858,7 +857,33 @@ $dialog.dialog('open');
     $($dialog).append(
       $('<p />').text(event.allDay ? 'All day event' : getTime(event.start) + '-' + getTime(event.end))
       );
-
+  
+  if (event.owners.length > 0) {
+    var party_text = "";
+    for (var k = 0; k < event.owners.length; k++) {
+      if (event.owners[k] != '{{ username }}')
+        party_text = party_text + ", " + event.owners[k];
+    }
+    $($dialog).append(
+      $('<p />').text("Participants: Me" + party_text)
+    );
+  }
+  
+  if (event.invitelist.length > 0) {
+    var invite_text = "";
+    for (var k = 0; k < event.invitelist.length; k++) {
+      invite_text = invite_text + ", " + event.invitelist[k];
+    }
+    $($dialog).append(
+      $('<p />').text("Invited: Me" + invite_text)
+    );
+  }
+  else {
+    $($dialog).append(
+      $('<p />').text("Invited: No one")
+    );
+  }
+  
 
   var del = document.createElement("button");
   del.className = "btn btn-primary";
@@ -913,6 +938,7 @@ $dialog.dialog('open');
 
           $dialog.dialog({title:event.title});
           var suggest = document.createElement("input");
+          suggest.className = "btn btn-primary";
           suggest.setAttribute('type', "submit");
           suggest.setAttribute('value', "Suggest");
           suggest.onclick = function() {
@@ -1815,7 +1841,7 @@ return false;
 
 function invite(user, user_firstname, user_lastname, event_id) {
     // delete sonia from above in search
-    $("#sch_" + user).html("");
+    $("#sch_" + user).remove();
     // add sonia below
     addedhtml = "";
     addedhtml = addedhtml + '<div id="added_' + user + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right"><button type="button" onclick="uninvite(\'' + user + '\', \'' + user_firstname + '\', \'' + user_lastname+ '\', \'' + event_id + '\' )">Uninvite</button></div></a></div>';
@@ -1823,14 +1849,12 @@ function invite(user, user_firstname, user_lastname, event_id) {
 
     // retrieve the event (on the front end) that we're editing
     var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
-    console.log(event_obj.invitelist);
     event_obj.invitelist.push(user);
 
   }
 
   function uninvite(user, user_firstname, user_lastname, event_id) {
-    // delete sonia from response list
-    //$("#added_" + user).html("");
+
     $("#added_" + user).remove();
     var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
     var index = event_obj.invitelist.indexOf(user);
