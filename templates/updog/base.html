@@ -53,7 +53,7 @@
 
     </script>
 
-    <title>{% block title %}What's Up With Me?{% endblock %}</title>
+    <title>{% block title %}What's Up With You?{% endblock %}</title>
   </head>
   <body>
     <script>
@@ -215,6 +215,14 @@ function make_events(data, color, owner, hover, is_event) {
             if (!data[i].fields.is_confirmed) {
               single.color = 'red';
             }
+            // set this event's number of repeating events (if the number is 0, there are no repeating events, otherwise this value will be the number of repeating events to follow)
+
+
+            console.log("next id = " + data[i].fields.next_repeated_event);
+            console.log("prev id = " + data[i].fields.prev_repeated_event);
+
+            single.next_repeated_event = data[i].fields.next_repeated_event;
+            single.prev_repeated_event = data[i].fields.prev_repeated_event;
           }
           else { // for downtimes
 
@@ -223,6 +231,9 @@ function make_events(data, color, owner, hover, is_event) {
             else {
               single.title = owner + " wants to " + data[i].fields.preferred_activity;
             }
+
+            // the number of repeating events is -1 for downtimes
+            single.num_repeating_events = -1;
           }
 
           single.start = data[i].fields.start_time;

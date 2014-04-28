@@ -98,6 +98,11 @@ class Event(models.Model):
     # if this value is -1, then we don't have a repeating event.  Otherwise,
     # this float value will be the number of days between repeating events.
     repeating_time_delta = models.FloatField(default=-1)
+    # the defaults of -1 mean that there are no repeated events before or
+    # after this event.  If the value is not -1, then that value will
+    # be the id of the next/previous repeated event
+    next_repeated_event = models.IntegerField(default=-1)
+    prev_repeated_event = models.IntegerField(default=-1)
 
     def add_user(self, user):
         return self.owners.add(user)
