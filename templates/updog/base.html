@@ -232,14 +232,18 @@
                     <div class="notifications"></div>
                   </ul>
                 </li>
-                <li><a href="/calendar/logout_user/">Logout</a></li>
-                <li><a onclick="suggest_form()">Suggest</a><li>
-              {% else %} 
-                <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
+                
+                <li><a onclick="suggest_form()">Suggest</a><li>               
               {% endif %}
             
 	      </ul>
-	  
+	      <ul class="nav navbar-nav navbar-right"> 
+          {% if user.is_authenticated %}
+            <li><a href="/calendar/logout_user/">Logout</a></li>
+          {% else %}
+            <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
+          {% endif %}
+        </ul>
        </div><!-- /.nav-collapse -->
 	    </div>
       </nav><!-- /.container -->
