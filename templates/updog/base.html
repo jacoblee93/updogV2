@@ -412,7 +412,7 @@ function get_friends(user) {
         userhtml = userhtml + '<a class="list-group-item active">Friends:</a>';
         
           for (var i = 0; i < fl; i++) {
-            userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].fields.username + '"><div><img src="/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
+            userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].fields.username + '"><div><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
           };
         } else {
           userhtml = '<strong>No friends.</strong>';
