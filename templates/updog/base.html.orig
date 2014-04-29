@@ -260,11 +260,19 @@ function make_events(data, color, owners, hover, is_event) {
             if (!data[i].fields.is_confirmed) {
               single.color = 'red';
             }
+<<<<<<< HEAD
+            // set this event's number of repeating events (if the number is 0, there are no repeating events, otherwise this value will be the number of repeating events to follow)
+
+
+            console.log("next id = " + data[i].fields.next_repeated_event);
+            console.log("prev id = " + data[i].fields.prev_repeated_event);
+
             single.next_repeated_event = data[i].fields.next_repeated_event;
             single.prev_repeated_event = data[i].fields.prev_repeated_event;
+=======
             // create an empty invite list
             single.invitelist = [];
-
+>>>>>>> 8b3c191725209158394a314d330f206d9ff258d7
           }
           else { // for downtimes
 

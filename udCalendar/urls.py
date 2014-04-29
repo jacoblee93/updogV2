@@ -6,9 +6,6 @@ from udCalendar import views
 urlpatterns = patterns('',
         url(r'^$', views.calendar, name='calendar'),
         url(r'^test/$', views.test, name='test'),
-
-        # TESTING AJAX
-        (r'^test_ajax/$', views.test_ajax),
         url(r'', include('social_auth.urls')),
         url(r'^login/$', views.login, name='login'),
         url(r'^logout_user/$', views.logout_user, name='logout'),
@@ -29,6 +26,10 @@ urlpatterns = patterns('',
         url(r'^reject_friend_request/$', views.reject_friend_request, name='reject_friend_request'),
         url(r'^suggest/$', views.suggest, name='suggest'),
         url(r'^display_friend_requests/$', views.display_friend_requests, name='display_friend_requests'),
+        url(r'^get_notifications/$', views.get_notifications, name='get_notifications'),
+        url(r'^send_event_notifications/$', views.send_event_notifications, name='send_event_notifications'),
+        url(r'^respond_to_event_notification/$', views.respond_to_event_notification, name='respond_to_event_notification'),
         url(r'^get_friends/$', views.get_friends, name='get_friends'),
         url(r'^display/$', views.display, name='display'),
+        url(r'^invite_search/$', views.invite_search, name='invite_search'),
 )
