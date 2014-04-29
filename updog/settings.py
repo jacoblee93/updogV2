@@ -39,7 +39,6 @@ STATIC_ROOT = 'staticfiles'
 
 DATABASE_PATH = os.path.join(PROJECT_PATH, 'updog.db')
 
-MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(PROJECT_PATH, 'media')
 
 if not DEBUG:
@@ -47,6 +46,7 @@ if not DEBUG:
     #STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     S3_URL = 'http://%s.s3.amazonaws.com/' % AWS_STORAGE_BUCKET_NAME
     STATIC_URL = S3_URL + 'static/'
+    MEDIA_URL = S3_URL + 'media/'
     DEFAULT_FILE_STORAGE = 'updog.s3utils.MediaRootS3BotoStorage'
     STATICFILES_STORAGE = 'updog.s3utils.StaticRootS3BotoStorage'
     
