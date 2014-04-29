@@ -2280,7 +2280,7 @@ $dialog.dialog('open');
 
               if (users.length != 0) {
                 for (var i = 0; i < users.length; i++) {
-                  userhtml = userhtml + '<div id="sch_' + users[i].fields.username + '"><a class="list-group-item"><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="invite(\'' + users[i].fields.username + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + event_id + '\' )">Invite</button></div></a></div>';
+                  userhtml = userhtml + '<div id="sch_' + users[i].fields.username + '"><a class="list-group-item"><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="invite(\'' + users[i].fields.username + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + event_id + '\' )">Invite</button></div></a></div>';
                 }
               }
               else {
