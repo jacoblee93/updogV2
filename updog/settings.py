@@ -44,10 +44,12 @@ MEDIA_ROOT = os.path.join(PROJECT_PATH, 'media')
 
 if not DEBUG:
     AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
-    STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+    #STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     S3_URL = 'http://%s.s3.amazonaws.com/' % AWS_STORAGE_BUCKET_NAME
     STATIC_URL = S3_URL
-
+    DEFAULT_FILE_STORAGE = 'updog.s3utils.MediaRootS3BotoStorage'
+    STATICFILES_STORAGE = 'updog.s3utils.StaticRootS3BotoStorage'
+    
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
