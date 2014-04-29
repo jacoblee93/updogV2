@@ -46,7 +46,7 @@ if not DEBUG:
     AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
     #STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     S3_URL = 'http://%s.s3.amazonaws.com/' % AWS_STORAGE_BUCKET_NAME
-    STATIC_URL = S3_URL
+    STATIC_URL = S3_URL + 'static/'
     DEFAULT_FILE_STORAGE = 'updog.s3utils.MediaRootS3BotoStorage'
     STATICFILES_STORAGE = 'updog.s3utils.StaticRootS3BotoStorage'
     
