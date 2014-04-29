@@ -1773,7 +1773,7 @@ eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
 },
 
 select: function(startDate, endDate, allDay, jsEvent, view) {
-
+  if (view.name != 'month') {
   if (startDate - endDate == -1800000) return;
 
   startDateOffset = startDate.getTimezoneOffset();
@@ -1793,7 +1793,7 @@ select: function(startDate, endDate, allDay, jsEvent, view) {
     if (parsed.length > 0) {
       if (parsed.length > 1) {
         if (parsed[1].pk != parsed[0].pk) {
-          var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
+          var displayed_downtime = make_events(parsed, 'green', ["{{ username }}"], false, false);
           $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
           for (var i = 1; i < displayed_downtime.length; i++) {
             $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
@@ -1802,12 +1802,13 @@ select: function(startDate, endDate, allDay, jsEvent, view) {
         }
       }
       else {
-        var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
+        var displayed_downtime = make_events(parsed, 'green', ["{{ username }}"], false, false);
         $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
-      }
-    }         
-  },
-});
+          }
+        }
+      },         
+    })
+  }
 },
 
 dayClick:function( date, allDay, jsEvent, view ) {
