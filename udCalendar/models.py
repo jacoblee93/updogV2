@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from time import gmtime, strftime
+from datetime import timedelta
 
 # Create your models here.
 class UpDogUser(models.Model):
@@ -12,8 +13,8 @@ class UpDogUser(models.Model):
     packs = models.ManyToManyField('Pack')
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=False, related_name='friend_to+')
     location = models.CharField(max_length=100)
-    new_notifications = models.BooleanField(default=False)
-    profile_picture = models.ImageField(upload_to='profile_pictures')
+    new_friend_requests = models.BooleanField(default=False)
+    profile_picture = models.ImageField(upload_to='profile_pictures', blank=True, null=True)
 
     def __unicode__(self):
         return self.user.username
@@ -58,6 +59,19 @@ class Friendship(models.Model):
     
     def __unicode__(self):
         return "From %s to %s" % (self.from_user, self.to_user)
+
+class EventNotification(models.Model):
+
+    to_user = models.ForeignKey(UpDogUser, related_name='incoming_event_notifications')
+    from_user = models.ForeignKey(UpDogUser, related_name='outgoing_event_notifications')
+    event = models.ForeignKey('Event', related_name='event_notifications')
+    is_reply = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        if not self.is_reply:
+            return 'Event Notification from %s to %s about event %s at %s' % (self.from_user, self.to_user, self.event, self.date)
+        else: return 'Reply Notification from %s to %s about event %s at %s' % (self.from_user, self.to_user, self.event, self.date) 
         
 class Pack(models.Model):
     
@@ -94,6 +108,9 @@ class Event(models.Model):
     activity = models.CharField(max_length=100, null=True, blank=True)
     location = models.CharField(max_length=100, null=True, blank=True)
     is_confirmed = models.BooleanField(default=True)
+    # if this value is -1, then we don't have a repeating event.  Otherwise,
+    # this float value will be the number of days between repeating events.
+    repeating_time_delta = models.FloatField(default=-1)
 
     def add_user(self, user):
         return self.owners.add(user)

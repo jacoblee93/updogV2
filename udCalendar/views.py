@@ -3,7 +3,7 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from udCalendar.models import UpDogUser, Friendship, Event, Downtime
+from udCalendar.models import UpDogUser, Friendship, Event, Downtime, EventNotification
 from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
@@ -49,9 +49,11 @@ def calendar(request):
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
 
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[5])
 
     test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
     test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
@@ -62,27 +64,60 @@ def calendar(request):
     test_to_friendship.save()
     test_from_friendship.save()
 
+    #test_to_friendship3 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[3], from_user=current_user)[0]
+    #test_from_friendship3 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[3], to_user=current_user)[0]
+    #test_to_friendship3.is_mutual = True
+    #test_from_friendship3.is_mutual = True
+    #test_to_friendship3.is_new = False
+    #test_from_friendship3.is_new = False
+    #test_to_friendship3.save()
+    #test_from_friendship3.save()
+
+    #test_to_friendship2 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
+    #test_from_friendship2 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
+    #test_to_friendship2.is_mutual = True
+    #test_from_friendship2.is_mutual = True
+    #test_to_friendship2.is_new = False
+    #test_from_friendship2.is_new = False
+    #test_to_friendship2.save()
+    #test_from_friendship2.save()
+
+    #test_to_friendship1 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[1], from_user=current_user)[0]
+    #test_from_friendship1 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[1], to_user=current_user)[0]
+    #test_to_friendship1.is_mutual = True
+    #test_from_friendship1.is_mutual = True
+    #test_to_friendship1.is_new = False
+    #test_from_friendship1.is_new = False
+    #test_to_friendship1.save()
+    #test_from_friendship1.save()
+
+    #test_to_friendship5 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[5], from_user=current_user)[0]
+    #test_from_friendship5 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[5], to_user=current_user)[0]
+    #test_to_friendship5.is_mutual = True
+    #test_from_friendship5.is_mutual = True
+    #test_to_friendship5.is_new = False
+    #test_from_friendship5.is_new = False
+    #test_to_friendship5.save()
+    #test_from_friendship5.save()
+
     # Alex - friend request to build notifications bar
+
     test_to_request = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
     test_from_request = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
     test_from_request.is_new = True
-    current_user.new_notifications = True
+    current_user.new_friend_requests = True
     test_to_request.is_new = False
     test_to_request.is_mutual = False
     test_from_request.is_mutual = False
     test_from_request.save()
     test_to_request.save()
     current_user.save()
-    test_to_request2 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[3], from_user=current_user)[0]
-    test_from_request2 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[3], to_user=current_user)[0]
-    test_from_request2.is_new = True
-    current_user.new_notifications = True
-    test_to_request2.is_new = False
-    test_to_request2.is_mutual = False
-    test_from_request2.is_mutual = False
-    test_from_request2.save()
-    test_to_request.save()
-    current_user.save()
+
+    #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=True)
+    #test_notif.save()
+
+    #test_notif2 = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[3], event=Event.objects.all()[0], is_reply=True)
+    #test_notif2.save()
 
     
     ships_list = current_user.get_friends()
@@ -334,6 +369,8 @@ def add_event(request):
                 start_time = request.POST['start_time']
             if 'end_time' in request.POST:
                 end_time = request.POST['end_time']
+            if 'repeating_event_length' in request.POST:
+                repeating_event_length = request.POST['repeating_event_length']
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
@@ -349,15 +386,27 @@ def add_event(request):
             start_datetime = datetime.datetime.combine(start_date, start_time)
             end_datetime = datetime.datetime.combine(end_date, end_time)
 
-            #event = Event(activity=activity, location=location, start_time=timezone.now() + timedelta(hours=23), end_time=(timezone.now() + timedelta(hours=24)))
-            event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime)
+            event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+            repeating_events = [event,]
 
             # don't save the event if the end_date happens before the start_date
             if (start_datetime < end_datetime):
                 event.save()
                 event.owners.add(request.user.updoguser)
+                
+                # if we have repeating events, create and save them
+                if int(repeating_event_length) != -1:
+                    for i in range(100):
+                        start_datetime = start_datetime + timedelta(days=int(repeating_event_length))
+                        end_datetime = end_datetime + timedelta(days=int(repeating_event_length))
+                        event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+                        repeating_events.append(event)
+                        event.save()
+                        event.owners.add(request.user.updoguser)
 
-            json_event = serializers.serialize("json", [event, ])
+                        print start_datetime
+
+            json_event = serializers.serialize("json", repeating_events)
 
             return HttpResponse(json_event)
     else: return HttpResponse("Failure!!!!")
@@ -380,6 +429,8 @@ def edit_event(request):
                 start_time = request.POST['start_time']
             if 'end_time' in request.POST:
                 end_time = request.POST['end_time']
+            if 'repeating_event_length' in request.POST:
+                repeating_event_length = request.POST['repeating_event_length']
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
@@ -392,21 +443,40 @@ def edit_event(request):
             end_minute = get_minute(end_time)
             end_time = time(end_hour, end_minute)
 
+            start_datetime = datetime.datetime.combine(start_date, start_time)
+            end_datetime = datetime.datetime.combine(end_date, end_time)
+
             event.start_time = datetime.datetime.combine(start_date, start_time)
             event.end_time = datetime.datetime.combine(end_date, end_time)
+
+            repeating_events = [event,]
 
             # don't save the edited event if the end_time happens before the start_time
             if (event.start_time < event.end_time):
                 event.save()
+                # if we have repeating events, create and save them
+                if int(repeating_event_length) != -1:
+                    # repeat 30 times
+                    for i in range(30):
+                        print repeating_event_length
+                        print start_datetime
 
-            json_event = serializers.serialize("json", [event, ])
 
-            print event.pk
+                        start_datetime = start_datetime + timedelta(days=int(repeating_event_length))
+                        end_datetime = end_datetime + timedelta(days=int(repeating_event_length))
+                        print "here4"
+                        event = Event(activity=event.activity, location=event.location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+                        repeating_events.append(event)
+                        print "here5"
+                        event.save()
+                        event.owners.add(request.user.updoguser)
 
-            print json_event
+                        print start_datetime
+
+            json_event = serializers.serialize("json", repeating_events)
 
             return HttpResponse(json_event)
-    else: return HttpResponse("Failure here!!!!")
+    else: return HttpResponse("Failure!!!!")
 
 @login_required
 @csrf_exempt
@@ -564,7 +634,9 @@ def remove_event(request):
     if request.is_ajax():
         if request.method == 'POST':
             event = Event.objects.filter(pk=request.POST['pk'])[0]
-            event.delete()
+            event.owners.remove(request.user.updoguser)
+            if not event.owners:
+                event.delete()
 
             return HttpResponse("Success here!!!!!")
     else: return HttpResponse("Failure here!!!!")
@@ -609,10 +681,51 @@ def find_friends(request):
             friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
             fl = len(friends_list)
             user_list = []
-            
 
             for i in xrange(0,fl):
-                user_list.append(friends_list[i].user)
+                friendship = Friendship.objects.filter(to_user = request.user.updoguser, from_user = friends_list[i])
+                if not friendship:
+                    user_list.append(friends_list[i].user)
+            user_list = serializers.serialize('json', user_list)
+            return HttpResponse(user_list)
+
+    return HttpResponse("Uh-Oh")
+
+@login_required
+def search_friends(request):
+    if request.is_ajax():
+        if request.method == 'GET':
+            l = len(request.GET["search"])
+
+            friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"])) 
+            fl = len(friends_list)
+            user_list = []
+
+            for i in xrange(0,fl):
+                friendship = Friendship.objects.filter(to_user = request.user.updoguser, from_user = friends_list[i])
+                if friendship:
+                    user_list.append(friends_list[i].user)
+            user_list = serializers.serialize('json', user_list)
+            return HttpResponse(user_list)
+
+    return HttpResponse("Uh-Oh")
+
+@login_required
+@csrf_exempt
+def invite_search(request):
+    print request
+    if request.is_ajax():
+        if request.method == 'GET':
+            l = len(request.GET["search"])
+            friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
+            friends_list = friends_list.exclude(user__username = request.user.username);
+
+            fl = len(friends_list)
+            user_list = []
+
+            for i in xrange(0,fl):
+                if Friendship.objects.filter(to_user=request.user.updoguser, from_user=friends_list[i], is_mutual=True):
+                    user_list.append(friends_list[i].user)
             user_list = serializers.serialize('json', user_list)
             return HttpResponse(user_list)
 
@@ -640,7 +753,7 @@ def send_friend_request(request):
                 from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
 
                 to_friendship.is_new = True
-                new_friend.new_notifications = True
+                new_friend.new_friend_requests = True
 
                 to_friendship.save()
                 new_friend.save()
@@ -738,6 +851,7 @@ def suggest(request):
             choose = options.order_by('start_time')[0]
             single = []
             single.append(get_overlap(my_dt, choose))
+            single.append(amigo)
             json_me = serializers.serialize('json',single)
             return HttpResponse(json_me)
     else:
@@ -772,7 +886,7 @@ def display_friend_requests(request):
 
             current_uduser = request.user.updoguser
             
-            if not current_uduser.new_notifications:
+            if not current_uduser.new_friend_requests:
                 return HttpResponse("No new notifications")
 
             else:
@@ -788,6 +902,83 @@ def display_friend_requests(request):
 
     return HttpResponse("Failure")
 
+@login_required
+def get_notifications(request):
+    #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=True)
+    #test_notif.save()
+    if request.is_ajax():
+        if request.method == 'GET':
+
+            current_uduser = request.user.updoguser
+            event_notifications = EventNotification.objects.filter(to_user=current_uduser) 
+            if event_notifications:
+                event_notifications = serializers.serialize('json', event_notifications)
+
+
+            else: 
+                event_notifications = []
+
+            return HttpResponse(event_notifications)
+
+    return HttpResponse("Failure")
+
+@login_required
+def send_event_notifications(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+
+            current_uduser = request.user.updoguser
+
+            if 'event' in request.POST:
+                event = Event.objects.filter(pk=request.POST['event'])[0]
+                if 'to_users' in request.POST:
+                    to_users = json.loads(request.POST['to_users'])
+
+                    if 'data_type' in request.POST:
+
+                        if request.POST['data_type'] == 'pk':
+
+                            for key in to_users:
+                                recipient = UpDogUser.objects.filter(pk=key)[0]
+                                event_notification = EventNotification(to_user=recipient, from_user=current_uduser, event=event)
+                                event_notification.save()
+
+                        elif request.POST['data_type'] == 'username':
+
+                            for username in to_users:
+                                recipient = UpDogUser.objects.filter(user__username=username)[0]
+                                event_notification = EventNotification(to_user=recipient, from_user=current_uduser, event=event)
+                                event_notification.save()
+
+
+                return HttpResponse("Success")
+
+
+    return HttpResponse("Failure")
+
+@login_required
+def respond_to_event_notification(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+
+            current_uduser = request.user.updoguser
+
+            if 'notification' in request.POST:
+                notification = EventNotification.objects.filter(pk=request.POST['notification'])[0]
+
+                if 'response' in request.POST:
+                    response = request.POST['response']
+
+                    if response == 'accept':
+                        notification.event.add_user(current_uduser)
+                        notification.event.save()
+                        reply_notification = EventNotification(to_user=notification.from_user, from_user=current_uduser, event=notification.event, is_reply=True)
+
+                    return HttpResponse("Success")
+
+    return HttpResponse("Failure")
+
+
 # return the hour of the time variable, where the time variable
 # is formatted as H:MM AP or HH:MM AP, where AP is either AM or
 # PM, and we don't include to digits for the hour if it's
@@ -797,6 +988,12 @@ def get_hour(time):
     col_index = int(time.find(':'))
     # the index of the space in time
     space_index = int(time.find(' '))
+
+    # error messages to help with future potential bugs
+    if col_index == -1:
+        print "In get_minute method: time is in incorrect format"
+    if space_index == -1:
+        print "In get_minute method: time is in incorrect format"
     # the hour of the start date
     hour = int(time[:col_index])
     
@@ -821,6 +1018,13 @@ def get_hour(time):
 def get_minute(time):
     col_index = int(time.find(':'))
     space_index = int(time.find(' '))
+
+    # error messages to help with future potential bugs
+    if col_index == -1:
+        print "In get_minute method: time is in incorrect format"
+    if space_index == -1:
+        print "In get_minute method: time is in incorrect format"
+
     return int(time[col_index+1:space_index])
 
 @login_required
@@ -830,7 +1034,6 @@ def display(request):
         if request.method == 'POST':
             current_user = request.user.updoguser
             display = parser.parse(request.POST['display_date'].strip("\""))
-            print display
             json_events = gimme_events(current_user, display) + gimme_downtimes(current_user, display)
             return HttpResponse(serializers.serialize('json', json_events))
     else:
