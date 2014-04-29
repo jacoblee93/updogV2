@@ -71,7 +71,7 @@
 
           if (users.length != 0) {
             for (var i = 0; i < dlength; i++) {
-              userhtml = userhtml + '<li><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="40" height="40"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<br><div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li>';
+              userhtml = userhtml + '<li><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<br><div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li>';
             }
           }
           $(".friend_requests").html(userhtml);
@@ -98,10 +98,10 @@
           if (items.length != 0) {
             for (var i = 0; i < dlength; i++) {
               if (!items[i].fields.is_reply) {
-                userhtml = userhtml + '<li><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="40" height="40"> ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + ' wants to hang out!' + '<br><div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li>';
+                userhtml = userhtml + '<li><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + items[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + ' wants to hang out!' + '<br><div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li>';
               }
               else {
-                userhtml = userhtml + '<li><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="40" height="40"> You are now hanging out with ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + '!</li>';
+                userhtml = userhtml + '<li><<img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + items[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> You are now hanging out with ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + '!</li>';
               }
             }
           }
