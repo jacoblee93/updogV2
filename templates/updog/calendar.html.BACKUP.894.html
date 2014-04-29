@@ -146,6 +146,77 @@ return false;
       <div id="scroll-able"> 
         <div class="list-group">
           <div class="frandz"></div>
+<<<<<<< HEAD
+            <!--{% if friends_list %}
+            <a class="list-group-item active">
+              Friends:
+            </a>  
+            {% for friend in friends_list %}
+              <a class="list-group-item" onclick="getevents( '{{ friend }}' )" id="friend_{{ friend }}"> 
+               <div><img src="/media/profile_pictures/{{ friend }}-social.jpg" alt = "profpic" width = "50" height = "50">
+               <span class="frand">{{ friend.first_name }} {{ friend.last_name }}</span>
+               </div>
+             </a>-->
+             <script>
+
+
+              /*hover_functions = {
+                sensitivity: 3,
+                interval: 50,
+                timeout: 50,
+                over: function on_hover() {
+
+              var obj = '{{ friend }}';
+              $.ajax({
+              type: "POST",
+              url: "/calendar/get_friends_downtimes/",
+              data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
+              success: function(data) {
+
+                    var our_data = JSON.parse(data);
+                    var get_some_events = make_events(our_data, 'orange', obj, true, false);
+
+                    if (get_some_events) {
+                      existing_events = $("#calendar").fullCalendar('clientEvents');
+    
+                      for (var i = 0; i < get_some_events.length; i++) {
+                        var is_unique = true;
+                        for (var j = 0; j < existing_events.length; j++) {
+                          if (get_some_events[i].id == existing_events[j].id) {
+                            is_unique = false;
+                          }
+
+                        }
+                        if (is_unique) {
+                          $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+                          }
+                        }
+
+                      }
+                    },
+                  });
+
+                },
+                out: function off_hover() {
+                  var obj = '{{ friend }}';
+                  existing_events = $("#calendar").fullCalendar('clientEvents');
+                  for (var i = 0; i < existing_events.length; i++) {
+                    if (existing_events[i].owner === "hover") {
+                      $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+                    }
+                  }
+                  $('#calendar').fullCalendar('rerenderEvents');
+                }
+
+              }
+
+              $( "#friend_{{ friend }}").hoverIntent(hover_functions);*/
+
+            </script>
+            <!--{% endfor %}
+          {% else %}
+            <strong>No friends.</strong>
+            {% endif %}-->
           </div>
         </div>
         <!-- this is the searchbar -->
@@ -263,6 +334,50 @@ function hover_stuff(friend) {
   }
   $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
 }
+</script>
+=======
+
+        </div>
+      </div>
+      <!-- this is the searchbar -->
+      <div id="scroll-able">
+        <div class="list-group">
+          <form class="list-group-item list-group-item-info" method="post" name="form">
+            Find friends:<input id="search" size="17" name="search" type="text" />
+            <input type="submit" value="Search" class="submit"/>
+            <span class="error" style="display:none"> Please Enter Valid Data</span>
+            <span class="success" style="display:none"></span></a>
+          </form>
+          <div class="output"></div>
+        </div><!--/span-->
+      </div>
+      {% endif %}
+      <br>
+    </div>
+  </div>
+
+  <script>
+
+    function send_friend_request(new_friend, i) {
+      $.ajax({
+        type: "POST",
+        url: "/calendar/send_friend_request/",
+        data: {'new_friend': new_friend, 'i': i},
+        success: function(data) {
+          var s = data.indexOf(',');
+          var data1 = data.substring(0,s);
+          var data2 = data.substring(s+1, data.length);
+          if (data1 === "Request Pending") {
+            $("#div"+data2).text("Request Pending");
+          }
+          else {
+            $("#div"+data2).text("friend request sent");
+          }
+        }
+
+      });
+    }
+>>>>>>> 8b3c191725209158394a314d330f206d9ff258d7
 
     function getevents(obj) {
       $.ajax({
@@ -363,6 +478,32 @@ function erase_events(obj) {
       })
 
       $('#calendar').fullCalendar('removeEvents', temp_event.id);
+      $('#calendar').fullCalendar('rerenderEvents');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
+  }
+  $('#calendar').fullCalendar('rerenderEvents');
+
+  var test = document.getElementById('friend_'+obj);
+  test.setAttribute("onclick", "getevents("+JSON.stringify(obj)+")");
+
+
 }
 
   </script>
@@ -506,11 +647,6 @@ header: {
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
       eventClick: function(event, jsEvent, view) {
-
-
-        console.log("event.id = " + event.id + ", event.prev = " + event.prev_repeated_event + ", and event.next = " + event.next_repeated_event);
-
-
         if (view.name != 'month') {
 
           if (event.is_event) {
@@ -1052,10 +1188,12 @@ else {
 
 
                           for (var i = 0; i < data.length; i++) {
-                            var editted_event = make_events(data, 'blue', '{{username}}', false, true)[i];
-                            $('#calendar').fullCalendar('renderEvent', editted_event, stick = true);
+                            var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
+                            $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
                           }
                           $dialog.dialog('close');
+                          var editted_event = make_events(data, 'blue', '{{username}}', false, true)[0];
+                          $('#calendar').fullCalendar('renderEvent', editted_event, stick = true);
 
                           makeRepeatingEventNonRepeating(event);
                           event.prev_repeated_event = data[0].fields.prev_repeated_event;
@@ -1639,11 +1777,8 @@ var cancel = document.createElement("button");
         $dialog.dialog('open');
         $dialog.append(suggest);
       }
-    }
-    };
-  },
-  //  }
-//    },
+<<<<<<< HEAD
+    },
     eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
       // make sure a dropped event is no longer part of a linked list
       // of repeating events
@@ -1660,7 +1795,21 @@ var cancel = document.createElement("button");
       event.next_repeated_event = -1
 
       if (event.is_event) {
-
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_event/",
+          data: {"pk": event.id, 
+          "day_delta": dayDelta,
+          "minute_delta": minuteDelta,
+          "resize": "false",
+        },
+      });
+=======
+    }
+  }
+},
+eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
+  if (event.is_event) {
     $.ajax({
       type: "POST",
       url: "/calendar/change_event/",
@@ -1694,7 +1843,32 @@ var cancel = document.createElement("button");
             $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
           }
         }
+>>>>>>> 8b3c191725209158394a314d330f206d9ff258d7
       }
+      else {
+<<<<<<< HEAD
+
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_downtime/",
+          data: {"pk": event.id, 
+          "day_delta": dayDelta,
+          "minute_delta": minuteDelta,
+          "resize": "false",
+        },
+        success: function(data) {
+
+          parsed = JSON.parse(data);
+          if (parsed.length > 1) {
+            event.start = parsed[0].fields.start_time;
+            event.end = parsed[0].fields.end_time;
+            $("#calendar").fullCalendar('renderEvent', event, stick=true);
+            for (var i = 0; i < parsed.length; i++) {
+              if (parsed[i].pk != event.id) {
+                $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+              }
+            }
+          }
           else {
             if (parsed.length == 1) {
               $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
@@ -1773,7 +1947,7 @@ eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
 },
 
 select: function(startDate, endDate, allDay, jsEvent, view) {
-  if (view.name != 'month') {
+
   if (startDate - endDate == -1800000) return;
 
   startDateOffset = startDate.getTimezoneOffset();
@@ -1793,7 +1967,7 @@ select: function(startDate, endDate, allDay, jsEvent, view) {
     if (parsed.length > 0) {
       if (parsed.length > 1) {
         if (parsed[1].pk != parsed[0].pk) {
-          var displayed_downtime = make_events(parsed, 'green', ["{{ username }}"], false, false);
+          var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
           $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
           for (var i = 1; i < displayed_downtime.length; i++) {
             $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
@@ -1802,18 +1976,127 @@ select: function(startDate, endDate, allDay, jsEvent, view) {
         }
       }
       else {
-        var displayed_downtime = make_events(parsed, 'green', ["{{ username }}"], false, false);
+        var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
         $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+      }
+    }         
+  },
+});
+},
+
+dayClick:function( date, allDay, jsEvent, view ) {
+  var singleClick = date.toUTCString();
+=======
+        if (parsed.length == 1) {
+          $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
+        }
+      }
+      if (parsed.length != 0) {
+        $('#calendar').fullCalendar('rerenderEvents'); 
+      }               
+    },
+  });
+  }
+
+},
+eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
+  var view = $('#calendar').fullCalendar('getView');
+  if (view.name != 'month') {
+    if (event.is_event) {
+      $.ajax({
+        type: "POST",
+        url: "/calendar/change_event/",
+        data: {"pk": event.id, 
+        "day_delta": dayDelta,
+        "minute_delta": minuteDelta,
+        "resize": "true",
+      },
+    });
+    }
+
+    else {
+
+      $.ajax({
+        type: "POST",
+        url: "/calendar/change_downtime/",
+        data: {"pk": event.id, 
+        "day_delta": dayDelta,
+        "minute_delta": minuteDelta,
+        "resize": "true",
+      },
+      success: function(data) {
+        parsed = JSON.parse(data);
+        if (parsed.length > 1) {
+          event.start = parsed[0].fields.start_time;
+          event.end = parsed[0].fields.end_time;
+          $("#calendar").fullCalendar('renderEvent', event, stick=true);
+          for (var i = 0; i < parsed.length; i++) {
+            if (parsed[i].pk != event.id) {
+              $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+            }
           }
         }
-      },         
-    })
+        else {
+          if (parsed.length == 1) {
+            $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
+          }
+        }
+        if (parsed.length != 0) {
+          $('#calendar').fullCalendar('rerenderEvents'); 
+        }
+
+      },
+    });
+    }
+
   }
+},
+
+select: function(startDate, endDate, allDay, jsEvent, view) {
+  if (view.name != 'month') {
+    if (startDate - endDate == -1800000) return;
+
+    startDateOffset = startDate.getTimezoneOffset();
+    startDate = new Date(startDate.getTime() - startDateOffset*60000);
+
+    endDate = new Date(endDate.getTime() - startDateOffset*60000);
+
+    $.ajax({
+      type:"POST",
+      url: "/calendar/add_downtime/",
+      data: {"startDate": startDate.toUTCString(),
+      "endDate": endDate.toUTCString(),
+      "allDay": allDay,
+    },
+    success: function(data) {
+      parsed = JSON.parse(data)
+      if (parsed.length > 0) {
+        if (parsed.length > 1) {
+          if (parsed[1].pk != parsed[0].pk) {
+
+            var displayed_downtime = make_events(parsed, 'green', ["{{ username }}"], false, false);
+            $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+            for (var i = 1; i < displayed_downtime.length; i++) {
+              $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+            }
+            $('#calendar').fullCalendar('rerenderEvents');
+          }
+        }
+        else {
+          var displayed_downtime = make_events(parsed, 'green', ["{{ username }}"], false, false);
+          $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+        }
+      }         
+    },
+  });
+}
 },
 
 dayClick:function( date, allDay, jsEvent, view ) {
   if (view.name != 'month') {
     var singleClick = date.toUTCString();
+>>>>>>> 8b3c191725209158394a314d330f206d9ff258d7
+
             // double click
             if(doubleClick==singleClick){
               console.log('Double-click!');
@@ -2068,7 +2351,11 @@ dayClick:function( date, allDay, jsEvent, view ) {
                     'start_time': $('#txtStartTime').val(),
                     'end_time': $('#txtEndTime').val(),
                     // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
+<<<<<<< HEAD
+                    'repeating_event_length': repeating_event_length,
+=======
                     'repeating_event_length': repeating_event_length
+>>>>>>> 8b3c191725209158394a314d330f206d9ff258d7
                   },
                     // data is what the server returns
                     success: function(data) {
@@ -2099,7 +2386,11 @@ dayClick:function( date, allDay, jsEvent, view ) {
                         }
                         else {
                           for (var i = 0; i < data.length; i++) {
+<<<<<<< HEAD
+                            var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
+=======
                             var added_event = make_events(data, 'blue', ['{{username}}'], false, true)[i];
+>>>>>>> 8b3c191725209158394a314d330f206d9ff258d7
                             $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
                           }
                           $dialog.dialog('close');
@@ -2121,11 +2412,34 @@ $dialog.dialog('open');
                 clearInterval(clickTimer);
               }, 500);
             }
+<<<<<<< HEAD
+          },
+=======
           }
         },
+>>>>>>> 8b3c191725209158394a314d330f206d9ff258d7
+
+
+
+
+<<<<<<< HEAD
+        }
+=======
       }
-      
-    );
+>>>>>>> 8b3c191725209158394a314d330f206d9ff258d7
+
+
+
+
+<<<<<<< HEAD
+        );
+=======
+
+
+      );
+>>>>>>> 8b3c191725209158394a314d330f206d9ff258d7
+
+
 });
 
 
@@ -2148,6 +2462,7 @@ $dialog.dialog('open');
   body .modal-footer {
     max-width: 212px;
   }
+<<<<<<< HEAD
   body .modal.fade.bs-delete-repeating-events {
     max-width: 250px;
     margin-left: 40%;
@@ -2179,6 +2494,27 @@ $dialog.dialog('open');
           <button type="button" onclick="varRepeatingEvent=clickedEvery2Weeks()" class="btn btn-default" data-dismiss="modal" id="Every2Weeks">Every 2 Weeks</button>
           <button type="button" onclick="varRepeatingEvent=clickedEvery4Weeks()" class="btn btn-default" data-dismiss="modal" id="Every4Weeks">Every 4 Weeks</button>
         </div>
+=======
+</style>
+
+<!--<button class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-sm">Small modal</button>-->
+
+<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modal-sm">
+       <!--       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>-->
+       <h4 class="modal-title">Repeating Event</h4>
+     </div>
+     <div class="modal-body">
+      <!--      <p>One fine body&hellip;</p>-->
+      <div class="btn-group-vertical">
+        <button type="button" onclick="varRepeatingEvent=clickedNone()" class="btn btn-default" data-dismiss="modal" id="None">None</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEveryDay()" class="btn btn-default" data-dismiss="modal" id="EveryDay">Every Day</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEveryWeek()" class="btn btn-default" data-dismiss="modal" id="EveryWeek">Every Week</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEvery2Weeks()" class="btn btn-default" data-dismiss="modal" id="Every2Weeks">Every 2 Weeks</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEveryMonth()" class="btn btn-default" data-dismiss="modal" id="Every4Weeks">Every 4 Weeks</button>
+      </div>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -2219,6 +2555,7 @@ $dialog.dialog('open');
           </form>
           <div class="schedule-output"></div>
         </div><!--/span-->
+>>>>>>> 8b3c191725209158394a314d330f206d9ff258d7
       </div>
 
       <div id="scroll-able">
@@ -2359,6 +2696,8 @@ function invite(user, user_firstname, user_lastname, event_id) {
 </script>
 </div>
 
+<<<<<<< HEAD
+
 <!-- button to drop down modal window -->
 <button class="btn btn-primary" data-toggle="modal" data-target=".bs-delete-repeating-events">Smal apsodifj</button>
 
@@ -2396,12 +2735,14 @@ function invite(user, user_firstname, user_lastname, event_id) {
   </div><!-- /.modal-dialog -->
 </div>
 
+=======
 <style>
   div#scroll-able-2 {
     height: 200px;
     overflow: scroll;
   }
 </style>
+>>>>>>> 8b3c191725209158394a314d330f206d9ff258d7
 <!--
 <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-sm">
