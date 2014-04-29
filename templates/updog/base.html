@@ -215,7 +215,7 @@
         <ul class="nav navbar-nav">
               
               {% if user.is_authenticated %}
-                <li><a href="#preferences">Preferences</a></li>
+                
                 <!--<li><a onclick = "display_friend_requests()"> Notifications 
                   <div class="notifications"></div>
                 </a></li>-->
@@ -239,6 +239,7 @@
 	      </ul>
 	      <ul class="nav navbar-nav navbar-right"> 
           {% if user.is_authenticated %}
+            <li><a href="#preferences">Preferences</a></li>
             <li><a href="/calendar/logout_user/">Logout</a></li>
           {% else %}
             <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
@@ -252,7 +253,7 @@
   <script>
 
 
-function make_events(data, color, owners, hover, is_event) {
+function make_events(data, color, owner, hover, is_event) {
 
       if (data.length > 0) {
         var dlength = data.length;
@@ -283,22 +284,28 @@ function make_events(data, color, owners, hover, is_event) {
             if (!data[i].fields.is_confirmed) {
               single.color = 'red';
             }
-            // create an empty invite list
+            // create empty invite list
             single.invitelist = [];
+
           }
           else { // for downtimes
 
             if (!data[i].fields.preferred_activity)
-              single.title = owners[0] + " is free";
+              single.title = owner + " is free";
             else {
-              single.title = owners[0] + " wants to " + data[i].fields.preferred_activity;
+              single.title = owner + " wants to " + data[i].fields.preferred_activity;
             }
           }
 
           single.start = data[i].fields.start_time;
           single.end = data[i].fields.end_time;
           single.allDay = false;
-          single.id = data[i].pk;
+          if (is_event) {
+            single.id = data[i].pk;
+          }
+          else {
+            single.id = -data[i].pk;
+          }
 
           var able = false;
           single.owners = [];
@@ -346,6 +353,63 @@ function make_events(data, color, owners, hover, is_event) {
       }
       return multiple;
     }
+
+    // a list of users usernames and a single event id
+  function is_invited(event, users) {
+    if (users.length > 0 && users) {
+      var mydata;
+    $.ajax({
+      type: "GET",
+      url: "/calendar/is_invited",
+      async: false,
+      data: {
+        "event": event,
+        "users": JSON.stringify(users),
+      },
+      success: function(data) {
+        mydata = JSON.parse(data);
+      }
+      
+    });
+      return mydata;
+    }
+    else {
+      return [false];
+    }
+  }
+
+
+  function who_is_invited(event_id) {
+    var mydata;
+    $.ajax({
+      type: "GET",
+      url: "/calendar/who_is_invited/",
+      async: false,
+      data: {
+        "event": event_id,
+      },
+      success: function(data) {
+        mydata = JSON.parse(data);
+      }
+    });
+    return mydata;
+  }
+  // given a list of users usernames and a single event id, returns booolean 
+  // list of true/false for whether user is attending said event
+  function is_attending(event, users) {
+    if (users.length > 0 && users) {
+      var is_attending = []
+      var event_obj = $('#calendar').fullCalendar('clientEvents', event)[0];
+
+      for (var i = 0; i < users.length; i++) {
+        is_attending.push(event_obj.owners.indexOf(users[i]) != -1);
+      }
+      return is_attending;
+    }
+    else {
+      return [false];
+    }
+  }
 
   function suggest_form() {
     $.ajax({
@@ -407,7 +471,7 @@ function make_events(data, color, owners, hover, is_event) {
 
                   // display the unconfirmed event on the initiator's calendar
 
-                  var unconf = make_events(mydata, 'orange', ['{{ username }}'], false, true);
+                  var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
                   $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
                 }
                 // if user clicked Cancel:
@@ -473,7 +537,7 @@ hover_functions = {
     success: function(data) {
 
       var our_data = JSON.parse(data);
-      var get_some_events = make_events(our_data, 'orange', [obj], true, false);
+      var get_some_events = make_events(our_data, 'orange', obj, true, false);
 
       if (get_some_events) {
         existing_events = $("#calendar").fullCalendar('clientEvents');
@@ -500,10 +564,9 @@ hover_functions = {
     existing_events = $("#calendar").fullCalendar('clientEvents');
     for (var i = 0; i < existing_events.length; i++) {
       able = false;
-      for (var j = 0; j < existing_events[i].owners.length; j++) {
-        if (existing_events[i].owners[j] === "hover") {
-          able = true;
-        }
+      if (existing_events[i].owners[0] === "hover") {
+        able = true;
+        
       }
       if (able) {
         $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
@@ -518,6 +581,7 @@ hover_functions = {
 {% if user.is_authenticated %}
   var x = get_friends('{{ user }}');
 {% endif %}
+
 </script>
 
   </body>  

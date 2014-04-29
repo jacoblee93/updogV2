@@ -474,7 +474,7 @@ def edit_event(request):
 def edit_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':
-            downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+            downtime = Downtime.objects.filter(pk=parse_downtime_id(request.POST['pk']))[0]
             if 'activity' in request.POST:
                 downtime.preferred_activity = request.POST['activity']
                 if len(request.POST['activity']) == 0:
@@ -548,12 +548,15 @@ def change_event(request):
 
     else: return HttpResponse("Failure123")
 
+def parse_downtime_id(front_id):
+    return str(-int(front_id))
+
 @login_required
 @csrf_exempt
 def change_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':
-            downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+            downtime = Downtime.objects.filter(pk=parse_downtime_id(request.POST['pk']))[0]
             time_changes = timedelta(days = int(request.POST['day_delta']), 
                 minutes = int(request.POST['minute_delta']))
 
@@ -637,7 +640,7 @@ def remove_event(request):
 def remove_downtime(request):
     if request.is_ajax():
         if request.method == 'POST':
-            downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+            downtime = Downtime.objects.filter(pk=parse_downtime_id(request.POST['pk']))[0]
             downtime.delete()
 
             return HttpResponse("Successfully deleted downtime")
@@ -686,17 +689,24 @@ def find_friends(request):
 def invite_search(request):
     if request.is_ajax():
         if request.method == 'GET':
-            l = len(request.GET["search"])
-            friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
-            friends_list = friends_list.exclude(user__username = request.user.username);
-            fl = len(friends_list)
-            user_list = []
+            if 'search' in request.GET:
+                if 'event' in request.GET:
+                    try:
+                        event = Event.objects.filter(pk=request.GET['event'])[0]
+                        l = len(request.GET["search"])
+                        friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
+                        friends_list = friends_list.exclude(user__username = request.user.username);
+                        fl = len(friends_list)
+                        user_list = []
 
-            for i in xrange(0,fl):
-                if Friendship.objects.filter(to_user=request.user.updoguser, from_user=friends_list[i], is_mutual=True):
-                    user_list.append(friends_list[i].user)
-            user_list = serializers.serialize('json', user_list)
-            return HttpResponse(user_list)
+                        for i in xrange(0,fl):
+                            if Friendship.objects.filter(to_user=request.user.updoguser, from_user=friends_list[i], is_mutual=True):
+                                if len(EventNotification.objects.filter(event=event,to_user=friends_list[i])) == 0:
+                                    user_list.append(friends_list[i].user)
+                        user_list = serializers.serialize('json', user_list)
+                        return HttpResponse(user_list)
+                    except Exception as e:
+                        print e
 
     return HttpResponse("Uh-Oh")
 
@@ -785,7 +795,7 @@ def suggest(request):
             current_user = request.user.updoguser
 
             if 'pk' in request.GET:
-                my_dt = Downtime.objects.filter(pk=request.GET['pk'])[0]
+                my_dt = Downtime.objects.filter(pk=parse_downtime_id(request.GET['pk']))[0]
             else:
                 start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
                 after_today = current_user.downtime_set.filter(start_time__gte=start_date)
@@ -893,6 +903,7 @@ def get_notifications(request):
     return HttpResponse("Failure")
 
 @login_required
+@csrf_exempt
 def send_event_notifications(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -906,21 +917,22 @@ def send_event_notifications(request):
 
                     if 'data_type' in request.POST:
 
-                        if request.POST['data_type'] == 'pk':
+                        try:
+                            if request.POST['data_type'] == 'pk':
+                                for key in to_users:
+                                    recipient = UpDogUser.objects.filter(pk=key)[0]
+                                    event_notification = EventNotification.objects.get_or_create(to_user=recipient, from_user=current_uduser, event=event)[0]
+                                    event_notification.save()
 
-                            for key in to_users:
-                                recipient = UpDogUser.objects.filter(pk=key)[0]
-                                event_notification = EventNotification(to_user=recipient, from_user=current_uduser, event=event)
-                                event_notification.save()
+                            elif request.POST['data_type'] == 'username':
 
-                        elif request.POST['data_type'] == 'username':
+                                for username in to_users:
 
-                            for username in to_users:
-                                recipient = UpDogUser.objects.filter(user__username=username)[0]
-                                event_notification = EventNotification(to_user=recipient, from_user=current_uduser, event=event)
-                                event_notification.save()
-
-
+                                    recipient = UpDogUser.objects.filter(user__username=username)[0]
+                                    event_notification = EventNotification.objects.get_or_create(to_user=recipient, from_user=current_uduser, event=event)[0]
+                                    event_notification.save()
+                        except Exception as e:
+                            print e
                 return HttpResponse("Success")
 
 
@@ -1028,11 +1040,55 @@ def get_event_owners(request):
                 # else this is a downtime
                 else:
                     if 'pk' in request.GET:
-                        downtime = Downtime.objects.filter(pk=request.GET['pk'])[0]
+                        downtime = Downtime.objects.filter(pk=parse_downtime_id(request.GET['pk']))[0]
                         return HttpResponse(serializers.serialize('json', [downtime.owner.user]))
     else:
         return HttpResponse("Failure.")
 
+@login_required
+@csrf_exempt
+def is_invited(request):
+    if request.is_ajax():
+        if request.method == 'GET':
+            if 'event' in request.GET:
+                if 'users' in request.GET:
+                    # do stuff
+                    users = json.loads(request.GET['users'])
+                    event = Event.objects.filter(pk=request.GET['event'])
+                    is_invited = []
+                    for user in users:
+                        ud_user = UpDogUser.objects.filter(user__username=user)
+                        if EventNotification.objects.filter(event=event,to_user=ud_user,is_reply=False):
+                            is_invited.append(True)
+                        else:
+                            is_invited.append(False)
+
+                    return HttpResponse(json.dumps(is_invited))
+    else:
+        return HttpResponse("Fail!")
+
+@login_required
+@csrf_exempt
+def who_is_invited(request):
+    if request.is_ajax():
+        if 'event' in request.GET:
+            print "fuck1"
+            try:
+                event = Event.objects.filter(pk=request.GET['event'])
+                is_invited = []
+                users = UpDogUser.objects.filter()
+                for user in users:
+                    ud_user = UpDogUser.objects.filter(user__username=user)
+                    if EventNotification.objects.filter(event=event,to_user=ud_user,is_reply=False):
+                        is_invited.append(user.user)
+                #if len(is_invited) == 0:
+                #    print "rut rot"
+                return HttpResponse(serializers.serialize('json', is_invited))
+            except Exception as e:
+                print e
+
+    else:
+        return HttpResponse("Fail!")
 
 
 

@@ -193,7 +193,7 @@ return false;
         success: function(data) {
 
           var our_data = JSON.parse(data);
-          var get_some_events = make_events(our_data, 'orange', [obj], false, false);
+          var get_some_events = make_events(our_data, 'orange', obj, false, false);
           if (get_some_events) {
 
             existing_events = $("#calendar").fullCalendar('clientEvents');
@@ -342,8 +342,8 @@ function erase_events(obj) {
                 }
               }
             }
-            var multiple_evs = make_events(events_vd, 'blue', ['{{ username }}'], false, true);
-            var multiple_dts = make_events(downtimes_vd, 'green', ['{{ username }}'], false, false);
+            var multiple_evs = make_events(events_vd, 'blue', '{{ username }}', false, true);
+            var multiple_dts = make_events(downtimes_vd, 'green', '{{ username }}', false, false);
             var dts_and_evs;
             if (multiple_evs) {
 
@@ -397,7 +397,6 @@ header: {
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
       eventClick: function(event, jsEvent, view) {
-
         if (view.name != 'month') {
 
           if (event.is_event) {
@@ -411,6 +410,63 @@ header: {
             party.setAttribute('event', event.id);
             party.onclick = function() {
               $dialog.dialog('close');
+
+
+              function who_is_invited(event_id) {
+                var mydata;
+                $.ajax({
+                  type: "GET",
+                  url: "/calendar/who_is_invited/",
+                  async: false,
+                  data: {
+                    "event": event_id,
+                  },
+                  success: function(data) {
+                    mydata = JSON.parse(data);
+                  }
+                });
+                return mydata;
+              }              
+              var invite_list = who_is_invited(event.id);
+
+              var owners_list;
+              $.ajax({
+                type: "GET",
+                url: "/calendar/get_event_owners/",
+                async: false,
+                data: {
+                  "pk": event.id,
+                  "type": true,
+                },
+                success: function(data) {
+                  owners_list = JSON.parse(data);
+                }
+              });
+
+
+              var event_obj = $('#calendar').fullCalendar('clientEvents', event.id)[0];
+              var invite_text = "";
+              if (invite_list.length > 0) {  
+                for (var k = 0; k < invite_list.length; k++) {
+
+                  invite_text = invite_text + '<div id="added_' + invite_list[k].fields.username + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + invite_list[k].fields.first_name + ' ' + invite_list[k].fields.last_name + '<div style="float:right" id="undesirablebutton_' + invite_list[k].fields.username + '">Already Invited</div></a></div>'
+                }
+              }
+              if (owners_list.length > 0) {
+                for (var k = 0; k < owners_list.length; k++) {
+                  if (owners_list[k].fields.username == '{{ username }}') {
+                    invite_text = invite_text + '<div id="added_' + owners_list[k].fields.username + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + 'Me' + '<div style="float:right" id="undesirablebutton_' + owners_list[k].fields.username + '">Already Attending</div></a></div>'
+                  }
+                  else {
+                    invite_text = invite_text + '<div id="added_' + owners_list[k].fields.username + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + owners_list[k].fields.first_name + ' ' + owners_list[k].fields.last_name + '<div style="float:right" id="undesirablebutton_' + owners_list[k].fields.username + '">Already Attending</div></a></div>'
+                  }
+
+                }
+
+              }
+              $(".Invite-list").html("");
+              $(".Invite-list").html(invite_text);
+
             }
 
             var partyEdit = document.createTextNode("Invite Friends");
@@ -794,7 +850,7 @@ header: {
 
 
                           for (var i = 0; i < data.length; i++) {
-                            var added_event = make_events(data, 'blue', ['{{username}}'], false, true)[i];
+                            var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
                             $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
                           }
                           $dialog.dialog('close');
@@ -858,21 +914,36 @@ $dialog.dialog('open');
       $('<p />').text(event.allDay ? 'All day event' : getTime(event.start) + '-' + getTime(event.end))
       );
   
-  if (event.owners.length > 0) {
+  var owners_list;
+  $.ajax({
+    type: "GET",
+    url: "/calendar/get_event_owners/",
+    async: false,
+    data: {
+      "pk": event.id,
+      "type": true,
+    },
+    success: function(data) {
+      owners_list = JSON.parse(data);
+    }
+  });
+
+  if (owners_list.length > 0) {
     var party_text = "";
-    for (var k = 0; k < event.owners.length; k++) {
-      if (event.owners[k] != '{{ username }}')
-        party_text = party_text + ", " + event.owners[k];
+    for (var k = 0; k < owners_list.length; k++) {
+      if (owners_list[k].fields.username != '{{ username }}')
+        party_text = party_text + ", " + owners_list[k].fields.first_name + " " + owners_list[k].fields.last_name;
     }
     $($dialog).append(
       $('<p />').text("Participants: Me" + party_text)
     );
   }
   
-  if (event.invitelist.length > 0) {
+  var invite_list = who_is_invited(event.id);
+  if (invite_list.length > 0) {
     var invite_text = "";
-    for (var k = 0; k < event.invitelist.length; k++) {
-      invite_text = invite_text + ", " + event.invitelist[k];
+    for (var k = 0; k < invite_list.length; k++) {
+      invite_text = invite_text + ", " + invite_list[k].fields.first_name + " " + invite_list[k].fields.last_name;
     }
     $($dialog).append(
       $('<p />').text("Invited: Me" + invite_text)
@@ -995,7 +1066,7 @@ $dialog.dialog('open');
                     //************** SEND EVENT NOTIFICATION *******************//
 
                     // display the unconfirmed event on the initiator's calendar
-                    var unconf = make_events(mydata, 'orange', ['{{ username }}'], false, true);
+                    var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
                     $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
                   }
                   // if user clicked Cancel:
@@ -1242,14 +1313,16 @@ eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
         event.end = parsed[0].fields.end_time;
         $("#calendar").fullCalendar('renderEvent', event, stick=true);
         for (var i = 0; i < parsed.length; i++) {
-          if (parsed[i].pk != event.id) {
-            $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+          if (parsed[i].pk != -event.id && parsed[i].model == "udCalendar.downtime") {
+            $('#calendar').fullCalendar('removeEvents', -parsed[i].pk);
           }
         }
       }
       else {
         if (parsed.length == 1) {
-          $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
+          if (parsed[0].model == "udCalendar.downtime") {
+            $('#calendar').fullCalendar('removeEvents', -parsed[0].pk);
+          }
         }
       }
       if (parsed.length != 0) {
@@ -1292,14 +1365,14 @@ eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
           event.end = parsed[0].fields.end_time;
           $("#calendar").fullCalendar('renderEvent', event, stick=true);
           for (var i = 0; i < parsed.length; i++) {
-            if (parsed[i].pk != event.id) {
-              $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+            if (parsed[i].pk != -event.id) {
+              $('#calendar').fullCalendar('removeEvents', -parsed[i].pk);
             }
           }
         }
         else {
           if (parsed.length == 1) {
-            $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
+            $('#calendar').fullCalendar('removeEvents', -parsed[0].pk);
           }
         }
         if (parsed.length != 0) {
@@ -1335,7 +1408,7 @@ select: function(startDate, endDate, allDay, jsEvent, view) {
         if (parsed.length > 1) {
           if (parsed[1].pk != parsed[0].pk) {
 
-            var displayed_downtime = make_events(parsed, 'green', ["{{ username }}"], false, false);
+            var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
             $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
             for (var i = 1; i < displayed_downtime.length; i++) {
               $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
@@ -1344,7 +1417,7 @@ select: function(startDate, endDate, allDay, jsEvent, view) {
           }
         }
         else {
-          var displayed_downtime = make_events(parsed, 'green', ["{{ username }}"], false, false);
+          var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
           $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
         }
       }         
@@ -1642,7 +1715,7 @@ dayClick:function( date, allDay, jsEvent, view ) {
                         }
                         else {
                           for (var i = 0; i < data.length; i++) {
-                            var added_event = make_events(data, 'blue', ['{{username}}'], false, true)[i];
+                            var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
                             $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
                           }
                           $dialog.dialog('close');
@@ -1773,7 +1846,7 @@ $dialog.dialog('open');
 
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+      <button type="button" class="btn btn-default" data-dismiss="modal" onclick="invite_cancel()">Cancel</button>
       <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="send_invite()">Invite!</button>
       <!--<button type="button" class="btn btn-primary">Done</button>-->
     </div>
@@ -1802,7 +1875,10 @@ $dialog.dialog('open');
           $.ajax({
             type: "GET",
             url: "/calendar/invite_search/",
-            data: {'search': name},
+            data: {
+              'search': name,
+              'event': event_id,
+            },
             success: function (data) {
               var mydata = JSON.parse(data);
               var dlength = mydata.length;
@@ -1827,7 +1903,7 @@ $dialog.dialog('open');
                 }
               }
               else {
-                userhtml = "No results :(";
+                userhtml = "No results.";
 
               }
               $(".schedule-output").html(userhtml);
@@ -1844,7 +1920,13 @@ function invite(user, user_firstname, user_lastname, event_id) {
     $("#sch_" + user).remove();
     // add sonia below
     addedhtml = "";
-    addedhtml = addedhtml + '<div id="added_' + user + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right"><button type="button" onclick="uninvite(\'' + user + '\', \'' + user_firstname + '\', \'' + user_lastname+ '\', \'' + event_id + '\' )">Uninvite</button></div></a></div>';
+    var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
+
+
+    
+    addedhtml = addedhtml + '<div id="added_' + user + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="undesirablebutton_' + user + '"><button type="button" onclick="uninvite(\'' + user + '\', \'' + user_firstname + '\', \'' + user_lastname+ '\', \'' + event_id + '\' )">Uninvite</button></div></a></div>';
+  
+
     $(".Invite-list").append(addedhtml);
 
     // retrieve the event (on the front end) that we're editing
@@ -1863,15 +1945,22 @@ function invite(user, user_firstname, user_lastname, event_id) {
     }
   }
   
+  function invite_cancel() {
+    var event_id = $('.party-button').attr("event");
+    var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
+    event_obj.invitelist = [];
+  }
+
   function send_invite() {
     var event_id = $('.party-button').attr("event");
     var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
     if (event_obj.invitelist) {
      if (event_obj.invitelist.length == 0) {
-      alert("You have invited no friends!");
+      alert("Please select some friends to invite.");
     }
     else {
-     $.ajax({
+      
+      $.ajax({
       type: "POST",
       url: "/calendar/send_event_notifications/",
       data: {
@@ -1882,9 +1971,27 @@ function invite(user, user_firstname, user_lastname, event_id) {
 
       success: function(data) {
 
-        console.log(data);
+        console.log("data");
+
       }
-    });
+      });
+
+      peeps_requested = is_invited(event_id, event_obj.invitelist);
+      peeps_attending = is_attending(event_id, event_obj.invitelist);
+
+      for (var k = 0; k < event_obj.invitelist.length; k++) {
+        if (peeps_attending[k]) {
+          $("#undesirablebutton_" + event_obj.invitelist[k]).html('Already Attending');
+        }
+        else {
+          if (peeps_requested[k]) {
+            $("#undesirablebutton_" + event_obj.invitelist[k]).html('Already Invited');
+          }
+        }
+      }
+
+
+     
 
    }
  }

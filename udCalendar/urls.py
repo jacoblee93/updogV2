@@ -35,4 +35,6 @@ urlpatterns = patterns('',
         url(r'^display/$', views.display, name='display'),
         url(r'^invite_search/$', views.invite_search, name='invite_search'),
         url(r'^get_event_owners/$', views.get_event_owners, name='get_event_owners'),
+        url(r'^is_invited/$', views.is_invited, name='is_invited'),
+        url(r'^who_is_invited/$', views.who_is_invited, name='who_is_invited'),
 )
