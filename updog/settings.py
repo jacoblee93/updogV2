@@ -40,7 +40,7 @@ STATIC_ROOT = 'staticfiles'
 DATABASE_PATH = os.path.join(PROJECT_PATH, 'updog.db')
 
 #MEDIA_ROOT = os.path.join(PROJECT_PATH, 'media')
-MEDIA_ROOT = '/media/'
+MEDIA_ROOT = 'media'
 
 if not DEBUG:
     AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
