@@ -50,19 +50,19 @@ def calendar(request):
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[5])
 
-    test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
-    test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
-    test_to_friendship.is_mutual= True
-    test_from_friendship.is_mutual = True
-    test_to_friendship.is_new = False
-    test_from_friendship.is_new = False
-    test_to_friendship.save()
-    test_from_friendship.save()
+    #test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
+    #test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
+    #test_to_friendship.is_mutual= True
+    #test_from_friendship.is_mutual = True
+    #test_to_friendship.is_new = False
+    #test_from_friendship.is_new = False
+    #test_to_friendship.save()
+    #test_from_friendship.save()
 
     #test_to_friendship3 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[3], from_user=current_user)[0]
     #test_from_friendship3 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[3], to_user=current_user)[0]
@@ -102,16 +102,16 @@ def calendar(request):
 
     # Alex - friend request to build notifications bar
 
-    test_to_request = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
-    test_from_request = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
-    test_from_request.is_new = True
-    current_user.new_friend_requests = True
-    test_to_request.is_new = False
-    test_to_request.is_mutual = False
-    test_from_request.is_mutual = False
-    test_from_request.save()
-    test_to_request.save()
-    current_user.save()
+    #test_to_request = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
+    #test_from_request = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
+    #test_from_request.is_new = True
+    #current_user.new_friend_requests = True
+    #test_to_request.is_new = True
+    #test_to_request.is_mutual = False
+    #test_from_request.is_mutual = False
+    #test_from_request.save()
+    #test_to_request.save()
+    #current_user.save()
 
     #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=True)
     #test_notif.save()
@@ -235,46 +235,6 @@ def get_friends_downtimes(request):
     else: 
         return HttpResponse("Failure!!!!")
 
-
-# TESTING AJAX STUFF
-def test_ajax(request):
-
-    context = RequestContext(request)
-
-  #  if request.is_ajax():
-   #     message = "Yes, AJAX!"
-   # else:
-  #      message = "Not Ajax"
-
-    #user = UpDogUser.objects.order_by('-user')[1]
-
-    ## sort user's friendships from by decr. meet count
-    #ships_list = user.get_friends()
-#    ordered_ships_list = ships_list.order_by('-meeting_count')
- #   friends_list = []
-  #  for ship in ordered_ships_list:
-   #     friends_list.append(ship.to_user.user)
-
-   # context_dict = {'friends_list': friends_list}
-    
-    ## events for 35 days, starting today
-   # i = 0
-   # start_date = datetime.datetime.utcnow().replace(tzinfo=utc) # shouldn't start on today
-   # events_list = []
-   # while i < 35:
-   #     days_events = user.get_events_on_day(start_date)
-   #     for event in days_events:
-   #         events_list.append(event)
-   #     start_date = start_date - datetime.timedelta(days=1)
-   #     i = i + 1
-
-    #json_events = serializers.serialize("json", events_list)
-    #context_dict['events_list'] = json_events
-
-    #return HttpResponse(simplejson.dumps(context_dict))
-    #return render_to_response('updog/test_ajax.html', context_dict, context)
-    return render_to_response('updog/test_ajax.html', {}, context)
-
 def login(request):
     context = RequestContext(request)
     return render_to_response('updog/login.html', {}, context)
@@ -371,6 +331,10 @@ def add_event(request):
                 end_time = request.POST['end_time']
             if 'repeating_event_length' in request.POST:
                 repeating_event_length = request.POST['repeating_event_length']
+            if 'prev_repeated_event' in request.POST:
+                prev_repeated_event = request.POST['prev_repeated_event']
+            if 'next_repeated_event' in request.POST:
+                next_repeated_event = request.POST['next_repeated_event']
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
@@ -387,25 +351,50 @@ def add_event(request):
             end_datetime = datetime.datetime.combine(end_date, end_time)
 
             event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+            if int(repeating_event_length) != -1:
+                # num_repeats is the number of repeating events to create
+                num_repeats = 4
+                #event.num_repeating_events = num_repeats
             repeating_events = [event,]
 
             # don't save the event if the end_date happens before the start_date
             if (start_datetime < end_datetime):
                 event.save()
                 event.owners.add(request.user.updoguser)
-                
+
                 # if we have repeating events, create and save them
                 if int(repeating_event_length) != -1:
-                    for i in range(100):
+                    # the current and previous pk values (unique identifiers) for
+                    # creating a linked list to model repeated events
+                    current_pk = event.pk
+                    prev_pk = -1
+                    prev_event = event
+
+                    for i in range(num_repeats):
+                        print "here10!!"
+
                         start_datetime = start_datetime + timedelta(days=int(repeating_event_length))
                         end_datetime = end_datetime + timedelta(days=int(repeating_event_length))
-                        event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+
+                        event = Event(activity=activity, location=location,
+                            start_time=start_datetime, end_time=end_datetime,
+                            repeating_time_delta=repeating_event_length, prev_repeated_event=current_pk)#, num_repeating_events=num_repeats-i)
                         repeating_events.append(event)
                         event.save()
                         event.owners.add(request.user.updoguser)
 
-                        print start_datetime
+                        prev_pk = current_pk
+                        current_pk = event.pk
 
+                        print "current_pk is below:"
+                        print current_pk
+
+                        prev_event.next_repeated_event = current_pk
+                        prev_event.save()
+
+                        prev_event = event
+                        #print "event.prev_pk = " + prev_event.prev_repeated_event + ", event.next_pk" + prev_event.next_repeated_event
+                    event.save()
             json_event = serializers.serialize("json", repeating_events)
 
             return HttpResponse(json_event)
@@ -434,7 +423,7 @@ def edit_event(request):
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
-            
+
             # create time objects from start_time and end_time
             start_hour = get_hour(start_time)
             start_minute = get_minute(start_time)
@@ -446,37 +435,173 @@ def edit_event(request):
             start_datetime = datetime.datetime.combine(start_date, start_time)
             end_datetime = datetime.datetime.combine(end_date, end_time)
 
-            event.start_time = datetime.datetime.combine(start_date, start_time)
-            event.end_time = datetime.datetime.combine(end_date, end_time)
+            event.start_time = start_datetime
+            event.end_time = end_datetime
+
+          #  if (repeating_event_length not in request.POST) or (repeating_event_length == -1):
+          #      event.prev_repeated_event = -1
+          #      event.next_repeated_event = -1
 
             repeating_events = [event,]
+
+          #############################JUST CHANGED THIS!!!  event.save()
 
             # don't save the edited event if the end_time happens before the start_time
             if (event.start_time < event.end_time):
                 event.save()
                 # if we have repeating events, create and save them
                 if int(repeating_event_length) != -1:
+                    # set up editting the repeating event; remove it
+                    # from the linked list of repeating events
+                    # and fix the linked list
+                    makeRepeatingEventNonRepeating(event)
+                 #   event.next_repeated_event = -1
+                 #   event.prev_repeated_event = -1
+
+                    print "event id, prev id, next id = "
+                    print event.pk
+                    print event.prev_repeated_event
+                    print event.next_repeated_event
+
+                    event.save()
+
                     # repeat 30 times
-                    for i in range(30):
-                        print repeating_event_length
-                        print start_datetime
+                #    for i in range(repeating_event_length):
+                #        print repeating_event_length
+                #        print start_datetime
 
 
-                        start_datetime = start_datetime + timedelta(days=int(repeating_event_length))
-                        end_datetime = end_datetime + timedelta(days=int(repeating_event_length))
-                        print "here4"
-                        event = Event(activity=event.activity, location=event.location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
-                        repeating_events.append(event)
-                        print "here5"
-                        event.save()
-                        event.owners.add(request.user.updoguser)
+                #        start_datetime = start_datetime + timedelta(days=int(repeating_event_length))
+                #        end_datetime = end_datetime + timedelta(days=int(repeating_event_length))
+                #        print "here4"
+                #        event = Event(activity=event.activity, location=event.location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
+                #        repeating_events.append(event)
+                #        print "here5"
+                #        event.save()
+                #        event.owners.add(request.user.updoguser)
 
-                        print start_datetime
+                #        print start_datetime
 
             json_event = serializers.serialize("json", repeating_events)
 
             return HttpResponse(json_event)
     else: return HttpResponse("Failure!!!!")
+
+@login_required
+@csrf_exempt
+def edit_repeating_events(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            event = Event.objects.filter(pk=request.POST['pk'])[0]
+            if 'activity' in request.POST:
+                activity = request.POST['activity']
+            if 'location' in request.POST:
+                location = request.POST['location']
+            if 'start_date' in request.POST:
+                start_date = request.POST['start_date']
+            if 'end_date' in request.POST:
+                end_date = request.POST['end_date']
+            if 'start_time' in request.POST:
+                start_time = request.POST['start_time']
+            if 'end_time' in request.POST:
+                end_time = request.POST['end_time']
+            if 'repeating_event_length' in request.POST:
+                repeating_event_length = request.POST['repeating_event_length']
+
+            event.activity = activity
+            event.location = location
+
+            # arguments are datetime.date(year, month, day)
+            start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
+            end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
+
+            # create time objects from start_time and end_time
+            start_hour = get_hour(start_time)
+            start_minute = get_minute(start_time)
+            new_start_time = time(start_hour, start_minute)
+            end_hour = get_hour(end_time)
+            end_minute = get_minute(end_time)
+            new_end_time = time(end_hour, end_minute)
+
+            start_datetime = datetime.datetime.combine(start_date, new_start_time)
+            end_datetime = datetime.datetime.combine(end_date, new_end_time)
+
+            event.start_time = start_datetime
+            event.end_time = end_datetime
+
+            # if this is not the first repeating event, make sure
+            # to disconnect it from the previous repeating event
+            # in the linked list
+            prev_pk = event.prev_repeated_event
+            if prev_pk != -1:
+                prev_event = Event.objects.filter(pk=prev_pk)[0]
+                prev_event.next_repeated_event = -1;
+                prev_event.save()
+            # this first event to edit becomes the first event in a new set of repeating events
+            event.prev_repeated_event = -1
+
+            repeating_events = [event,]
+
+      ################ JUST CHANGED THIS!!!!####### event.save()
+
+            # don't save the edited event if the end_time happens before the start_time
+            if (event.start_time < event.end_time):
+                event.save()
+                # if we have repeating events, create and save them
+                if int(repeating_event_length) != -1:
+                    # edit all future events (terminate when next_pk is -1)
+                    while True:
+                        next_pk = event.next_repeated_event
+                        if next_pk != -1:
+
+                            print "here1"
+
+                            prev_pk = event.pk
+                            event = Event.objects.filter(pk=next_pk)[0]
+
+                            event.activity = activity
+                            event.location = location
+
+                            # if a repeating event has been changed in the middle of other
+                            # repeating events, then the change in days won't line up perfectly,
+                            # so we use the fact that repeated events are created all at once
+                            # in order to find the change in days by using the change in pks
+                            # between the current event and the previous event
+                            day_change = event.pk - event.prev_repeated_event
+                            start_datetime = start_datetime + timedelta(days=int(repeating_event_length)) * day_change
+                            end_datetime = end_datetime + timedelta(days=int(repeating_event_length)) * day_change
+
+                            event.start_time = start_datetime
+                            event.end_time = end_datetime
+
+                            event.prev_repeated_event = prev_pk
+
+                            print "event.pk, prev.pk, next.pk start_datetime"
+                            print event.pk
+                            print event.prev_repeated_event
+                            print event.next_repeated_event
+
+                            event.save()
+                            repeating_events.append(event)
+
+                            print "here2"
+
+                        else:
+                            break
+
+                        
+
+
+                #        print start_datetime
+                else:
+                    return HttpResponse("Shouldn't ever get here because we should only call this function with a repeating event passed")
+
+            json_event = serializers.serialize("json", repeating_events)
+
+            print json_event
+
+            return HttpResponse(json_event)
+    else: return HttpResponse("Failure: request is not ajax")
 
 @login_required
 @csrf_exempt
@@ -550,6 +675,19 @@ def change_event(request):
 
             if request.POST['resize'] == "false":
                 event.start_time = event.start_time + time_changes
+            # make sure a changed event is no longer part of a linked list
+            # of repeating events
+            if event.prev_repeated_event != -1:
+                prev_event = Event.objects.filter(pk = event.prev_repeated_event)[0]
+                prev_event.next_repeated_event = event.next_repeated_event
+                prev_event.save()
+            if event.next_repeated_event != -1:
+                next_event = Event.objects.filter(pk = event.next_repeated_event)[0]
+                next_event.prev_repeated_event = event.prev_repeated_event
+                next_event.save()
+            event.repeating_time_delta = -1
+            event.next_repeated_event = -1
+            event.prev_repeated_event = -1
 
             event.save()
 
@@ -624,8 +762,6 @@ def change_downtime(request):
                             dt.delete()
                     
             return HttpResponse(response)
-            ##======================================
-
     else: return HttpResponse("Failure123")
 
 @login_required
@@ -634,9 +770,14 @@ def remove_event(request):
     if request.is_ajax():
         if request.method == 'POST':
             event = Event.objects.filter(pk=request.POST['pk'])[0]
+            # set up removing an event; if that event is a repeating event,
+            # remove it from the linked list of repeating events
+            # and fix the linked list
+            makeRepeatingEventNonRepeating(event);
             event.owners.remove(request.user.updoguser)
             if not event.owners:
                 event.delete()
+
 
             return HttpResponse("Success here!!!!!")
     else: return HttpResponse("Failure here!!!!")
@@ -702,7 +843,7 @@ def search_friends(request):
             user_list = []
 
             for i in xrange(0,fl):
-                friendship = Friendship.objects.filter(to_user = request.user.updoguser, from_user = friends_list[i])
+                friendship = Friendship.objects.filter(to_user = request.user.updoguser, from_user = friends_list[i], is_mutual = True)
                 if friendship:
                     user_list.append(friends_list[i].user)
             user_list = serializers.serialize('json', user_list)
@@ -890,12 +1031,15 @@ def display_friend_requests(request):
                 return HttpResponse("No new notifications")
 
             else:
-                requests = Friendship.objects.filter(to_user=current_uduser, is_new = True)
+                requests = Friendship.objects.filter(to_user=current_uduser, is_mutual = False)
                 rl = len(requests)
                 request_list = []
+                
 
                 for i in xrange(0,rl):
                     request_list.append(requests[i].from_user.user)
+                    requests[i].is_new = False
+                    requests[i].save()
                 requests_out = serializers.serialize('json', request_list)
 
                 return HttpResponse(requests_out)
@@ -903,15 +1047,43 @@ def display_friend_requests(request):
     return HttpResponse("Failure")
 
 @login_required
-def get_notifications(request):
-    #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=True)
-    #test_notif.save()
+def get_num_new_friend_requests(request):
     if request.is_ajax():
         if request.method == 'GET':
 
             current_uduser = request.user.updoguser
-            event_notifications = EventNotification.objects.filter(to_user=current_uduser) 
+            
+            if not current_uduser.new_friend_requests:
+                return HttpResponse("No new notifications")
+
+            else:
+                requests = Friendship.objects.filter(to_user=current_uduser, is_new = True)
+                rl = len(requests)
+
+            return HttpResponse(rl)     
+
+    return HttpResponse("Failure")
+
+@login_required
+def get_notifications(request):
+    #try:
+    if request.is_ajax():
+        if request.method == 'GET':
+
+            current_uduser = request.user.updoguser
+            event_notifications = EventNotification.objects.filter(to_user=current_uduser)
+            print len(event_notifications)
+            print event_notifications
             if event_notifications:
+                el = len(event_notifications)
+
+                if el > 0:
+                  for i in xrange(0,el):
+                    print event_notifications[i]
+                    if event_notifications[i].is_seen == False:
+                        event_notifications[i].is_seen = True
+                        event_notifications[i].save()
+
                 event_notifications = serializers.serialize('json', event_notifications)
 
 
@@ -919,6 +1091,31 @@ def get_notifications(request):
                 event_notifications = []
 
             return HttpResponse(event_notifications)
+
+    #except Exception as e:
+        #print e   
+                    
+    return HttpResponse("Failure")
+
+@login_required
+def get_num_new_notifications(request):
+    #try:
+    if request.is_ajax():
+        if request.method == 'GET':
+
+            current_uduser = request.user.updoguser
+            event_notifications = EventNotification.objects.filter(to_user=current_uduser, is_seen=False) 
+            if event_notifications:
+                el = len(event_notifications)
+
+
+            else: 
+                el = 0
+
+            return HttpResponse(el)
+
+    #except Exception as e:
+        #print e                  
 
     return HttpResponse("Failure")
 
@@ -1027,6 +1224,43 @@ def get_minute(time):
 
     return int(time[col_index+1:space_index])
 
+# set up removing or editting an event; if that event is
+# a repeating event, remove it from the linked list of
+# repeating events and fix the linked list
+def makeRepeatingEventNonRepeating(event):
+    prev_pk = event.prev_repeated_event
+    next_pk = event.next_repeated_event
+
+    if prev_pk != -1:
+        prev_event = Event.objects.filter(pk=prev_pk)[0]
+    if next_pk != -1:
+        next_event = Event.objects.filter(pk=next_pk)[0]
+
+    if (prev_pk != -1):
+        if (next_pk != -1):
+            # if we are deleting an event between two repeated events, point those repeated events to each other
+            prev_event.next_repeated_event = event.next_repeated_event;
+            next_event.prev_repeated_event = event.prev_repeated_event;
+            prev_event.save()
+            next_event.save()
+        else:
+            # if we are deleting an event at the end of a list of repeated events, make the second to last event point to nothing (make it the last event)
+            prev_event.next_repeated_event = -1;
+            if prev_event.prev_repeated_event == -1:
+                prev_event.repeating_time_delta = -1
+            prev_event.save()
+    elif (next_pk != -1):
+        # if we are deleting the first event in a list of repeated events, make the second event have no previous event (make it the first event)
+        next_event.prev_repeated_event = -1;
+        if next_event.next_repeated_event == -1:
+            next_event.repeating_time_delta = -1
+        next_event.save()
+
+    event.repeating_time_delta = -1
+    event.prev_repeated_event = -1
+    event.next_repeated_event = -1
+    event.save()
+
 @login_required
 @csrf_exempt
 def display(request):
@@ -1037,4 +1271,4 @@ def display(request):
             json_events = gimme_events(current_user, display) + gimme_downtimes(current_user, display)
             return HttpResponse(serializers.serialize('json', json_events))
     else:
-        return HttpResponse("You fuckup!!?!?!?")
+        return HttpResponse("request is not ajax")
