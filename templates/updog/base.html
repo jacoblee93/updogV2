@@ -134,10 +134,10 @@
           if (items.length != 0) {
             for (var i = 0; i < items.length; i++) {
               if (!items[i].fields.is_reply) {
-                userhtml = userhtml + '<li style="width:400px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + items[i].first_name + ' ' + items[i].last_name + ' wants to hang out!' + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li><li class="divider"></li>';
+                userhtml = userhtml + '<div id=invite_notey' + items[i].pk + '><li style="width:450px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + items[i].first_name + ' ' + items[i].last_name + ' wants to hang out!' + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li><li class="divider"></li></div>';
               }
               else {
-                userhtml = userhtml + '<li style="width:400px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> You are now hanging out with ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + '!</li><li class="divider"></li>';
+                userhtml = userhtml + '<div id=reply_notey' + items[i].pk + '><li style="width:450px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> You are now hanging out with ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + '!</li><li class="divider"></li></div>';
               }
             }
           }
@@ -174,8 +174,12 @@
               'response': 'accept'
             },
       success: function(data) {
+        // add the event to the front end right away
+        var new_event = make_events(JSON.parse(data), 'blue', '{{ username }}', false, true);
+        $("#calendar").fullCalendar('renderEvent', new_event, stick=true);
+        // get rid of notification in navbar
 
-        console.log("Success!")
+        $("#invite_notey" + notification_pk).remove();
       }
     })
   }
@@ -189,7 +193,7 @@
               'response': 'decline'
             },
       success: function(data) {
-
+        $("#invite_notey" + notification_pk).remove();
         console.log("Success!")
       }
     })
