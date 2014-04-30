@@ -11,6 +11,7 @@
   <center>
     <h1>What's Up, {{ user.first_name }}?</h1>
   </center>
+  <br />
 </div>
 
 <script>
@@ -59,116 +60,82 @@
     }
   }
 
+  $(document).ready(function() {
+    $("#testForm").submit(function(event) {
+      event.preventDefault();
+      $.ajax({
+       type: "POST",
+       url: "/calendar/test_ajax/",
+       success: function(data) {
+        console.log( "ajax worked" );
+        alert(data);
+      },
+    });
+    });
+  });
 </script>
 
 {% endblock %}
 
 {% block calendar_block %}
 
-<!-- updated to fit calendar onto window -->
 <style>
-div#scroll-able {
-  height: 175px;
-  overflow: scroll;
-}
+  div#scroll-able {
+    height: 310px;
+    overflow: scroll;
+  }
 </style>
 
 <!-- the function to find the friends the user searches for -->
 <div>
   <script type="text/javascript">
-  $(function() {
-    $(".submit").click(function() {
-      var name = $("#search").val();
+    $(function() {
+      $(".submit").click(function() {
+        var name = $("#search").val();
 
-      if (name == '')
-      {
-        //$('.success').fadeOut(200).hide();
-        //$('.error').fadeOut(200).show();
-        $(".output").html('');
-      }
-      else
-      {
-        $.ajax({
-          type: "GET",
-          url: "/calendar/find_friends/",
-          data: {"search": name,
-        },
-        success: function(data) {
-          mydata = JSON.parse(data);
-          if (data.length > 0) {
-            var dlength = mydata.length;
-            var users = [];
-            var isFriend = 0;
-            userhtml = "";
+        if (name == '')
+        {
+          $('.success').fadeOut(200).hide();
+          $('.error').fadeOut(200).show();
+        }
+        else
+        {
+          $.ajax({
+            type: "GET",
+            url: "/calendar/find_friends/",
+            data: {"search": name,
+          },
+          success: function(data) {
+            mydata = JSON.parse(data);
+            if (data.length > 0) {
+              var dlength = mydata.length;
+              var users = [];
+              var isFriend = 0;
+              userhtml = "";
 
-            for (var i = 0; i < dlength; i++) {
-              isFriend = 0;
-              {% if friends_list %}
-              {% for friend in friends_list %}
-              if ('{{ friend }}' === mydata[i].fields.username)
-                isFriend = 1;
-              {% endfor %}
-              {% endif %}
+              for (var i = 0; i < dlength; i++) {
+                isFriend = 0;
+                {% if friends_list %}
+                {% for friend in friends_list %}
+                if ('{{ friend }}' === mydata[i].fields.username)
+                  isFriend = 1;
+                {% endfor %}
+                {% endif %}
 
-              if (mydata[i].fields.username != '{{ user.username }}' && isFriend == 0) {
-                users.push(mydata[i].fields.username);
+                if (mydata[i].fields.username != '{{ user.username }}' && isFriend == 0) {
+                  users.push(mydata[i].fields.username);
+                }
+              };
+            }
+            if (users.length != 0) {
+              for (var i = 0; i < users.length; i++) {
+                userhtml = userhtml + '<div><a class="list-group-item"><img src="/media/profile_pictures/' + users[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + mydata[i].fields.first_name + ' ' +  mydata[i].fields.last_name + '<div style="float:right"><button type="button" onclick="send_friend_request(\'' + users[i] + '\', \'' + i +'\')"> add </button></div><div id="div' + i + '"></div></a></div>';
               }
-            };
-          }
-          if (users.length != 0) {
-            for (var i = 0; i < users.length; i++) {
-              userhtml = userhtml + '<div><a class="list-group-item"><img src="/media/profile_pictures/' + users[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + mydata[i].fields.first_name + ' ' +  mydata[i].fields.last_name + '<div style="float:right"><div id="add-button' + users[i] + '"><button type="button" onclick="send_friend_request(\'' + users[i] + '\', \'' + i +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
             }
+            $('.error').fadeOut(200).hide();
+            $(".output").html(userhtml);
           }
-          $('.error').fadeOut(200).hide();
-          $(".output").html(userhtml);
-        }
-      });
-}
-return false;
-});
-});
-</script>
-</div>
-
-<!-- this is the function to search through current friends-->
-<div>
-  <script type="text/javascript">
-  $(function() {
-    $(".submit-friends").click(function() {
-      var name = $("#search-friends").val();
-      if (name == '')
-      {
-        get_friends('{{ user }}') 
-      }
-      else
-      {
-        $.ajax({
-          type: "GET",
-          url: "/calendar/search_friends/",
-          data: {"search": name,
-        },
-        success: function(data) {
-          mydata = JSON.parse(data);
-          console.log(data);
-          userhtml = "";
-          if (mydata.length > 0) {
-            var dlength = mydata.length;
-
-            for (var i = 0; i < dlength; i++) {
-             userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + mydata[i].fields.username + '\')" id="friend_' + mydata[i].fields.username + '"><div><img src="/media/profile_pictures/' + mydata[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + mydata[i].fields.first_name + ' ' + mydata[i].fields.last_name + '</span></div></a>';
-            }
-          }
-          else {
-            userhtml = "No friends matched";
-          }
-          $('.error').fadeOut(200).hide();
-          $(".frandz").html(userhtml);
-          for (var i = 0; i < dlength; i++) {
-            hover_stuff(mydata[i]);
-          };
-        }
-      });
+        });
 }
 return false;
 });
@@ -189,32 +156,97 @@ return false;
     <!-- this is the friends tab -->
     {% if user.is_authenticated %}
     <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
-      <div class="list-group">
-        <form class="list-group-item list-group-item-info" method="post" name="form">Search current friends:<input id="search-friends" size="17" name="search" type="text" />
-          <input type="submit" value="Search" class="submit-friends"/>
-          <span class="error" style="display:none"> Please Enter Valid Data</span>
-          <span class="success" style="display:none"></span></a>
-        </form>
-        <div id="scroll-able"><div class="frandz"></div></div>
+      <div id="scroll-able"> 
+        <div class="list-group">
+          <div class="frandz"></div>
+            <!--{% if friends_list %}
+            <a class="list-group-item active">
+              Friends:
+            </a>  
+            {% for friend in friends_list %}
+              <a class="list-group-item" onclick="getevents( '{{ friend }}' )" id="friend_{{ friend }}"> 
+               <div><img src="/media/profile_pictures/{{ friend }}-social.jpg" alt = "profpic" width = "50" height = "50">
+               <span class="frand">{{ friend.first_name }} {{ friend.last_name }}</span>
+               </div>
+             </a>-->
+             <script>
 
+
+              /*hover_functions = {
+                sensitivity: 3,
+                interval: 50,
+                timeout: 50,
+                over: function on_hover() {
+
+              var obj = '{{ friend }}';
+              $.ajax({
+              type: "POST",
+              url: "/calendar/get_friends_downtimes/",
+              data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
+              success: function(data) {
+
+                    var our_data = JSON.parse(data);
+                    var get_some_events = make_events(our_data, 'orange', obj, true, false);
+
+                    if (get_some_events) {
+                      existing_events = $("#calendar").fullCalendar('clientEvents');
+    
+                      for (var i = 0; i < get_some_events.length; i++) {
+                        var is_unique = true;
+                        for (var j = 0; j < existing_events.length; j++) {
+                          if (get_some_events[i].id == existing_events[j].id) {
+                            is_unique = false;
+                          }
+
+                        }
+                        if (is_unique) {
+                          $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+                          }
+                        }
+
+                      }
+                    },
+                  });
+
+                },
+                out: function off_hover() {
+                  var obj = '{{ friend }}';
+                  existing_events = $("#calendar").fullCalendar('clientEvents');
+                  for (var i = 0; i < existing_events.length; i++) {
+                    if (existing_events[i].owner === "hover") {
+                      $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+                    }
+                  }
+                  $('#calendar').fullCalendar('rerenderEvents');
+                }
+
+              }
+
+              $( "#friend_{{ friend }}").hoverIntent(hover_functions);*/
+
+            </script>
+            <!--{% endfor %}
+          {% else %}
+            <strong>No friends.</strong>
+            {% endif %}-->
+          </div>
+        </div>
+        <!-- this is the searchbar -->
+        <div id="scroll-able">
+          <div class="list-group">
+            <form class="list-group-item list-group-item-info" method="post" name="form">
+              Find friends:<input id="search" size="17" name="search" type="text" />
+              <input type="submit" value="Search" class="submit"/>
+              <span class="error" style="display:none"> Please Enter Valid Data</span>
+              <span class="success" style="display:none"></span></a>
+            </form>
+            <div class="output"></div>
+          </div><!--/span-->
+        </div>
+        {% endif %}
+        <br>
       </div>
-      <!-- this is the searchbar -->
-      <!--<div id="scroll-able">-->
-      <div class="list-group">
-        <form class="list-group-item list-group-item-info" method="post" name="form">
-          Find friends to add:<input id="search" size="17" name="search" type="text" />
-          <input type="submit" value="Search" class="submit"/>
-          <span class="error" style="display:none"> Please Enter Valid Data</span>
-          <span class="success" style="display:none"></span></a>
-        </form>
-        <div id="scroll-able"><div class="output"></div></div>
-      </div><!--/span-->
-      <!--</div>-->
     </div>
-    {% endif %}
-    <br>
-  </div>
-</div>
 
     <script>
 
@@ -314,27 +346,33 @@ function hover_stuff(friend) {
   }
   $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
 }
+</script>
 
-    function getevents(obj) {
-      $.ajax({
-        type: "POST",
-        url: "/calendar/get_friends_downtimes/",
-        data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
-        success: function(data) {
+<script>
+  var x = get_friends('{{ user }}');
+</script>
 
-          var our_data = JSON.parse(data);
-          var get_some_events = make_events(our_data, 'orange', obj, false, false);
-          if (get_some_events) {
+<script>
+  function getevents(obj) {
+    $.ajax({
+      type: "POST",
+      url: "/calendar/get_friends_downtimes/",
+      data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
+      success: function(data) {
 
-            existing_events = $("#calendar").fullCalendar('clientEvents');
+        var our_data = JSON.parse(data);
+        var get_some_events = make_events(our_data, 'orange', obj, false, false);
+        if (get_some_events) {
 
-            for (var i = 0; i < get_some_events.length; i++) {
-              var is_unique = true;
-              for (var j = 0; j < existing_events.length; j++) {
-                if (get_some_events[i].id == existing_events[j].id) {
-                  if (existing_events[j].owners[0] != "hover") {
-                    is_unique = false;
-                  }
+          existing_events = $("#calendar").fullCalendar('clientEvents');
+
+          for (var i = 0; i < get_some_events.length; i++) {
+            var is_unique = true;
+            for (var j = 0; j < existing_events.length; j++) {
+              if (get_some_events[i].id == existing_events[j].id) {
+                if (existing_events[j].owner != "hover") {
+                  is_unique = false;
+                }
                   // existing event owner is hover
                   else {
                     $('#calendar').fullCalendar('removeEvents', existing_events[j].id); // remove the one with 'hover' owner
@@ -359,12 +397,7 @@ function erase_events(obj) {
 
   existing_events = $("#calendar").fullCalendar('clientEvents');
   for (var i = 0; i < existing_events.length; i++) {
-    able = false;
-    for (var j = 0; j < existing_events[i].owners.length; j++) {
-      if (existing_events[i].owners[j] == obj) able = true;
-    }
-
-    if (able) {
+    if (existing_events[i].owner == obj) {
       $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
     }
   }
@@ -414,7 +447,8 @@ function erase_events(obj) {
       })
 
       $('#calendar').fullCalendar('removeEvents', temp_event.id);
-}
+      $('#calendar').fullCalendar('rerenderEvents');
+    }
 
   </script>
 
@@ -428,6 +462,26 @@ function erase_events(obj) {
       return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
     } 
     $(document).ready(function() {
+
+      /*{% autoescape off %}
+        var data = {{ events_list }};
+        var downtime_data = {{ downtimes }};
+      {% endautoescape %}
+
+    var multiple = make_events(data, 'blue', '{{ username }}', false, true);
+    var downtimes = make_events(downtime_data, 'green', '{{ username }}', false, false);
+    var downtimes_and_events;
+    if (multiple) {
+
+      if (downtimes) {
+
+        downtimes_and_events = multiple.concat(downtimes);
+      }
+
+      else downtimes_and_events = multiple;
+    }
+
+    else if (downtimes) downtimes_and_events = downtimes;*/
 
 
     var date = new Date();
@@ -457,9 +511,8 @@ function erase_events(obj) {
 
     $('#calendar').fullCalendar(
     {
-      viewDisplay: function(view) {
 
-        // Displaying users events + downtimes in calendar
+      viewDisplay: function(view) {
         var d = $('#calendar').fullCalendar('getDate');
         $.ajax({
 
@@ -478,6 +531,7 @@ function erase_events(obj) {
                 if (existing_events[j].id == my_data[i].pk && ((my_data[i].model == "udCalendar.downtime" && existing_events[j].is_event == false) || (my_data[i].model == "udCalendar.event" && existing_events[j].is_event == true))) {
                   unique = false;
                 }
+
               }
 
               if (unique) {
@@ -503,6 +557,7 @@ function erase_events(obj) {
 
               else dts_and_evs = multiple_evs;
             }
+
             else if (multiple_dts) dts_and_evs = multiple_dts;
 
             if (dts_and_evs) {
@@ -510,6 +565,8 @@ function erase_events(obj) {
                 $('#calendar').fullCalendar('renderEvent', dts_and_evs[i], stick = true);
               }
             }
+
+
           }
 
         });
@@ -520,12 +577,8 @@ header: {
   right: 'month,agendaWeek',
 },
 
-      selectable: {
-        month: false,
-        agenda: true
-      },
-      selecthelper: true,
-
+selectable: true,
+selecthelper: true,
       editable: false, // TESTING IT OUT AS FALSE, DONT KILL ME FRANKLYN
       // set the default view to be the agendaWeek view
       defaultView: 'agendaWeek',
@@ -533,124 +586,46 @@ header: {
       allDaySlot: false,
       firstDay: date.getDay(),
       firstHour: 8,
-      // makes calendar fit on screen
-      height: 510,
 
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
       eventClick: function(event, jsEvent, view) {
+        console.log("event id = " + event.id + ", previous event id = " + event.prev_repeated_event + ", next event id = " + event.next_repeated_event);
 
 
-        console.log("event.id = " + event.id + ", event.prev = " + event.prev_repeated_event + ", and event.next = " + event.next_repeated_event);
 
+        if (event.is_event) {
+          $dialog.dialog({title:event.title});
 
-        if (view.name != 'month') {
+          var edit = document.createElement("button");
+          edit.className = "btn btn-primary";
+          edit.setAttribute('type', "submit");
+          var textEdit = document.createTextNode("Edit Event");
+          edit.appendChild(textEdit);
 
-          if (event.is_event) {
-            $dialog.dialog({title:event.title});
+          edit.setAttribute('value', "Edit Event");
+          edit.onclick = function() {
 
-            var party = document.createElement("button");
-            party.className = "btn btn-primary party-button";
-            party.setAttribute('type', "submit");
-            party.setAttribute('data-toggle', "modal");
-            party.setAttribute('data-target', ".schedule-modal");
-            party.setAttribute('event', event.id);
-            party.onclick = function() {
-              $dialog.dialog('close');
+            $dialog.dialog('close');
+            $dialog.dialog({
+              title:'Edit Event',
+              width: 500,
+              height: 250
+            });
 
+            var activity_text = document.createElement("span");
+            activity_text.innerHTML = 'Activity (optional): &nbsp';
+            var activity = document.createElement("input");
+            activity.setAttribute('type', "text");
+            activity.setAttribute('name', "activity");
+            activity.setAttribute('id', 'activity_field');
 
-              function who_is_invited(event_id) {
-                var mydata;
-                $.ajax({
-                  type: "GET",
-                  url: "/calendar/who_is_invited/",
-                  async: false,
-                  data: {
-                    "event": event_id,
-                  },
-                  success: function(data) {
-                    mydata = JSON.parse(data);
-                  }
-                });
-                return mydata;
-              }              
-              var invite_list = who_is_invited(event.id);
-
-              var owners_list;
-              $.ajax({
-                type: "GET",
-                url: "/calendar/get_event_owners/",
-                async: false,
-                data: {
-                  "pk": event.id,
-                  "type": true,
-                },
-                success: function(data) {
-                  owners_list = JSON.parse(data);
-                }
-              });
-
-
-              var event_obj = $('#calendar').fullCalendar('clientEvents', event.id)[0];
-              var invite_text = "";
-              if (invite_list.length > 0) {  
-                for (var k = 0; k < invite_list.length; k++) {
-
-                  invite_text = invite_text + '<div id="added_' + invite_list[k].fields.username + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + invite_list[k].fields.first_name + ' ' + invite_list[k].fields.last_name + '<div style="float:right" id="undesirablebutton_' + invite_list[k].fields.username + '">Already Invited</div></a></div>'
-                }
-              }
-              if (owners_list.length > 0) {
-                for (var k = 0; k < owners_list.length; k++) {
-                  if (owners_list[k].fields.username == '{{ username }}') {
-                    invite_text = invite_text + '<div id="added_' + owners_list[k].fields.username + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + 'Me' + '<div style="float:right" id="undesirablebutton_' + owners_list[k].fields.username + '">Already Attending</div></a></div>'
-                  }
-                  else {
-                    invite_text = invite_text + '<div id="added_' + owners_list[k].fields.username + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + owners_list[k].fields.first_name + ' ' + owners_list[k].fields.last_name + '<div style="float:right" id="undesirablebutton_' + owners_list[k].fields.username + '">Already Attending</div></a></div>'
-                  }
-
-                }
-
-              }
-              $(".Invite-list").html("");
-              $(".Invite-list").html(invite_text);
-
-            }
-
-            var partyEdit = document.createTextNode("Invite Friends");
-            party.appendChild(partyEdit);
-
-            var edit = document.createElement("button");
-            edit.className = "btn btn-primary";
-            edit.setAttribute('type', "submit");
-            var textEdit = document.createTextNode("Edit Event");
-            edit.appendChild(textEdit);
-
-            edit.setAttribute('value', "Edit Event");
-            edit.onclick = function() {
-
-              $dialog.dialog('close');
-              $dialog.dialog(
-              {
-                title:'Edit Event',
-                width: 500,
-                height: 250
-              }
-              );
-
-              var activity_text = document.createElement("span");
-              activity_text.innerHTML = 'Activity (optional): &nbsp';
-              var activity = document.createElement("input");
-              activity.setAttribute('type', "text");
-              activity.setAttribute('name', "activity");
-              activity.setAttribute('id', 'activity_field');
-
-              var location_text = document.createElement("span");
-              location_text.innerHTML = '<br/>Location (optional): ';
-              var location = document.createElement("input");
-              location.setAttribute('type', "text");
-              location.setAttribute('name', "location");
-              location.setAttribute('id', 'location_field');
-
+            var location_text = document.createElement("span");
+            location_text.innerHTML = '<br/>Location (optional): ';
+            var location = document.createElement("input");
+            location.setAttribute('type', "text");
+            location.setAttribute('name', "location");
+            location.setAttribute('id', 'location_field');
           // find where the last index of the substring " in " exists.  Assume what
           // comes before is the activity and what comes after is the location.
           var i = 0;
@@ -1074,7 +1049,7 @@ $dialog.append(del);
 
 
                           for (var i = 0; i < data.length; i++) {
-                            var added_event = make_events(data, 'blue', ['{{username}}'], false, true)[i];
+                            var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
                             $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
                           }
                           $dialog.dialog('close');
@@ -1142,10 +1117,12 @@ else {
 
 
                           for (var i = 0; i < data.length; i++) {
-                            var editted_event = make_events(data, 'blue', '{{username}}', false, true)[i];
-                            $('#calendar').fullCalendar('renderEvent', editted_event, stick = true);
+                            var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
+                            $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
                           }
                           $dialog.dialog('close');
+                          var editted_event = make_events(data, 'blue', '{{username}}', false, true)[0];
+                          $('#calendar').fullCalendar('renderEvent', editted_event, stick = true);
 
                           makeRepeatingEventNonRepeating(event);
                           event.prev_repeated_event = data[0].fields.prev_repeated_event;
@@ -1243,7 +1220,6 @@ else {
                           console.log("SHOULDGETHERE!!!");
 
                           for (var i = 0; i < data.length; i++) {
-
                             var editted_event = make_events(data, 'blue', '{{username}}', false, true)[i];
                             $('#calendar').fullCalendar('renderEvent', editted_event, stick = true);
                           }
@@ -1325,47 +1301,6 @@ $dialog.dialog('open');
     $($dialog).append(
       $('<p />').text(event.allDay ? 'All day event' : getTime(event.start) + '-' + getTime(event.end))
       );
-  
-  var owners_list;
-  $.ajax({
-    type: "GET",
-    url: "/calendar/get_event_owners/",
-    async: false,
-    data: {
-      "pk": event.id,
-      "type": true,
-    },
-    success: function(data) {
-      owners_list = JSON.parse(data);
-    }
-  });
-
-  if (owners_list.length > 0) {
-    var party_text = "";
-    for (var k = 0; k < owners_list.length; k++) {
-      if (owners_list[k].fields.username != '{{ username }}')
-        party_text = party_text + ", " + owners_list[k].fields.first_name + " " + owners_list[k].fields.last_name;
-    }
-    $($dialog).append(
-      $('<p />').text("Participants: Me" + party_text)
-    );
-  }
-  
-  var invite_list = who_is_invited(event.id);
-  if (invite_list.length > 0) {
-    var invite_text = "";
-    for (var k = 0; k < invite_list.length; k++) {
-      invite_text = invite_text + ", " + invite_list[k].fields.first_name + " " + invite_list[k].fields.last_name;
-    }
-    $($dialog).append(
-      $('<p />').text("Invited: Me" + invite_text)
-    );
-  }
-  else {
-    $($dialog).append(
-      $('<p />').text("Invited: No one")
-    );
-  }
 
   var del = document.createElement("button");
   del.className = "btn btn-primary";
@@ -1490,30 +1425,22 @@ $dialog.dialog('open');
 
   $dialog.append(cancel);
   $($dialog).append(edit);
-  $($dialog).append(party);
   $($dialog).append(del);
   $dialog.dialog('open');
 }
       // edit downtimes
-      else {
+      else if (event.owner == '{{ username }}') {
 
-        able = false;
-        for (var k = 0; k < event.owners.length; k++) {
-          if (event.owners[k] == '{{ username }}') able = true;
-        }
-        if (able) {
-
-          $dialog.dialog({title:event.title});
-          var suggest = document.createElement("input");
-          suggest.className = "btn btn-primary";
-          suggest.setAttribute('type', "submit");
-          suggest.setAttribute('value', "Suggest");
-          suggest.onclick = function() {
-            $.ajax({
-              type: "GET",
-              url: "/calendar/suggest/",
-              data: {'pk': event.id},
-              success: function(data) {
+        $dialog.dialog({title:event.title});
+        var suggest = document.createElement("input");
+        suggest.setAttribute('type', "submit");
+        suggest.setAttribute('value', "Suggest");
+        suggest.onclick = function() {
+          $.ajax({
+            type: "GET",
+            url: "/calendar/suggest/",
+            data: {'pk': event.id},
+            success: function(data) {
             // Make the unconfirmed event show up in your calendar
             if (data === "None") {
               alert("You have no upcoming downtimes.")
@@ -1532,36 +1459,17 @@ $dialog.dialog('open');
                   if (r == true) {
                     // send the other user a request:
                     //************** SEND EVENT NOTIFICATION *******************//
-                    var alldata = JSON.parse(data);
-                    console.log(alldata);
-                    mydata = [];
-                    var friends = [];
-                    for (var i = 0; i < alldata.length; i++) {
-                      if (alldata[i].model == "udCalendar.updoguser") {
-                        friends.push(alldata[i].pk);
-                      }
 
-                      else {
-                        mydata.push(alldata[i]);
-                      }
-                    }
-                    $.ajax({
-                      type: "POST",
-                      url: "/calendar/send_event_notifications/",
-                      data: {
-                        "event": mydata[0].pk,
-                        "to_users": JSON.stringify(friends),
-                        "data_type": "pk",
-                      },
-                      success: function(data) {
 
-                        console.log(data);
-                      }
-                    });
+
+
+
+
 
                     //************** SEND EVENT NOTIFICATION *******************//
 
                     // display the unconfirmed event on the initiator's calendar
+                    var mydata = JSON.parse(data);
                     var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
                     $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
                   }
@@ -1681,14 +1589,14 @@ edit.onclick = function() {
                 event.end = parsed[0].fields.end_time;
                 $("#calendar").fullCalendar('renderEvent', event, stick=true);
                 for (var i = 0; i < parsed.length; i++) {
-                  if (parsed[i].pk != -event.id) { // **********
-                    $('#calendar').fullCalendar('removeEvents', -parsed[i].pk); // ***********
+                  if (parsed[i].pk != event.id) {
+                    $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
                   }
                 }
               }
               else {
                 if (parsed.length == 1) {
-                  $('#calendar').fullCalendar('removeEvents', -parsed[0].pk); // changed to negative 11:25 pm
+                  $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
                 }
               }
               if (parsed.length != 0) {
@@ -1772,11 +1680,7 @@ var cancel = document.createElement("button");
         $dialog.dialog('open');
         $dialog.append(suggest);
       }
-    }
-    };
-  },
-  //  }
-//    },
+    },
     eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
       // make sure a dropped event is no longer part of a linked list
       // of repeating events
@@ -1793,44 +1697,43 @@ var cancel = document.createElement("button");
       event.next_repeated_event = -1
 
       if (event.is_event) {
-
-    $.ajax({
-      type: "POST",
-      url: "/calendar/change_event/",
-      data: {"pk": event.id, 
-      "day_delta": dayDelta,
-      "minute_delta": minuteDelta,
-      "resize": "false",
-    },
-  });
-  }
-
-  else {
-
-    $.ajax({
-      type: "POST",
-      url: "/calendar/change_downtime/",
-      data: {"pk": event.id, 
-      "day_delta": dayDelta,
-      "minute_delta": minuteDelta,
-      "resize": "false",
-    },
-    success: function(data) {
-
-      parsed = JSON.parse(data);
-      if (parsed.length > 1) {
-        event.start = parsed[0].fields.start_time;
-        event.end = parsed[0].fields.end_time;
-        $("#calendar").fullCalendar('renderEvent', event, stick=true);
-        for (var i = 0; i < parsed.length; i++) {
-          if (parsed[i].pk != -event.id && parsed[i].model == "udCalendar.downtime") {
-            $('#calendar').fullCalendar('removeEvents', -parsed[i].pk);
-          }
-        }
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_event/",
+          data: {"pk": event.id, 
+          "day_delta": dayDelta,
+          "minute_delta": minuteDelta,
+          "resize": "false",
+        },
+      });
       }
+
+      else {
+
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_downtime/",
+          data: {"pk": event.id, 
+          "day_delta": dayDelta,
+          "minute_delta": minuteDelta,
+          "resize": "false",
+        },
+        success: function(data) {
+
+          parsed = JSON.parse(data);
+          if (parsed.length > 1) {
+            event.start = parsed[0].fields.start_time;
+            event.end = parsed[0].fields.end_time;
+            $("#calendar").fullCalendar('renderEvent', event, stick=true);
+            for (var i = 0; i < parsed.length; i++) {
+              if (parsed[i].pk != event.id) {
+                $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+              }
+            }
+          }
           else {
             if (parsed.length == 1) {
-              $('#calendar').fullCalendar('removeEvents', -parsed[0].pk); // changed to negative 11:20 pm
+              $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
             }
           }
           if (parsed.length != 0) {
@@ -1841,8 +1744,6 @@ var cancel = document.createElement("button");
 }
 },
 eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
-    var view = $('#calendar').fullCalendar('getView');
-  if (view.name != 'month') {
       // make sure a resized event is no longer part of a linked list
       // of repeating events
       if (event.prev_repeated_event != -1) {
@@ -1886,16 +1787,14 @@ eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
         event.end = parsed[0].fields.end_time;
         $("#calendar").fullCalendar('renderEvent', event, stick=true);
         for (var i = 0; i < parsed.length; i++) {
-          if (parsed[i].pk != -event.id) {
-            $('#calendar').fullCalendar('removeEvents', -parsed[i].pk); // made this negative 11:11 PM
+          if (parsed[i].pk != event.id) {
+            $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
           }
         }
       }
       else {
         if (parsed.length == 1) {
-          if (parsed[0].model == "udCalendar.downtime") {
-            $('#calendar').fullCalendar('removeEvents', -parsed[0].pk);
-          }
+          $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
         }
       }
       if (parsed.length != 0) {
@@ -1907,51 +1806,49 @@ eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
   }
 
 
-}
 },
 
 select: function(startDate, endDate, allDay, jsEvent, view) {
-  if (view.name != 'month') {
-    if (startDate - endDate == -1800000) return;
 
-    startDateOffset = startDate.getTimezoneOffset();
-    startDate = new Date(startDate.getTime() - startDateOffset*60000);
-    endDate = new Date(endDate.getTime() - startDateOffset*60000);
+  if (startDate - endDate == -1800000) return;
 
-    $.ajax({
-      type:"POST",
-      url: "/calendar/add_downtime/",
-      data: {"startDate": startDate.toUTCString(),
-      "endDate": endDate.toUTCString(),
-      "allDay": allDay,
-    },
-    success: function(data) {
-      parsed = JSON.parse(data)
-      if (parsed.length > 0) {
-        if (parsed.length > 1) {
-          if (parsed[1].pk != parsed[0].pk) {
-            var displayed_downtime = make_events([parsed[0]], 'green', "{{ username }}", false, false);
-            $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
-            for (var i = 1; i < parsed.length; i++) {
-              $('#calendar').fullCalendar('removeEvents', -parsed[i].pk);
-            }
-            $('#calendar').fullCalendar('rerenderEvents');
-          }
-        }
-        else {
+  startDateOffset = startDate.getTimezoneOffset();
+  startDate = new Date(startDate.getTime() - startDateOffset*60000);
+
+  endDate = new Date(endDate.getTime() - startDateOffset*60000);
+
+  $.ajax({
+    type:"POST",
+    url: "/calendar/add_downtime/",
+    data: {"startDate": startDate.toUTCString(),
+    "endDate": endDate.toUTCString(),
+    "allDay": allDay,
+  },
+  success: function(data) {
+    parsed = JSON.parse(data)
+    if (parsed.length > 0) {
+      if (parsed.length > 1) {
+        if (parsed[1].pk != parsed[0].pk) {
           var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
-
-        $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+          $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+          for (var i = 1; i < displayed_downtime.length; i++) {
+            $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
           }
+          $('#calendar').fullCalendar('rerenderEvents');
         }
-      },         
-    })
-  }
+      }
+      else {
+        var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
+        $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+      }
+    }         
+  },
+});
 },
 
 dayClick:function( date, allDay, jsEvent, view ) {
-  if (view.name != 'month') {
-    var singleClick = date.toUTCString();
+  var singleClick = date.toUTCString();
+
             // double click
             if(doubleClick==singleClick){
               console.log('Double-click!');
@@ -2206,7 +2103,7 @@ dayClick:function( date, allDay, jsEvent, view ) {
                     'start_time': $('#txtStartTime').val(),
                     'end_time': $('#txtEndTime').val(),
                     // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
-                    'repeating_event_length': repeating_event_length
+                    'repeating_event_length': repeating_event_length,
                   },
                     // data is what the server returns
                     success: function(data) {
@@ -2259,11 +2156,19 @@ $dialog.dialog('open');
                 clearInterval(clickTimer);
               }, 500);
             }
-          }
-        },
-      }
-      
-    );
+          },
+
+
+
+
+        }
+
+
+
+
+        );
+
+
 });
 
 
@@ -2317,221 +2222,18 @@ $dialog.dialog('open');
           <button type="button" onclick="varRepeatingEvent=clickedEvery2Weeks()" class="btn btn-default" data-dismiss="modal" id="Every2Weeks">Every 2 Weeks</button>
           <button type="button" onclick="varRepeatingEvent=clickedEvery4Weeks()" class="btn btn-default" data-dismiss="modal" id="Every4Weeks">Every 4 Weeks</button>
         </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-      <!--<button type="button" class="btn btn-primary">Done</button>-->
-    </div>
-  </div><!-- /.modal-content -->
-</div><!-- /.modal-dialog -->
-</div>
-
-
-</script>
-<style>
-  body .modal.fade.schedule-modal {
-    max-width: 450px;
-    margin-left: 30%;
-  }
-  body .modal-footer {
-    max-width: 450px;
-  }
-</style>
-
-<div class="modal fade schedule-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modal-sm">
-       <!--       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>-->
-       <h4 class="modal-title">Schedule An Event</h4>
-     </div>
-     <div class="modal-body">
-
-      <div id="scroll-able-2">
-        <div class="list-group col-xs-6 col-sm-9">
-          <form class="list-group-item list-group-item-info" method="post" name="form">
-            Select friends:<input id="schedule-search" size="17" name="search" type="text" />
-            <input type="submit" value="Search" class="schedule-submit"/>
-            <span class="error" style="display:none"> Please Enter Valid Data</span>
-            <span class="success" style="display:none"></span></a>
-          </form>
-          <div class="schedule-output"></div>
-        </div><!--/span-->
       </div>
-
-      <div id="scroll-able">
-        <div class="list-group col-xs-6 col-sm-9">
-          <a class="list-group-item list-group-item-info">Invite List</a>
-          <div class="Invite-list"></div>
-        </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <!--<button type="button" class="btn btn-primary">Done</button>-->
       </div>
-
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-default" data-dismiss="modal" onclick="invite_cancel()">Cancel</button>
-      <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="send_invite()">Invite!</button>
-      <!--<button type="button" class="btn btn-primary">Done</button>-->
-    </div>
-  </div><!-- /.modal-content -->
-</div><!-- /.modal-dialog -->
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
 </div>
 
-<!-- the function to find the friends the user searches for -->
-<div>
-  <script type="text/javascript">
-
-    $(function() {
-      $(".schedule-submit").click(function() {
-
-        var event_id = $('.party-button').attr("event");
-        var name = $("#schedule-search").val();
-
-        if (name == '')
-        {
-          $(".schedule-output").html('');
-          //$('.success').fadeOut(200).hide();
-          //$('.error').fadeOut(200).show();
-        }
-        else
-        {
-
-          $.ajax({
-            type: "GET",
-            url: "/calendar/invite_search/",
-            data: {
-              'search': name,
-              'event': event_id,
-            },
-            success: function (data) {
-              var mydata = JSON.parse(data);
-              var dlength = mydata.length;
-              userhtml = "";
-              
-              var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
-              if (event_obj.invitelist != undefined) {
-                users = [];
-                for (var i = 0; i < dlength; i++) {
-                  if ($.inArray(mydata[i].fields.username, event_obj.invitelist) == -1) {
-                    users.push(mydata[i]);
-                  }
-                }
-              }
-              else {
-                users = mydata;
-              }
-
-              if (users.length != 0) {
-                for (var i = 0; i < users.length; i++) {
-                  userhtml = userhtml + '<div id="sch_' + users[i].fields.username + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="invite(\'' + users[i].fields.username + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + event_id + '\' )">Invite</button></div></a></div>';
-                }
-              }
-              else {
-                userhtml = "No results.";
-
-              }
-              $(".schedule-output").html(userhtml);
-
-            }
-          });
-}
-return false;
-});
-});
-
-function invite(user, user_firstname, user_lastname, event_id) {
-    // delete sonia from above in search
-    $("#sch_" + user).remove();
-    // add sonia below
-    addedhtml = "";
-    var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
-
-
-    
-    addedhtml = addedhtml + '<div id="added_' + user + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="undesirablebutton_' + user + '"><button type="button" onclick="uninvite(\'' + user + '\', \'' + user_firstname + '\', \'' + user_lastname+ '\', \'' + event_id + '\' )">Uninvite</button></div></a></div>';
-  
-
-    $(".Invite-list").append(addedhtml);
-
-    // retrieve the event (on the front end) that we're editing
-    var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
-    event_obj.invitelist.push(user);
-
-  }
-
-  function uninvite(user, user_firstname, user_lastname, event_id) {
-
-    $("#added_" + user).remove();
-    var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
-    var index = event_obj.invitelist.indexOf(user);
-    if (index > -1) {
-      event_obj.invitelist.splice(index, 1);
-    }
-  }
-  
-  function invite_cancel() {
-    var event_id = $('.party-button').attr("event");
-    var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
-    event_obj.invitelist = [];
-  }
-
-  function send_invite() {
-    var event_id = $('.party-button').attr("event");
-    var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
-    if (event_obj.invitelist) {
-     if (event_obj.invitelist.length == 0) {
-      alert("Please select some friends to invite.");
-    }
-    else {
-      
-      $.ajax({
-      type: "POST",
-      url: "/calendar/send_event_notifications/",
-      data: {
-        "event": event_id,
-        "to_users": JSON.stringify(event_obj.invitelist),
-        "data_type": "username",
-      },
-
-      success: function(data) {
-
-        console.log("data");
-
-      }
-      });
-
-      peeps_requested = is_invited(event_id, event_obj.invitelist);
-      peeps_attending = is_attending(event_id, event_obj.invitelist);
-
-      for (var k = 0; k < event_obj.invitelist.length; k++) {
-        if (peeps_attending[k]) {
-          $("#undesirablebutton_" + event_obj.invitelist[k]).html('Already Attending');
-        }
-        else {
-          if (peeps_requested[k]) {
-            $("#undesirablebutton_" + event_obj.invitelist[k]).html('Already Invited');
-          }
-        }
-      }
-
-
-     
-
-   }
- }
-
- else {
-  alert("You have invited no friends!");
-}
-    //$dialog.dialog('close');
-    //console.log("send teh einvite");
-
-  }
-
-</script>
-</div>
 
 <!-- button to drop down modal window -->
-<!--<button class="btn btn-primary" data-toggle="modal" data-target=".bs-delete-repeating-events">Smal apsodifj</button>-->
+<button class="btn btn-primary" data-toggle="modal" data-target=".bs-delete-repeating-events">Smal apsodifj</button>
 
 <!-- do you want to delete this event only or all repeating events? modal dropdown -->
 <div class="modal fade bs-delete-repeating-events" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
@@ -2567,12 +2269,6 @@ function invite(user, user_firstname, user_lastname, event_id) {
   </div><!-- /.modal-dialog -->
 </div>
 
-<style>
-  div#scroll-able-2 {
-    height: 200px;
-    overflow: scroll;
-  }
-</style>
 <!--
 <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-sm">
