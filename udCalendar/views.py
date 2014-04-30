@@ -113,9 +113,8 @@ def calendar(request):
     #test_to_request.save()
     #current_user.save()
 
-    #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=True)
+    #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=False)
     #test_notif.save()
-
     #test_notif2 = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[3], event=Event.objects.all()[0], is_reply=True)
     #test_notif2.save()"""
 
@@ -1158,6 +1157,7 @@ def send_event_notifications(request):
     return HttpResponse("Failure")
 
 @login_required
+@csrf_exempt
 def respond_to_event_notification(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -1171,13 +1171,15 @@ def respond_to_event_notification(request):
                     response = request.POST['response']
 
                     if response == 'accept':
-                        notification.event.add_user(current_uduser)
-                        notification.event.save()
+                        if current_uduser not in notification.event.owners.all():
+                            notification.event.add_user(current_uduser)
+                            notification.event.save()
                         reply_notification = EventNotification(to_user=notification.from_user, from_user=current_uduser, event=notification.event, is_reply=True)
-                        reply_notification.save()
+
+                        notification.delete()
+                        return HttpResponse(serializers.serialize('json', [notification.event]))
 
                     notification.delete()
-
                     return HttpResponse("Success")
 
     return HttpResponse("Failure")
@@ -1346,4 +1348,18 @@ def who_is_invited(request):
 
     else:
         return HttpResponse("Fail!")
+
+@login_required
+@csrf_exempt
+def get_from_user(request):
+    if request.is_ajax():
+        if 'pk' in request.GET:
+            try:
+                eventNotey = EventNotification.objects.filter(pk=request.GET['pk'])[0]
+                return HttpResponse(serializers.serialize('json', [eventNotey.from_user.user]))
+            except Exception as e:
+                print e
+    else:
+        return HttpResponse("Fail!")
+
 

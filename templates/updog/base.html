@@ -132,12 +132,31 @@
           ret = items.length;
           // items are event notifications, they don't have first and last name properties
           if (items.length != 0) {
+            from_users = []
             for (var i = 0; i < items.length; i++) {
+
+              var from_user;
+              $.ajax({
+                type: "GET",
+                url: "/calendar/get_from_user/",
+                async: false,
+                data: {
+                  "pk": items[i].pk,
+                },
+                success: function(data) {
+
+                  from_user = JSON.parse(data)[0];
+                }
+              });
+              if (from_user)
+                from_users.push(from_user);
+              //console.log(items[i].fields.event);
               if (!items[i].fields.is_reply) {
-                userhtml = userhtml + '<li><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + items[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + ' wants to hang out!' + '<br><div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li>';
+
+                userhtml = userhtml + '<div id=invite_notey' + items[i].pk + '><li style="width:450px"><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' wants to hang out!' + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li><li class="divider"></li></div>';
               }
               else {
-                userhtml = userhtml + '<li><<img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + items[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> You are now hanging out with ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + '!</li>';
+                userhtml = userhtml + '<div id=reply_notey' + items[i].pk + '><li style="width:450px"><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> You are now hanging out with ' + from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + '!</li><li class="divider"></li></div>';
               }
             }
           }
@@ -174,8 +193,12 @@
               'response': 'accept'
             },
       success: function(data) {
+        // add the event to the front end right away
+        var new_event = make_events(JSON.parse(data), 'blue', '{{ username }}', false, true);
+        $("#calendar").fullCalendar('renderEvent', new_event, stick=true);
+        // get rid of notification in navbar
 
-        console.log("Success!")
+        $("#invite_notey" + notification_pk).remove();
       }
     })
   }
@@ -189,7 +212,7 @@
               'response': 'decline'
             },
       success: function(data) {
-
+        $("#invite_notey" + notification_pk).remove();
         console.log("Success!")
       }
     })
