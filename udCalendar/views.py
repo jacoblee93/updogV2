@@ -691,22 +691,19 @@ def invite_search(request):
         if request.method == 'GET':
             if 'search' in request.GET:
                 if 'event' in request.GET:
-                    try:
-                        event = Event.objects.filter(pk=request.GET['event'])[0]
-                        l = len(request.GET["search"])
-                        friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
-                        friends_list = friends_list.exclude(user__username = request.user.username);
-                        fl = len(friends_list)
-                        user_list = []
+                    event = Event.objects.filter(pk=request.GET['event'])[0]
+                    l = len(request.GET["search"])
+                    friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
+                    friends_list = friends_list.exclude(user__username = request.user.username);
+                    fl = len(friends_list)
+                    user_list = []
 
-                        for i in xrange(0,fl):
-                            if Friendship.objects.filter(to_user=request.user.updoguser, from_user=friends_list[i], is_mutual=True):
-                                if len(EventNotification.objects.filter(event=event,to_user=friends_list[i])) == 0:
-                                    user_list.append(friends_list[i].user)
-                        user_list = serializers.serialize('json', user_list)
-                        return HttpResponse(user_list)
-                    except Exception as e:
-                        print e
+                    for i in xrange(0,fl):
+                        if Friendship.objects.filter(to_user=request.user.updoguser, from_user=friends_list[i], is_mutual=True):
+                            if len(EventNotification.objects.filter(event=event,to_user=friends_list[i])) == 0:
+                                user_list.append(friends_list[i].user)
+                    user_list = serializers.serialize('json', user_list)
+                    return HttpResponse(user_list)
 
     return HttpResponse("Uh-Oh")
 
@@ -834,7 +831,7 @@ def suggest(request):
             json_me = serializers.serialize('json',single)
             return HttpResponse(json_me)
     else:
-        return HttpResponse("You fuckup!!?!?!?")
+        return HttpResponse("You messup!!?!?!?")
 
 def get_overlap(one, two):
 
@@ -917,22 +914,19 @@ def send_event_notifications(request):
 
                     if 'data_type' in request.POST:
 
-                        try:
-                            if request.POST['data_type'] == 'pk':
-                                for key in to_users:
-                                    recipient = UpDogUser.objects.filter(pk=key)[0]
-                                    event_notification = EventNotification.objects.get_or_create(to_user=recipient, from_user=current_uduser, event=event)[0]
-                                    event_notification.save()
+                        if request.POST['data_type'] == 'pk':
+                            for key in to_users:
+                                recipient = UpDogUser.objects.filter(pk=key)[0]
+                                event_notification = EventNotification.objects.get_or_create(to_user=recipient, from_user=current_uduser, event=event)[0]
+                                event_notification.save()
 
-                            elif request.POST['data_type'] == 'username':
+                        elif request.POST['data_type'] == 'username':
 
-                                for username in to_users:
+                            for username in to_users:
 
-                                    recipient = UpDogUser.objects.filter(user__username=username)[0]
-                                    event_notification = EventNotification.objects.get_or_create(to_user=recipient, from_user=current_uduser, event=event)[0]
-                                    event_notification.save()
-                        except Exception as e:
-                            print e
+                                recipient = UpDogUser.objects.filter(user__username=username)[0]
+                                event_notification = EventNotification.objects.get_or_create(to_user=recipient, from_user=current_uduser, event=event)[0]
+                                event_notification.save()
                 return HttpResponse("Success")
 
 
@@ -1039,9 +1033,10 @@ def get_event_owners(request):
                         return HttpResponse(serializers.serialize('json', event_owners))
                 # else this is a downtime
                 else:
+
                     if 'pk' in request.GET:
-                        downtime = Downtime.objects.filter(pk=parse_downtime_id(request.GET['pk']))[0]
-                        return HttpResponse(serializers.serialize('json', [downtime.owner.user]))
+                        downtime = Downtime.objects.filter(pk=parse_downtime_id(request.GET['pk']))
+                        return HttpResponse(serializers.serialize('json', [downtime[0].owner.user]))
     else:
         return HttpResponse("Failure.")
 
@@ -1072,20 +1067,17 @@ def is_invited(request):
 def who_is_invited(request):
     if request.is_ajax():
         if 'event' in request.GET:
-            print "fuck1"
-            try:
-                event = Event.objects.filter(pk=request.GET['event'])
-                is_invited = []
-                users = UpDogUser.objects.filter()
-                for user in users:
-                    ud_user = UpDogUser.objects.filter(user__username=user)
-                    if EventNotification.objects.filter(event=event,to_user=ud_user,is_reply=False):
-                        is_invited.append(user.user)
-                #if len(is_invited) == 0:
-                #    print "rut rot"
-                return HttpResponse(serializers.serialize('json', is_invited))
-            except Exception as e:
-                print e
+
+            event = Event.objects.filter(pk=request.GET['event'])
+            is_invited = []
+            users = UpDogUser.objects.filter()
+            for user in users:
+                ud_user = UpDogUser.objects.filter(user__username=user)
+                if EventNotification.objects.filter(event=event,to_user=ud_user,is_reply=False):
+                    is_invited.append(user.user)
+            #if len(is_invited) == 0:
+            #    print "rut rot"
+            return HttpResponse(serializers.serialize('json', is_invited))
 
     else:
         return HttpResponse("Fail!")

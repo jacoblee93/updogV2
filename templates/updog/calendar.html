@@ -397,6 +397,7 @@ header: {
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
       eventClick: function(event, jsEvent, view) {
+        console.log(event.id);
         if (view.name != 'month') {
 
           if (event.is_event) {
@@ -1407,11 +1408,10 @@ select: function(startDate, endDate, allDay, jsEvent, view) {
       if (parsed.length > 0) {
         if (parsed.length > 1) {
           if (parsed[1].pk != parsed[0].pk) {
-
-            var displayed_downtime = make_events(parsed, 'green', "{{ username }}", false, false);
+            var displayed_downtime = make_events([parsed[0]], 'green', "{{ username }}", false, false);
             $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
-            for (var i = 1; i < displayed_downtime.length; i++) {
-              $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+            for (var i = 1; i < parsed.length; i++) {
+              $('#calendar').fullCalendar('removeEvents', -parsed[i].pk);
             }
             $('#calendar').fullCalendar('rerenderEvents');
           }
