@@ -475,7 +475,8 @@ function erase_events(obj) {
             for (var i = 0; i < my_data.length; i++) {
               unique = true;
               for (var j = 0; j < existing_events.length; j++) {
-                if (existing_events[j].id == my_data[i].pk && ((my_data[i].model == "udCalendar.downtime" && existing_events[j].is_event == false) || (my_data[i].model == "udCalendar.event" && existing_events[j].is_event == true))) {
+
+                if ((existing_events[j].id == my_data[i].pk || existing_events[j].id == -my_data[i].pk) && ((my_data[i].model == "udCalendar.downtime" && existing_events[j].is_event == false) || (my_data[i].model == "udCalendar.event" && existing_events[j].is_event == true))) {
                   unique = false;
                 }
               }
