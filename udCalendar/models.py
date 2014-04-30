@@ -10,6 +10,7 @@ class UpDogUser(models.Model):
     fbID = models.CharField(max_length=100, unique=True)
     visible_downtimes = models.ManyToManyField('Downtime', related_name='seeing_users')
     events = models.ManyToManyField('Event', related_name='owners')
+
     packs = models.ManyToManyField('Pack')
     friends = models.ManyToManyField('self', through='Friendship', symmetrical=False, related_name='friend_to+')
     location = models.CharField(max_length=100)
@@ -67,6 +68,7 @@ class EventNotification(models.Model):
     event = models.ForeignKey('Event', related_name='event_notifications')
     is_reply = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now=True)
+    is_seen = models.BooleanField(default=False)
 
     def __unicode__(self):
         if not self.is_reply:
