@@ -49,7 +49,7 @@ def calendar(request):
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
 
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
+    comment = """current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
@@ -117,7 +117,7 @@ def calendar(request):
     #test_notif.save()
 
     #test_notif2 = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[3], event=Event.objects.all()[0], is_reply=True)
-    #test_notif2.save()
+    #test_notif2.save()"""
 
     
     ships_list = current_user.get_friends()
