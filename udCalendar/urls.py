@@ -32,4 +32,7 @@ urlpatterns = patterns('',
         url(r'^get_friends/$', views.get_friends, name='get_friends'),
         url(r'^display/$', views.display, name='display'),
         url(r'^invite_search/$', views.invite_search, name='invite_search'),
+        url(r'^search_friends/$', views.search_friends, name='search_friends'),
+        url(r'^get_num_new_friend_requests/$', views.get_num_new_friend_requests, name='get_num_new_friend_requests'),
+        url(r'^get_num_new_notifications/$', views.get_num_new_notifications, name='get_num_new_notifications'),
 )

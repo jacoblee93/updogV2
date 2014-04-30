@@ -49,68 +49,75 @@ def calendar(request):
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
 
- #   current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
-  #  current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
-   # current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[5])
 
-    getridofit = """test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
-    test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
-    test_to_friendship.is_mutual= True
-    test_from_friendship.is_mutual = True
-    test_to_friendship.is_new = False
-    test_from_friendship.is_new = False
-    test_to_friendship.save()
-    test_from_friendship.save()
+    #test_to_friendship = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[4], from_user=current_user)[0]
+    #test_from_friendship = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[4], to_user=current_user)[0]
+    #test_to_friendship.is_mutual= True
+    #test_from_friendship.is_mutual = True
+    #test_to_friendship.is_new = False
+    #test_from_friendship.is_new = False
+    #test_to_friendship.save()
+    #test_from_friendship.save()
 
-    test_to_friendship3 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[3], from_user=current_user)[0]
-    test_from_friendship3 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[3], to_user=current_user)[0]
-    test_to_friendship3.is_mutual = True
-    test_from_friendship3.is_mutual = True
-    test_to_friendship3.is_new = False
-    test_from_friendship3.is_new = False
-    test_to_friendship3.save()
-    test_from_friendship3.save()
+    #test_to_friendship3 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[3], from_user=current_user)[0]
+    #test_from_friendship3 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[3], to_user=current_user)[0]
+    #test_to_friendship3.is_mutual = True
+    #test_from_friendship3.is_mutual = True
+    #test_to_friendship3.is_new = False
+    #test_from_friendship3.is_new = False
+    #test_to_friendship3.save()
+    #test_from_friendship3.save()
 
-    test_to_friendship2 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
-    test_from_friendship2 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
-    test_to_friendship2.is_mutual = True
-    test_from_friendship2.is_mutual = True
-    test_to_friendship2.is_new = False
-    test_from_friendship2.is_new = False
-    test_to_friendship2.save()
-    test_from_friendship2.save()
+    #test_to_friendship2 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
+    #test_from_friendship2 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
+    #test_to_friendship2.is_mutual = True
+    #test_from_friendship2.is_mutual = True
+    #test_to_friendship2.is_new = False
+    #test_from_friendship2.is_new = False
+    #test_to_friendship2.save()
+    #test_from_friendship2.save()
 
-    test_to_friendship1 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[1], from_user=current_user)[0]
-    test_from_friendship1 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[1], to_user=current_user)[0]
-    test_to_friendship1.is_mutual = True
-    test_from_friendship1.is_mutual = True
-    test_to_friendship1.is_new = False
-    test_from_friendship1.is_new = False
-    test_to_friendship1.save()
-    test_from_friendship1.save()
+    #test_to_friendship1 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[1], from_user=current_user)[0]
+    #test_from_friendship1 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[1], to_user=current_user)[0]
+    #test_to_friendship1.is_mutual = True
+    #test_from_friendship1.is_mutual = True
+    #test_to_friendship1.is_new = False
+    #test_from_friendship1.is_new = False
+    #test_to_friendship1.save()
+    #test_from_friendship1.save()
 
-    test_to_friendship5 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[5], from_user=current_user)[0]
-    test_from_friendship5 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[5], to_user=current_user)[0]
-    test_to_friendship5.is_mutual = True
-    test_from_friendship5.is_mutual = True
-    test_to_friendship5.is_new = False
-    test_from_friendship5.is_new = False
-    test_to_friendship5.save()
-    test_from_friendship5.save()
+    #test_to_friendship5 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[5], from_user=current_user)[0]
+    #test_from_friendship5 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[5], to_user=current_user)[0]
+    #test_to_friendship5.is_mutual = True
+    #test_from_friendship5.is_mutual = True
+    #test_to_friendship5.is_new = False
+    #test_from_friendship5.is_new = False
+    #test_to_friendship5.save()
+    #test_from_friendship5.save()
 
     # Alex - friend request to build notifications bar
+
     #test_to_request = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
     #test_from_request = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
     #test_from_request.is_new = True
     #current_user.new_friend_requests = True
-    #test_to_request.is_new = False
+    #test_to_request.is_new = True
     #test_to_request.is_mutual = False
     #test_from_request.is_mutual = False
     #test_from_request.save()
     #test_to_request.save()
-    #current_user.save()"""
+    #current_user.save()
+
+    #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=True)
+    #test_notif.save()
+
+    #test_notif2 = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[3], event=Event.objects.all()[0], is_reply=True)
+    #test_notif2.save()
 
     
     ships_list = current_user.get_friends()
@@ -794,7 +801,7 @@ def get_friends(request):
             current_user = request.GET["user"]
             user = UpDogUser.objects.filter(user__username = current_user)[0]
             friendships_list = Friendship.objects.filter(to_user = user, is_mutual = True)
-
+            friendships_list = friendships_list.order_by('-meeting_count')
             fl = len(friendships_list)
             friends = []
 
@@ -815,10 +822,30 @@ def find_friends(request):
             friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
             fl = len(friends_list)
             user_list = []
-            
 
             for i in xrange(0,fl):
-                user_list.append(friends_list[i].user)
+                friendship = Friendship.objects.filter(to_user = request.user.updoguser, from_user = friends_list[i])
+                if not friendship:
+                    user_list.append(friends_list[i].user)
+            user_list = serializers.serialize('json', user_list)
+            return HttpResponse(user_list)
+
+    return HttpResponse("Uh-Oh")
+
+@login_required
+def search_friends(request):
+    if request.is_ajax():
+        if request.method == 'GET':
+            l = len(request.GET["search"])
+
+            friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"])) 
+            fl = len(friends_list)
+            user_list = []
+
+            for i in xrange(0,fl):
+                friendship = Friendship.objects.filter(to_user = request.user.updoguser, from_user = friends_list[i], is_mutual = True)
+                if friendship:
+                    user_list.append(friends_list[i].user)
             user_list = serializers.serialize('json', user_list)
             return HttpResponse(user_list)
 
@@ -827,11 +854,13 @@ def find_friends(request):
 @login_required
 @csrf_exempt
 def invite_search(request):
+    print request
     if request.is_ajax():
         if request.method == 'GET':
             l = len(request.GET["search"])
             friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
             friends_list = friends_list.exclude(user__username = request.user.username);
+
             fl = len(friends_list)
             user_list = []
 
@@ -1002,13 +1031,15 @@ def display_friend_requests(request):
                 return HttpResponse("No new notifications")
 
             else:
-                requests = Friendship.objects.filter(to_user=current_uduser, is_new = True)
-                print requests
+                requests = Friendship.objects.filter(to_user=current_uduser, is_mutual = False)
                 rl = len(requests)
                 request_list = []
+                
 
                 for i in xrange(0,rl):
                     request_list.append(requests[i].from_user.user)
+                    requests[i].is_new = False
+                    requests[i].save()
                 requests_out = serializers.serialize('json', request_list)
 
                 return HttpResponse(requests_out)
@@ -1016,15 +1047,43 @@ def display_friend_requests(request):
     return HttpResponse("Failure")
 
 @login_required
-def get_notifications(request):
-    #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=True)
-    #test_notif.save()
+def get_num_new_friend_requests(request):
     if request.is_ajax():
         if request.method == 'GET':
 
             current_uduser = request.user.updoguser
-            event_notifications = EventNotification.objects.filter(to_user=current_uduser) 
+            
+            if not current_uduser.new_friend_requests:
+                return HttpResponse("No new notifications")
+
+            else:
+                requests = Friendship.objects.filter(to_user=current_uduser, is_new = True)
+                rl = len(requests)
+
+            return HttpResponse(rl)     
+
+    return HttpResponse("Failure")
+
+@login_required
+def get_notifications(request):
+    #try:
+    if request.is_ajax():
+        if request.method == 'GET':
+
+            current_uduser = request.user.updoguser
+            event_notifications = EventNotification.objects.filter(to_user=current_uduser)
+            print len(event_notifications)
+            print event_notifications
             if event_notifications:
+                el = len(event_notifications)
+
+                if el > 0:
+                  for i in xrange(0,el):
+                    print event_notifications[i]
+                    if event_notifications[i].is_seen == False:
+                        event_notifications[i].is_seen = True
+                        event_notifications[i].save()
+
                 event_notifications = serializers.serialize('json', event_notifications)
 
 
@@ -1032,6 +1091,31 @@ def get_notifications(request):
                 event_notifications = []
 
             return HttpResponse(event_notifications)
+
+    #except Exception as e:
+        #print e   
+                    
+    return HttpResponse("Failure")
+
+@login_required
+def get_num_new_notifications(request):
+    #try:
+    if request.is_ajax():
+        if request.method == 'GET':
+
+            current_uduser = request.user.updoguser
+            event_notifications = EventNotification.objects.filter(to_user=current_uduser, is_seen=False) 
+            if event_notifications:
+                el = len(event_notifications)
+
+
+            else: 
+                el = 0
+
+            return HttpResponse(el)
+
+    #except Exception as e:
+        #print e                  
 
     return HttpResponse("Failure")
 

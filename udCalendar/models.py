@@ -67,6 +67,7 @@ class EventNotification(models.Model):
     event = models.ForeignKey('Event', related_name='event_notifications')
     is_reply = models.BooleanField(default=False)
     date = models.DateTimeField(auto_now=True)
+    is_seen = models.BooleanField(default=False)
 
     def __unicode__(self):
         if not self.is_reply:
