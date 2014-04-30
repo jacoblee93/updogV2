@@ -132,12 +132,30 @@
           ret = items.length;
           // items are event notifications, they don't have first and last name properties
           if (items.length != 0) {
+            from_users = []
             for (var i = 0; i < items.length; i++) {
+
+              var from_user;
+              $.ajax({
+                type: "GET",
+                url: "/calendar/get_from_user/",
+                async: false,
+                data: {
+                  "pk": items[i].pk,
+                },
+                success: function(data) {
+
+                  from_user = JSON.parse(data)[0];
+                }
+              });
+              if (from_user)
+                from_users.push(from_user);
+              //console.log(items[i].fields.event);
               if (!items[i].fields.is_reply) {
-                userhtml = userhtml + '<div id=invite_notey' + items[i].pk + '><li style="width:450px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + items[i].first_name + ' ' + items[i].last_name + ' wants to hang out!' + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li><li class="divider"></li></div>';
+                userhtml = userhtml + '<div id=invite_notey' + items[i].pk + '><li style="width:450px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' wants to hang out!' + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li><li class="divider"></li></div>';
               }
               else {
-                userhtml = userhtml + '<div id=reply_notey' + items[i].pk + '><li style="width:450px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> You are now hanging out with ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + '!</li><li class="divider"></li></div>';
+                userhtml = userhtml + '<div id=reply_notey' + items[i].pk + '><li style="width:450px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> You are now hanging out with ' + from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + '!</li><li class="divider"></li></div>';
               }
             }
           }

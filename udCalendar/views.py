@@ -1347,3 +1347,17 @@ def who_is_invited(request):
     else:
         return HttpResponse("Fail!")
 
+@login_required
+@csrf_exempt
+def get_from_user(request):
+    if request.is_ajax():
+        if 'pk' in request.GET:
+            try:
+                eventNotey = EventNotification.objects.filter(pk=request.GET['pk'])[0]
+                return HttpResponse(serializers.serialize('json', [eventNotey.from_user.user]))
+            except Exception as e:
+                print e
+    else:
+        return HttpResponse("Fail!")
+
+
