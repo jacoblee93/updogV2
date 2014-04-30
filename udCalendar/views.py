@@ -652,7 +652,6 @@ def edit_downtime(request):
                             dt.delete()
                     
             return HttpResponse(response)
-
     return HttpResponse("Invalid request")
 
 @login_required
@@ -684,7 +683,33 @@ def change_event(request):
 
             event.save()
 
-        return HttpResponse("Success123")
+            startDate = event.start_time
+            endDate = event.end_time
+
+            # this event's updog user
+            uduser = request.user.updoguser
+
+            try:
+                # get all downtimes overlapping with this event
+                overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
+                    start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
+                    end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
+                    end_time__gte=endDate)
+
+                list_of_new_downtimes = []
+
+                # store all the downtimes that overlap with the changed event
+                for downtime in overlapping_downtimes:
+                    new_downtimes = handle_overlap(event, downtime)
+                    if new_downtimes:
+                        for new_downtime in new_downtimes:
+                            list_of_new_downtimes.append(new_downtime)
+
+                json_downtimes = serializers.serialize("json", list_of_new_downtimes)
+            except Exception as e:
+                print e
+        # return all the downtimes that overlap with the changed event
+        return HttpResponse(json_downtimes)
 
     else: return HttpResponse("Failure123")
 
@@ -969,6 +994,8 @@ def suggest(request):
     else:
         return HttpResponse("You fuckup!!?!?!?")
 
+# this function returns the overlapped time between one and two as
+# an event and adds the event
 def get_overlap(one, two):
 
     if one.start_time >= two.end_time or one.end_time <= two.start_time:
@@ -990,6 +1017,40 @@ def get_overlap(one, two):
     overlap.add_user(one.owner)
     #overlap.add_user(two.owner)
     return overlap
+
+# when an event overlaps with a downtime, act accordingly.  Return any newly
+# created, or changed, downtimes
+def handle_overlap(event, downtime):
+    # no overlap
+    if event.start_time >= downtime.end_time or event.end_time <= downtime.start_time:
+        return
+    # event starts before downtime
+    if event.start_time <= downtime.start_time:
+        # remove the downtime
+        if event.end_time >= downtime.end_time:
+            downtime.delete()
+            return
+        # cut out the downtime that overlaps with the event, but keep the part of
+        # the downtime that goes later than the event
+        else:
+            downtime.start_time = event.end_time
+            downtime.save()
+            return [downtime,]
+    # event starts after downtime
+    else:
+        # remove the end of the downtime's end_time
+        if event.end_time >= downtime.end_time:
+            downtime.end_time = event.start_time
+            downtime.save()
+            return [downtime,]
+        # split the downtime
+        else:
+            new_downtime = Downtime.objects.get_or_create(start_time=event.end_time,
+                end_time=downtime.end_time, preferred_activity=downtime.preferred_activity,
+                owner=downtime.owner)
+            downtime.end_time = event.start_time
+            downtime.save()
+            return [new_downtime[0], downtime]
 
 @login_required
 def display_friend_requests(request):

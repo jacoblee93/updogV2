@@ -5,30 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
-
-    <script src="{% static 'js/jquery.js' %}"></script>
-    <script src="{% static 'js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'js/updog-ajax.js' %}"></script>
     <link href="{% static 'css/fullcalendar.css' %}" rel="stylesheet">
     <link href="{% static 'css/fullcalendar.print.css' %}" rel="stylesheet" media="print">
     <link href="{% static 'css/datepicker.css' %}" rel="stylesheet">
 
-    <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
-    <script src="{% static 'js/jquery.min.js' %}"></script>
-    <script src="{% static 'js/jquery.hoverIntent.js' %}"></script>
-    <script src="{% static 'js/jquery-ui.custom.min.js' %}"></script>
-    <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
-    <script src="{% static 'js/fullcalendar.js' %}"></script>
-    <script src="{% static 'js/csrftoken.js' %}"></script>
-
     <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
     <link href="{% static 'css/jquery-ui-1.10.4.custom.css' %}" rel="stylesheet">
-    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-    <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
     <link href="{% static 'css/bootstrap-timepicker.css' %}" rel="stylesheet">
-    
-    </script>
 
+    <script src="{% static 'js/jquery.js' %}"></script>
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/updog-ajax.js' %}"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <script src="{% static 'js/jquery-ui.custom.min.js' %}"></script>
+    <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
+    <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'js/jquery.hoverIntent.js' %}"></script>
+    <script src="{% static 'js/gcal.js' %}"></script>
+    <script src="{% static 'js/fullcalendar.js' %}"></script>
+    <script src="{% static 'js/csrftoken.js' %}"></script>
+    <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
     <title>{% block title %}What's Up With You?{% endblock %}</title>
   </head>
   <body>
@@ -208,7 +205,16 @@
                   </ul>
                 </li>
                 <li class="dropdown">
-                  <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="dropdown" >Notifications <b class="caret"></b></a>
+
+
+
+
+                <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="tooltip" title="it worked!!!!">Notifications <b class="caret"></b></a>
+
+                <!--  <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="dropdown" >Notifications <b class="caret"></b></a>-->
+
+
+
                   <ul class="dropdown-menu">
                     <div class="notifications"></div>
                   </ul>
@@ -271,7 +277,7 @@ function make_events(data, color, owners, hover, is_event) {
             if (!data[i].fields.preferred_activity)
               single.title = owners[0] + " is free";
             else {
-              single.title = owners[0] + " wants to " + data[i].fields.preferred_activity;
+              single.title = owners[0] + "'s preferred activity  : \n" + data[i].fields.preferred_activity;
             }
 
             // the number of repeating events is -1 for downtimes
@@ -486,7 +492,16 @@ hover_functions = {
   <footer>
     <div class="container">
 	    <p>&copy; UpDog 2014: What's Up With You?</p>
+      <a data-toggle="tooltip" title="This is what the tooltip displays!">Hover over me!</a>
+      <script>
+      $(document).ready(function() {
+        $('[data-toggle=tooltip]').tooltip();
+      });
+      </script>
+
+
     </div>
+
   </footer>
 
   

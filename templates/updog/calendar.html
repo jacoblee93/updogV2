@@ -60,6 +60,56 @@
     }
   }
 
+
+  function resolve_event_downtime_conflicts(event_or_downtime, event) {
+    // event_or_downtime is a downtime
+    if (event_or_downtime[0].model == "udCalendar.downtime") {
+      var downtimes = event_or_downtime;
+      for (var i = 0; i < downtimes.length; i++) {
+
+
+        console.log("downtime[i].start = " + downtimes[i].fields.start_time);
+        console.log("event.start = " + event.start);
+
+        /*// event starts before downtime
+        if (event.start <= downtimes[i].fields.start_time) {
+          // remove the downtime
+          if (event.end >= downtimes[i].fields.end_time) {
+            $('#calendar').fullCalendar('removeEvents', downtimes[i].id);
+            $('#calendar').fullCalendar('rerenderEvents');
+          }
+          // cut out the downtime that overlaps with the event, but keep the part of
+          // the downtime that goes later than the event
+          else {
+            downtimes[i].fields.start_time = event.end;
+
+            make_events(event_or_downtime, 'green', ["{{ username }}"], false, false);
+
+            $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
+            $('#calendar').fullCalendar('removeEvents', .id);
+            $('#calendar').fullCalendar('rerenderEvents');
+
+
+
+          }
+
+
+        }*/
+
+       // $('#calendar').fullCalendar('removeEvents', downtimes[i].pk);
+       // make_events(event_or_downtime, 'green', ["{{ username }}"], )
+
+      }
+
+    }
+    // event_or_downtime is an event
+    else {
+      var events = event_or_downtime;
+
+
+    }
+  }
+
 </script>
 
 {% endblock %}
@@ -146,54 +196,54 @@ return false;
       <div id="scroll-able"> 
         <div class="list-group">
           <div class="frandz"></div>
-          </div>
         </div>
-        <!-- this is the searchbar -->
-        <div id="scroll-able">
-          <div class="list-group">
-            <form class="list-group-item list-group-item-info" method="post" name="form">
-              Find friends:<input id="search" size="17" name="search" type="text" />
-              <input type="submit" value="Search" class="submit"/>
-              <span class="error" style="display:none"> Please Enter Valid Data</span>
-              <span class="success" style="display:none"></span></a>
-            </form>
-            <div class="output"></div>
-          </div><!--/span-->
-        </div>
-        {% endif %}
-        <br>
       </div>
+      <!-- this is the searchbar -->
+      <div id="scroll-able">
+        <div class="list-group">
+          <form class="list-group-item list-group-item-info" method="post" name="form">
+            Find friends:<input id="search" size="17" name="search" type="text" />
+            <input type="submit" value="Search" class="submit"/>
+            <span class="error" style="display:none"> Please Enter Valid Data</span>
+            <span class="success" style="display:none"></span></a>
+          </form>
+          <div class="output"></div>
+        </div><!--/span-->
+      </div>
+      {% endif %}
+      <br>
     </div>
+  </div>
 
-    <script>
+  <script>
 
-      function send_friend_request(new_friend, i) {
-        $.ajax({
-          type: "POST",
-          url: "/calendar/send_friend_request/",
-          data: {'new_friend': new_friend, 'i': i},
-          success: function(data) {
-            var s = data.indexOf(',');
-            var data1 = data.substring(0,s);
-            var data2 = data.substring(s+1, data.length);
-            if (data1 === "Request Pending") {
-              $("#div"+data2).text("Request Pending");
-            }
-            else {
-              $("#div"+data2).text("friend request sent");
-            }
+    function send_friend_request(new_friend, i) {
+      $.ajax({
+        type: "POST",
+        url: "/calendar/send_friend_request/",
+        data: {'new_friend': new_friend, 'i': i},
+        success: function(data) {
+          var s = data.indexOf(',');
+          var data1 = data.substring(0,s);
+          var data2 = data.substring(s+1, data.length);
+          if (data1 === "Request Pending") {
+            $("#div"+data2).text("Request Pending");
           }
+          else {
+            $("#div"+data2).text("friend request sent");
+          }
+        }
 
-        });
-      }
+      });
+    }
 
-      function get_friends(user) {
-        $.ajax({
-          type: "GET",
-          url: "/calendar/get_friends/",
-          data: {'user': user},
-          success: function(data) {
-            real_data = JSON.parse(data);
+    function get_friends(user) {
+      $.ajax({
+        type: "GET",
+        url: "/calendar/get_friends/",
+        data: {'user': user},
+        success: function(data) {
+          real_data = JSON.parse(data);
       // everything before this pulls friends
       fl = real_data.length
       userhtml = ''
@@ -264,26 +314,26 @@ function hover_stuff(friend) {
   $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
 }
 
-    function getevents(obj) {
-      $.ajax({
-        type: "POST",
-        url: "/calendar/get_friends_downtimes/",
-        data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
-        success: function(data) {
+function getevents(obj) {
+  $.ajax({
+    type: "POST",
+    url: "/calendar/get_friends_downtimes/",
+    data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
+    success: function(data) {
 
-          var our_data = JSON.parse(data);
-          var get_some_events = make_events(our_data, 'orange', [obj], false, false);
-          if (get_some_events) {
+      var our_data = JSON.parse(data);
+      var get_some_events = make_events(our_data, 'orange', [obj], false, false);
+      if (get_some_events) {
 
-            existing_events = $("#calendar").fullCalendar('clientEvents');
+        existing_events = $("#calendar").fullCalendar('clientEvents');
 
-            for (var i = 0; i < get_some_events.length; i++) {
-              var is_unique = true;
-              for (var j = 0; j < existing_events.length; j++) {
-                if (get_some_events[i].id == existing_events[j].id) {
-                  if (existing_events[j].owners[0] != "hover") {
-                    is_unique = false;
-                  }
+        for (var i = 0; i < get_some_events.length; i++) {
+          var is_unique = true;
+          for (var j = 0; j < existing_events.length; j++) {
+            if (get_some_events[i].id == existing_events[j].id) {
+              if (existing_events[j].owners[0] != "hover") {
+                is_unique = false;
+              }
                   // existing event owner is hover
                   else {
                     $('#calendar').fullCalendar('removeEvents', existing_events[j].id); // remove the one with 'hover' owner
@@ -363,7 +413,7 @@ function erase_events(obj) {
       })
 
       $('#calendar').fullCalendar('removeEvents', temp_event.id);
-}
+    }
 
   </script>
 
@@ -488,16 +538,19 @@ header: {
   right: 'month,agendaWeek',
 },
 
-      selectable: {
-        month: false,
-        agenda: true
-      },
-      selecthelper: true,
+selectable: {
+  month: false,
+  agenda: true
+},
+selecthelper: true,
 
       editable: false, // TESTING IT OUT AS FALSE, DONT KILL ME FRANKLYN
       // set the default view to be the agendaWeek view
       defaultView: 'agendaWeek',
-      //events: downtimes_and_events,
+
+      // failed attempt at importing googlecal
+      //events: 'http://www.google.com/calendar/feeds/fdarnis%40princeton.edu/public/basic',
+
       allDaySlot: false,
       firstDay: date.getDay(),
       firstHour: 8,
@@ -754,7 +807,7 @@ header: {
           repeatingEvent.value = "Repeating Event!!!"
           var textRepeatingEvent = document.createTextNode("Repeating Event");
           repeatingEvent.appendChild(textRepeatingEvent);
-*/
+          */
           var repeating_text = document.createElement("span");
           repeating_text.innerHTML = varRepeatingEvent;
 
@@ -936,16 +989,16 @@ $dialog.append(del);
 
             if (repeating_event_length == -1) {
 
-            $.ajax({
-              type: "POST",
-              url: "/calendar/edit_event/",
-              data: {'activity': $('#activity_field').val(),
-              'location': $('#location_field').val(),
-              'pk': event.id,
-              'start_date': $('#txtStartDate').val(),
-              'end_date': $('#txtEndDate').val(),
-              'start_time': $('#txtStartTime').val(),
-              'end_time': $('#txtEndTime').val(),
+              $.ajax({
+                type: "POST",
+                url: "/calendar/edit_event/",
+                data: {'activity': $('#activity_field').val(),
+                'location': $('#location_field').val(),
+                'pk': event.id,
+                'start_date': $('#txtStartDate').val(),
+                'end_date': $('#txtEndDate').val(),
+                'start_time': $('#txtStartTime').val(),
+                'end_time': $('#txtEndTime').val(),
               // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
               'repeating_event_length': repeating_event_length
             },
@@ -992,30 +1045,30 @@ $dialog.append(del);
 
                       },
                     })
-                prev_event = $('#calendar').fullCalendar('clientEvents', event.prev_repeated_event);
-                next_event = $('#calendar').fullCalendar('clientEvents', event.next_repeated_event);
+prev_event = $('#calendar').fullCalendar('clientEvents', event.prev_repeated_event);
+next_event = $('#calendar').fullCalendar('clientEvents', event.next_repeated_event);
 
 
 }
 else {
-        var edit_single_event = document.getElementById('EditThisEventOnly');
-        edit_single_event.onclick = function() {
-          $.ajax({
-            type: "POST",
-            url: "/calendar/edit_event/",
-            data: {"pk": event.id,
-            'activity': $('#activity_field').val(),
-            'location': $('#location_field').val(),
-            'pk': event.id,
-            'start_date': $('#txtStartDate').val(),
-            'end_date': $('#txtEndDate').val(),
-            'start_time': $('#txtStartTime').val(),
-            'end_time': $('#txtEndTime').val(),
+  var edit_single_event = document.getElementById('EditThisEventOnly');
+  edit_single_event.onclick = function() {
+    $.ajax({
+      type: "POST",
+      url: "/calendar/edit_event/",
+      data: {"pk": event.id,
+      'activity': $('#activity_field').val(),
+      'location': $('#location_field').val(),
+      'pk': event.id,
+      'start_date': $('#txtStartDate').val(),
+      'end_date': $('#txtEndDate').val(),
+      'start_time': $('#txtStartTime').val(),
+      'end_time': $('#txtEndTime').val(),
             // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
             'repeating_event_length': repeating_event_length
           },
-            success: function(data) {
-              
+          success: function(data) {
+
                         // data[0] now holds the event to add
                         var data = JSON.parse(data);
 
@@ -1066,29 +1119,29 @@ else {
 
                           $dialog.dialog('close');
                         }
-            },
-          })
-        };
+                      },
+                    })
+};
 
 
 
-        var edit_repeating_events = document.getElementById('EditRepeatingEvents');
-        edit_repeating_events.onclick = function() {
+var edit_repeating_events = document.getElementById('EditRepeatingEvents');
+edit_repeating_events.onclick = function() {
 
-          console.log("repeating_event_length = " + repeating_event_length);
+  console.log("repeating_event_length = " + repeating_event_length);
 
    //             repeating_event_length = 14;
-         console.log("Click edit repeating events!!!!!");
-            $.ajax({
-              type: "POST",
-              url: "/calendar/edit_repeating_events/",
-              data: {'activity': $('#activity_field').val(),
-              'location': $('#location_field').val(),
-              'pk': event.id,
-              'start_date': $('#txtStartDate').val(),
-              'end_date': $('#txtEndDate').val(),
-              'start_time': $('#txtStartTime').val(),
-              'end_time': $('#txtEndTime').val(),
+   console.log("Click edit repeating events!!!!!");
+   $.ajax({
+    type: "POST",
+    url: "/calendar/edit_repeating_events/",
+    data: {'activity': $('#activity_field').val(),
+    'location': $('#location_field').val(),
+    'pk': event.id,
+    'start_date': $('#txtStartDate').val(),
+    'end_date': $('#txtEndDate').val(),
+    'start_time': $('#txtStartTime').val(),
+    'end_time': $('#txtEndTime').val(),
               // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
               'repeating_event_length': repeating_event_length
             },
@@ -1169,14 +1222,14 @@ else {
 
   /*              prev_event = $('#calendar').fullCalendar('clientEvents', event.prev_repeated_event);
                 next_event = $('#calendar').fullCalendar('clientEvents', event.next_repeated_event);
-*/
+                */
 
 
       //   $dialog.dialog('close');
-       };
-       var cancel_edit_repeating_events = document.getElementById('CancelEditRepeatingEvents');
+    };
+    var cancel_edit_repeating_events = document.getElementById('CancelEditRepeatingEvents');
 
-};
+  };
 };
 
 
@@ -1295,7 +1348,7 @@ $dialog.dialog('open');
               // if the previous event has no previous event, it is no longer part
               // of a linked list of repeating events, so mark it as such
               if (prev_event[0].prev_repeated_event == -1) {
-                  prev_event[0].repeating_time_delta = -1;
+                prev_event[0].repeating_time_delta = -1;
               }
             }
           }
@@ -1305,7 +1358,7 @@ $dialog.dialog('open');
             // if the next event has no next event, it is no longer part of a
             // linked list of repeating events, so mark it as such
             if (next_event[0].next_repeated_event == -1) {
-                next_event[0].repeating_time_delta = -1;
+              next_event[0].repeating_time_delta = -1;
             }
           }
 
@@ -1316,16 +1369,16 @@ $dialog.dialog('open');
         var delete_repeating_events = document.getElementById('DeleteRepeatingEvents');
         delete_repeating_events.onclick = function() {
 //             repeating_event_length = 14;
-   console.log("Click delete repeating events!!!!!");
+console.log("Click delete repeating events!!!!!");
 
-   deleteRepeatingEventsFunction(event);
+deleteRepeatingEventsFunction(event);
 
 
 
-   $dialog.dialog('close');
- };
- var cancel_delete_repeating_events = document.getElementById('CancelDeleteRepeatingEvents');
- cancel_delete_repeating_events.onclick = function() {
+$dialog.dialog('close');
+};
+var cancel_delete_repeating_events = document.getElementById('CancelDeleteRepeatingEvents');
+cancel_delete_repeating_events.onclick = function() {
   console.log("Click cancel delete in repeating events!!!!!");
 
 
@@ -1471,7 +1524,7 @@ edit.onclick = function() {
   if (event.title != "{{username}} is free") {
 
     var nameLength = "{{username}}".length;
-    activity.setAttribute("value", event.title.substring(nameLength + 10, event.title.length));
+    activity.setAttribute("value", event.title.substring(nameLength + 25, event.title.length));
   }
 
           // span makes it so there's no newline at the end, while "br" would
@@ -1515,6 +1568,13 @@ edit.onclick = function() {
             $dialog.dialog('close');
           };
 
+          // this button will make an existing downtime into an event
+      /*    var make_downtime_event = document.createElement("button");
+          make_downtime_event.className = "btn btn-primary";
+          make_downtime_event.setAttribute*/
+
+
+
           var submit = document.createElement("button");
           submit.className = "btn btn-primary";
           submit.setAttribute('type',"submit");
@@ -1539,7 +1599,7 @@ edit.onclick = function() {
                 event.title = event.title.split(" ")[0] + ' is free';
               }
               else {
-                event.title = event.title.split(" ")[0] + ' wants to ' + $('#activity_field').val();
+                event.title = event.title.split(" ")[0] + "'s preferred activity: \n" + $('#activity_field').val();
               }
 
               $("#calendar").fullCalendar('renderEvent', event, stick=true);
@@ -1640,11 +1700,11 @@ var cancel = document.createElement("button");
         $dialog.append(suggest);
       }
     }
-    };
-  },
+  };
+},
   //  }
 //    },
-    eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
+eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
       // make sure a dropped event is no longer part of a linked list
       // of repeating events
       if (event.prev_repeated_event != -1) {
@@ -1655,46 +1715,55 @@ var cancel = document.createElement("button");
         next_event = $('#calendar').fullCalendar('clientEvents', event.next_repeated_event)[0];
         next_event.prev_repeated_event = event.prev_repeated_event;
       }
-      event.repeating_time_delta = -1
-      event.prev_repeated_event = -1
-      event.next_repeated_event = -1
+      event.repeating_time_delta = -1;
+      event.prev_repeated_event = -1;
+      event.next_repeated_event = -1;
 
       if (event.is_event) {
 
-    $.ajax({
-      type: "POST",
-      url: "/calendar/change_event/",
-      data: {"pk": event.id, 
-      "day_delta": dayDelta,
-      "minute_delta": minuteDelta,
-      "resize": "false",
-    },
-  });
-  }
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_event/",
+          data: {"pk": event.id, 
+          "day_delta": dayDelta,
+          "minute_delta": minuteDelta,
+          "resize": "false",
+        },
+        success: function(data) {
+          console.log(data);
 
-  else {
+          var parsed = JSON.parse(data);
+          resolve_event_downtime_conflicts(data, event);
 
-    $.ajax({
-      type: "POST",
-      url: "/calendar/change_downtime/",
-      data: {"pk": event.id, 
-      "day_delta": dayDelta,
-      "minute_delta": minuteDelta,
-      "resize": "false",
-    },
-    success: function(data) {
 
-      parsed = JSON.parse(data);
-      if (parsed.length > 1) {
-        event.start = parsed[0].fields.start_time;
-        event.end = parsed[0].fields.end_time;
-        $("#calendar").fullCalendar('renderEvent', event, stick=true);
-        for (var i = 0; i < parsed.length; i++) {
-          if (parsed[i].pk != event.id) {
-            $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
-          }
-        }
+
+        },
+      });
       }
+
+      else {
+
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_downtime/",
+          data: {"pk": event.id, 
+          "day_delta": dayDelta,
+          "minute_delta": minuteDelta,
+          "resize": "false",
+        },
+        success: function(data) {
+
+          parsed = JSON.parse(data);
+          if (parsed.length > 1) {
+            event.start = parsed[0].fields.start_time;
+            event.end = parsed[0].fields.end_time;
+            $("#calendar").fullCalendar('renderEvent', event, stick=true);
+            for (var i = 0; i < parsed.length; i++) {
+              if (parsed[i].pk != event.id) {
+                $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+              }
+            }
+          }
           else {
             if (parsed.length == 1) {
               $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
@@ -1722,93 +1791,93 @@ eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
       event.prev_repeated_event = -1
       event.next_repeated_event = -1
 
-  if (event.is_event) {
-    $.ajax({
-      type: "POST",
-      url: "/calendar/change_event/",
-      data: {"pk": event.id, 
-      "day_delta": dayDelta,
-      "minute_delta": minuteDelta,
-      "resize": "true",
-    },
-  });
-  }
-
-  else {
-
-    $.ajax({
-      type: "POST",
-      url: "/calendar/change_downtime/",
-      data: {"pk": event.id, 
-      "day_delta": dayDelta,
-      "minute_delta": minuteDelta,
-      "resize": "true",
-    },
-    success: function(data) {
-      parsed = JSON.parse(data);
-      if (parsed.length > 1) {
-        event.start = parsed[0].fields.start_time;
-        event.end = parsed[0].fields.end_time;
-        $("#calendar").fullCalendar('renderEvent', event, stick=true);
-        for (var i = 0; i < parsed.length; i++) {
-          if (parsed[i].pk != event.id) {
-            $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
-          }
-        }
+      if (event.is_event) {
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_event/",
+          data: {"pk": event.id, 
+          "day_delta": dayDelta,
+          "minute_delta": minuteDelta,
+          "resize": "true",
+        },
+      });
       }
+
       else {
-        if (parsed.length == 1) {
-          $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
-        }
-      }
-      if (parsed.length != 0) {
-        $('#calendar').fullCalendar('rerenderEvents'); 
-      }
 
-    },
-  });
-  }
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_downtime/",
+          data: {"pk": event.id, 
+          "day_delta": dayDelta,
+          "minute_delta": minuteDelta,
+          "resize": "true",
+        },
+        success: function(data) {
+          parsed = JSON.parse(data);
+          if (parsed.length > 1) {
+            event.start = parsed[0].fields.start_time;
+            event.end = parsed[0].fields.end_time;
+            $("#calendar").fullCalendar('renderEvent', event, stick=true);
+            for (var i = 0; i < parsed.length; i++) {
+              if (parsed[i].pk != event.id) {
+                $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+              }
+            }
+          }
+          else {
+            if (parsed.length == 1) {
+              $('#calendar').fullCalendar('removeEvents', parsed[0].pk);
+            }
+          }
+          if (parsed.length != 0) {
+            $('#calendar').fullCalendar('rerenderEvents'); 
+          }
+
+        },
+      });
+}
 
 
 },
 
 select: function(startDate, endDate, allDay, jsEvent, view) {
   if (view.name != 'month') {
-  if (startDate - endDate == -1800000) return;
+    if (startDate - endDate == -1800000) return;
 
-  startDateOffset = startDate.getTimezoneOffset();
-  startDate = new Date(startDate.getTime() - startDateOffset*60000);
+    startDateOffset = startDate.getTimezoneOffset();
+    startDate = new Date(startDate.getTime() - startDateOffset*60000);
 
-  endDate = new Date(endDate.getTime() - startDateOffset*60000);
+    endDate = new Date(endDate.getTime() - startDateOffset*60000);
 
-  $.ajax({
-    type:"POST",
-    url: "/calendar/add_downtime/",
-    data: {"startDate": startDate.toUTCString(),
-    "endDate": endDate.toUTCString(),
-    "allDay": allDay,
-  },
-  success: function(data) {
-    parsed = JSON.parse(data)
-    if (parsed.length > 0) {
-      if (parsed.length > 1) {
-        if (parsed[1].pk != parsed[0].pk) {
+    $.ajax({
+      type:"POST",
+      url: "/calendar/add_downtime/",
+      data: {"startDate": startDate.toUTCString(),
+      "endDate": endDate.toUTCString(),
+      "allDay": allDay,
+    },
+    success: function(data) {
+      parsed = JSON.parse(data)
+      if (parsed.length > 0) {
+        if (parsed.length > 1) {
+          if (parsed[1].pk != parsed[0].pk) {
+            var displayed_downtime = make_events(parsed, 'green', ["{{ username }}"], false, false);
+            $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
+            for (var i = 1; i < displayed_downtime.length; i++) {
+              $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
+            }
+            $('#calendar').fullCalendar('rerenderEvents');
+          }
+        }
+        else {
           var displayed_downtime = make_events(parsed, 'green', ["{{ username }}"], false, false);
           $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
-          for (var i = 1; i < displayed_downtime.length; i++) {
-            $('#calendar').fullCalendar('removeEvents', parsed[i].pk);
-          }
-          $('#calendar').fullCalendar('rerenderEvents');
         }
       }
-      else {
-        var displayed_downtime = make_events(parsed, 'green', ["{{ username }}"], false, false);
-        $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
-          }
-        }
-      },         
-    })
-  }
+    },         
+  })
+}
 },
 
 dayClick:function( date, allDay, jsEvent, view ) {
@@ -2125,7 +2194,7 @@ $dialog.dialog('open');
         },
       }
       
-    );
+      );
 });
 
 
@@ -2157,28 +2226,23 @@ $dialog.dialog('open');
     margin-left: 40%;
   }
 </style>
-
-
-<!-- button to drop down modal window
-  <button class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-sm">Smal apsodifj</button>-->
-
-  <!-- repeating events modal window -->
-  <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header modal-sm">
-         <!--       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>-->
-         <h4 class="modal-title">Repeating Event</h4>
-       </div>
-       <div class="modal-body">
-        <!--      <p>One fine body&hellip;</p>-->
-        <div class="btn-group-vertical">
-          <button type="button" onclick="varRepeatingEvent=clickedNone()" class="btn btn-default" data-dismiss="modal" id="None">None</button>
-          <button type="button" onclick="varRepeatingEvent=clickedEveryDay()" class="btn btn-default" data-dismiss="modal" id="EveryDay">Every Day</button>
-          <button type="button" onclick="varRepeatingEvent=clickedEveryWeek()" class="btn btn-default" data-dismiss="modal" id="EveryWeek">Every Week</button>
-          <button type="button" onclick="varRepeatingEvent=clickedEvery2Weeks()" class="btn btn-default" data-dismiss="modal" id="Every2Weeks">Every 2 Weeks</button>
-          <button type="button" onclick="varRepeatingEvent=clickedEvery4Weeks()" class="btn btn-default" data-dismiss="modal" id="Every4Weeks">Every 4 Weeks</button>
-        </div>
+<!-- repeating events modal window -->
+<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modal-sm">
+       <!--       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>-->
+       <h4 class="modal-title">Repeating Event</h4>
+     </div>
+     <div class="modal-body">
+      <!--      <p>One fine body&hellip;</p>-->
+      <div class="btn-group-vertical">
+        <button type="button" onclick="varRepeatingEvent=clickedNone()" class="btn btn-default" data-dismiss="modal" id="None">None</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEveryDay()" class="btn btn-default" data-dismiss="modal" id="EveryDay">Every Day</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEveryWeek()" class="btn btn-default" data-dismiss="modal" id="EveryWeek">Every Week</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEvery2Weeks()" class="btn btn-default" data-dismiss="modal" id="Every2Weeks">Every 2 Weeks</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEvery4Weeks()" class="btn btn-default" data-dismiss="modal" id="Every4Weeks">Every 4 Weeks</button>
+      </div>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -2359,9 +2423,6 @@ function invite(user, user_firstname, user_lastname, event_id) {
 </script>
 </div>
 
-<!-- button to drop down modal window -->
-<button class="btn btn-primary" data-toggle="modal" data-target=".bs-delete-repeating-events">Smal apsodifj</button>
-
 <!-- do you want to delete this event only or all repeating events? modal dropdown -->
 <div class="modal fade bs-delete-repeating-events" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -2402,41 +2463,5 @@ function invite(user, user_firstname, user_lastname, event_id) {
     overflow: scroll;
   }
 </style>
-<!--
-<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-      
 
-    </div>
-  </div>
-</div>-->
-
-
-<!--
-<script>
-
-  $(document).ready(function() {
-     /* $(function() {
-          $('input.timepicker').timepicker();
-
-
-          
-      });*/
-      $('#timepicker3').timepicker({
-     //   template: 'dropdown',
-     //   modalBackdrop: 'true',
-        minuteStep: 5,
-        showInputs: true,
-        disableFocus: true
-      });
-  });
-</script>
-
-<div class="bootstrap-timepicker pull-right">
-            <input id="timepicker3" type="text" class="input-small">
-          </div>-->
-
-        </div>
-
-        {% endblock %}
+{% endblock %}
