@@ -113,8 +113,8 @@ def calendar(request):
     #test_to_request.save()
     #current_user.save()
 
-    #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=False)
-    #test_notif.save()
+    test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=False)
+    test_notif.save()
 
     #test_notif2 = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[3], event=Event.objects.all()[0], is_reply=False)
     #test_notif2.save()
@@ -695,25 +695,22 @@ def change_event(request):
             # this event's updog user
             uduser = request.user.updoguser
 
-            try:
-                # get all downtimes overlapping with this event
-                overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
-                    start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
-                    end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
-                    end_time__gte=endDate)
+            # get all downtimes overlapping with this event
+            overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
+                start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
+                end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
+                end_time__gte=endDate)
 
-                list_of_new_downtimes = []
+            list_of_new_downtimes = []
 
-                # store all the downtimes that overlap with the changed event
-                for downtime in overlapping_downtimes:
-                    new_downtimes = handle_overlap(event, downtime)
-                    if new_downtimes:
-                        for new_downtime in new_downtimes:
-                            list_of_new_downtimes.append(new_downtime)
+            # store all the downtimes that overlap with the changed event
+            for downtime in overlapping_downtimes:
+                new_downtimes = handle_overlap(event, downtime)
+                if new_downtimes:
+                    for new_downtime in new_downtimes:
+                        list_of_new_downtimes.append(new_downtime)
 
-                json_downtimes = serializers.serialize("json", list_of_new_downtimes)
-            except Exception as e:
-                print e
+            json_downtimes = serializers.serialize("json", list_of_new_downtimes)
         # return all the downtimes that overlap with the changed event
         return HttpResponse(json_downtimes)
 
@@ -1061,8 +1058,15 @@ def handle_overlap(event, downtime):
     if event.start_time <= downtime.start_time:
         # remove the downtime
         if event.end_time >= downtime.end_time:
+            # we purposely make the start_time and end_time the same so that when we find
+            # this downtime on the front end, we can properly delete it
+            temp_downtime = Downtime(start_time=downtime.start_time,
+                end_time=downtime.start_time, preferred_activity=downtime.preferred_activity,
+                owner=downtime.owner, pk=downtime.pk)
+            print downtime.pk
             downtime.delete()
-            return
+            print temp_downtime.pk
+            return [temp_downtime, ]
         # cut out the downtime that overlaps with the event, but keep the part of
         # the downtime that goes later than the event
         else:
@@ -1339,7 +1343,7 @@ def display(request):
             json_events = gimme_events(current_user, display) + gimme_downtimes(current_user, display)
             return HttpResponse(serializers.serialize('json', json_events))
     else:
-        return HttpResponse("fucking franklyn!")
+        return HttpResponse("failure")
 
 @login_required
 @csrf_exempt

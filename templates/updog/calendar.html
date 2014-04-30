@@ -61,53 +61,48 @@
 
 
   function resolve_event_downtime_conflicts(event_or_downtime, event) {
-    // event_or_downtime is a downtime
-    if (event_or_downtime[0].model == "udCalendar.downtime") {
-      var downtimes = event_or_downtime;
-      for (var i = 0; i < downtimes.length; i++) {
+    if (event_or_downtime.length > 0) {
+      // event_or_downtime is a downtime
+      if (event_or_downtime[0].model == "udCalendar.downtime") {
+        var downtimes = [];
 
 
-        console.log("downtime[i].start = " + downtimes[i].fields.start_time);
-        console.log("event.start = " + event.start);
-
-        /*// event starts before downtime
-        if (event.start <= downtimes[i].fields.start_time) {
-          // remove the downtime
-          if (event.end >= downtimes[i].fields.end_time) {
-            $('#calendar').fullCalendar('removeEvents', downtimes[i].id);
-            $('#calendar').fullCalendar('rerenderEvents');
+        for (var i = 0; i < event_or_downtime.length; i++) {
+          if (event_or_downtime[i].fields.start_time == event_or_downtime[i].fields.end_time) {
+            $('#calendar').fullCalendar('removeEvents', -event_or_downtime[i].pk);
           }
-          // cut out the downtime that overlaps with the event, but keep the part of
-          // the downtime that goes later than the event
-          else {
-            downtimes[i].fields.start_time = event.end;
+          else downtimes.push(event_or_downtime[i]);
+        }
 
-            make_events(event_or_downtime, 'green', ["{{ username }}"], false, false);
 
-            $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
-            $('#calendar').fullCalendar('removeEvents', .id);
+        var updated_downtimes = make_events(downtimes, 'green', "{{ username }}", false, false);
+
+
+
+
+        console.log(updated_downtimes);
+
+        for (var i = 0; i < downtimes.length; i++) {
+
+            $('#calendar').fullCalendar('removeEvents', -downtimes[i].pk);
             $('#calendar').fullCalendar('rerenderEvents');
-
+  //          console.log(updated_downtimes[j]);
+            $('#calendar').fullCalendar('renderEvent', updated_downtimes[i], stick=true);
 
 
           }
 
+        }
 
-        }*/
-
-       // $('#calendar').fullCalendar('removeEvents', downtimes[i].pk);
-       // make_events(event_or_downtime, 'green', ["{{ username }}"], )
 
       }
+      // event_or_downtime is an event
+      else {
+        var events = event_or_downtime;
 
+
+      }
     }
-    // event_or_downtime is an event
-    else {
-      var events = event_or_downtime;
-
-
-    }
-  }
 
 </script>
 
@@ -1867,19 +1862,8 @@ eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
           console.log(data);
 
           var parsed = JSON.parse(data);
-          resolve_event_downtime_conflicts(data, event);
-      parsed = JSON.parse(data);
-      if (parsed.length > 1) {
-        event.start = parsed[0].fields.start_time;
-        event.end = parsed[0].fields.end_time;
-        $("#calendar").fullCalendar('renderEvent', event, stick=true);
-        for (var i = 0; i < parsed.length; i++) {
-          if (parsed[i].pk != -event.id && parsed[i].model == "udCalendar.downtime") {
-            $('#calendar').fullCalendar('removeEvents', -parsed[i].pk);
-            }
-          }
+          resolve_event_downtime_conflicts(parsed, event);
 
-        }
       }
     });
   }
