@@ -38,4 +38,5 @@ urlpatterns = patterns('',
         url(r'^search_friends/$', views.search_friends, name='search_friends'),
         url(r'^get_num_new_friend_requests/$', views.get_num_new_friend_requests, name='get_num_new_friend_requests'),
         url(r'^get_num_new_notifications/$', views.get_num_new_notifications, name='get_num_new_notifications'),
+        url(r'^get_from_user/$', views.get_from_user, name='get_from_user'),
 )
