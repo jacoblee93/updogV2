@@ -5,32 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
-
-    <script src="{% static 'js/jquery.js' %}"></script>
-    <script src="{% static 'js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'js/updog-ajax.js' %}"></script>
     <link href="{% static 'css/fullcalendar.css' %}" rel="stylesheet">
     <link href="{% static 'css/fullcalendar.print.css' %}" rel="stylesheet" media="print">
     <link href="{% static 'css/datepicker.css' %}" rel="stylesheet">
 
-    <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
-    <script src="{% static 'js/jquery.min.js' %}"></script>
-    <script src="{% static 'js/jquery.hoverIntent.js' %}"></script>
-    <script src="{% static 'js/jquery-ui.custom.min.js' %}"></script>
-    <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
-    <script src="{% static 'js/fullcalendar.js' %}"></script>
-    <script src="{% static 'js/csrftoken.js' %}"></script>
-    <script src="{% static 'js/bootstrap-tooltip.js' %}"></script>
-    <script src="{% static 'js/bootstrap-popover.js' %}"></script>
-
     <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
     <link href="{% static 'css/jquery-ui-1.10.4.custom.css' %}" rel="stylesheet">
-    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-    <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
     <link href="{% static 'css/bootstrap-timepicker.css' %}" rel="stylesheet">
-    
-    </script>
 
+    <script src="{% static 'js/jquery.js' %}"></script>
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/updog-ajax.js' %}"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <script src="{% static 'js/jquery-ui.custom.min.js' %}"></script>
+    <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
+    <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'js/jquery.hoverIntent.js' %}"></script>
+<!--    <script src="{% static 'js/gcal.js' %}"></script>-->
+    <script src="{% static 'js/fullcalendar.js' %}"></script>
+    <script src="{% static 'js/csrftoken.js' %}"></script>
+    <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
     <title>{% block title %}What's Up With You?{% endblock %}</title>
   </head>
   <body>
@@ -84,8 +79,9 @@
           }
           ret = users.length;
           if (users.length != 0) {
-            for (var i = 0; i < dlength; i++) {
-              userhtml = userhtml + '<li><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<br><div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li>';
+            for (var i = 0; i < users.length; i++) {
+              // fixed
+              userhtml = userhtml + '<li style="width:275px">img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li><li class="divider"></li>';
             }
           }
           userhtml = userhtml+"</div></div>";
@@ -277,6 +273,7 @@
                   </ul>
                 </li>
                 <li class="dropdown">
+
                   <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="dropdown"><div class="notif_text"></div></a>
                   <ul class="dropdown-menu">
                     <div class="notifications"></div>
@@ -379,7 +376,8 @@ function make_events(data, color, owner, hover, is_event) {
             if (!data[i].fields.preferred_activity)
               single.title = owner + " is free";
             else {
-              single.title = owner + " wants to " + data[i].fields.preferred_activity;
+
+              single.title = owner + "'s preferred activity  : \n" + data[i].fields.preferred_activity;
             }
 
             // the number of repeating events is -1 for downtimes
@@ -682,7 +680,16 @@ hover_functions = {
   <footer>
     <div class="container">
 	    <p>&copy; UpDog 2014: What's Up With You?</p>
+      <!--<a data-toggle="tooltip" title="This is what the tooltip displays!">Hover over me!</a>
+      <script>
+      $(document).ready(function() {
+        $('[data-toggle=tooltip]').tooltip();
+      });
+      </script>-->
+
+
     </div>
+
   </footer>
 
   

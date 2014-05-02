@@ -11,6 +11,7 @@ from datetime import date, time, timedelta
 from django.utils.timezone import utc
 from django.db.models import Q
 from dateutil import parser
+from operator import attrgetter
 import random
 
 from django.views.decorators.csrf import csrf_exempt
@@ -47,8 +48,9 @@ def calendar(request):
     ## sort user's friendships from by decr. meet count
     # Alex - for local use when redesigning friends tab
 
-    #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
+    #current_user.add_friend(UpDogUser.objects.order_by('-user')[0])
 
+<<<<<<< HEAD
     comment = """current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
@@ -334,6 +336,11 @@ def add_event(request):
                 prev_repeated_event = request.POST['prev_repeated_event']
             if 'next_repeated_event' in request.POST:
                 next_repeated_event = request.POST['next_repeated_event']
+            if 'num_repeating_events' in request.POST:
+                num_repeating_events = int(request.POST['num_repeating_events'])
+
+            print "num_repeating_events:"
+            print num_repeating_events
 
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
@@ -350,10 +357,6 @@ def add_event(request):
             end_datetime = datetime.datetime.combine(end_date, end_time)
 
             event = Event(activity=activity, location=location, start_time=start_datetime, end_time=end_datetime, repeating_time_delta=repeating_event_length)
-            if int(repeating_event_length) != -1:
-                # num_repeats is the number of repeating events to create
-                num_repeats = 4
-                #event.num_repeating_events = num_repeats
             repeating_events = [event,]
 
             # don't save the event if the end_date happens before the start_date
@@ -369,7 +372,10 @@ def add_event(request):
                     prev_pk = -1
                     prev_event = event
 
-                    for i in range(num_repeats):
+                    # num_repeating_events - 1 makes it so that we have a total of
+                    # num_repeating_events events because we've already added an
+                    # event by the time we get to this loop
+                    for i in range(num_repeating_events-1):
                         print "here10!!"
 
                         start_datetime = start_datetime + timedelta(days=int(repeating_event_length))
@@ -377,7 +383,7 @@ def add_event(request):
 
                         event = Event(activity=activity, location=location,
                             start_time=start_datetime, end_time=end_datetime,
-                            repeating_time_delta=repeating_event_length, prev_repeated_event=current_pk)#, num_repeating_events=num_repeats-i)
+                            repeating_time_delta=repeating_event_length, prev_repeated_event=current_pk)
                         repeating_events.append(event)
                         event.save()
                         event.owners.add(request.user.updoguser)
@@ -658,39 +664,99 @@ def edit_downtime(request):
                             dt.delete()
                     
             return HttpResponse(response)
-
     return HttpResponse("Invalid request")
+@login_required
+@csrf_exempt
+def resolve_repeating_conflicts(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            event = Event.objects.filter(pk=request.POST['pk'])[0]
+
+            startDate = event.start_time
+            endDate = event.end_time
+
+            # this event's updog user
+            uduser = request.user.updoguser
+
+            # get all downtimes overlapping with this event
+            overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
+                start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
+                end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
+                end_time__gte=endDate)
+
+            list_of_new_downtimes = []
+
+            # store all the downtimes that overlap with the changed event
+            for downtime in overlapping_downtimes:
+                new_downtimes = handle_overlap(event, downtime)
+                if new_downtimes:
+                    for new_downtime in new_downtimes:
+                        list_of_new_downtimes.append(new_downtime)
+
+            json_downtimes = serializers.serialize("json", list_of_new_downtimes)
+            return HttpResponse(json_downtimes);
+        else: return HttpResponse("Didn't sent a POST request to resolve_repeating_conflicts");
+    else: return HttpResponse("Failed function resolve_repeating_conflicts");
 
 @login_required
 @csrf_exempt
 def change_event(request):
     if request.is_ajax():
-        if request.method == 'POST':            
-            event = Event.objects.filter(pk=request.POST['pk'])[0]
-            time_changes = timedelta(days = int(request.POST['day_delta']), 
-                minutes = int(request.POST['minute_delta']))
+        if request.method == 'POST':    
+            try:        
+                event = Event.objects.filter(pk=request.POST['pk'])[0]
+                time_changes = timedelta(days = int(request.POST['day_delta']), 
+                    minutes = int(request.POST['minute_delta']))
 
-            event.end_time = event.end_time + time_changes
+                event.end_time = event.end_time + time_changes
 
-            if request.POST['resize'] == "false":
-                event.start_time = event.start_time + time_changes
-            # make sure a changed event is no longer part of a linked list
-            # of repeating events
-            if event.prev_repeated_event != -1:
-                prev_event = Event.objects.filter(pk = event.prev_repeated_event)[0]
-                prev_event.next_repeated_event = event.next_repeated_event
-                prev_event.save()
-            if event.next_repeated_event != -1:
-                next_event = Event.objects.filter(pk = event.next_repeated_event)[0]
-                next_event.prev_repeated_event = event.prev_repeated_event
-                next_event.save()
-            event.repeating_time_delta = -1
-            event.next_repeated_event = -1
-            event.prev_repeated_event = -1
+                if request.POST['resize'] == "false":
+                    event.start_time = event.start_time + time_changes
+                # make sure a changed event is no longer part of a linked list
+                # of repeating events
+                if event.prev_repeated_event != -1:
+                    prev_event = Event.objects.filter(pk = event.prev_repeated_event)[0]
+                    prev_event.next_repeated_event = event.next_repeated_event
+                    prev_event.save()
+                if event.next_repeated_event != -1:
+                    next_event = Event.objects.filter(pk = event.next_repeated_event)[0]
+                    next_event.prev_repeated_event = event.prev_repeated_event
+                    next_event.save()
+                event.repeating_time_delta = -1
+                event.next_repeated_event = -1
+                event.prev_repeated_event = -1
 
-            event.save()
+                event.save()
 
-        return HttpResponse("Success123")
+                startDate = event.start_time
+                endDate = event.end_time
+
+                # this event's updog user
+                uduser = request.user.updoguser
+
+                # get all downtimes overlapping with this event
+                overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
+                    start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
+                    end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
+                    end_time__gte=endDate)
+
+                list_of_new_downtimes = []
+
+                # store all the downtimes that overlap with the changed event
+                for downtime in overlapping_downtimes:
+                    new_downtimes = handle_overlap(event, downtime)
+                    if new_downtimes:
+                        for new_downtime in new_downtimes:
+                            list_of_new_downtimes.append(new_downtime)
+
+                json_downtimes = serializers.serialize("json", list_of_new_downtimes)
+
+
+            except Exception as e:
+                print e
+
+        # return all the downtimes that overlap with the changed event
+        return HttpResponse(json_downtimes)
 
     else: return HttpResponse("Failure123")
 
@@ -763,8 +829,75 @@ def change_downtime(request):
                         if dt != downtime:
                             dt.delete()
                     
+
+            print "response = "
+            print response        
             return HttpResponse(response)
     else: return HttpResponse("Failure123")
+
+# this view checks if a changed downtime conflicts with any existing events
+# and if there are conflicts, it returns a list of the newly changed downtimes
+@login_required
+@csrf_exempt
+def event_conflicts(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            print "pk = "
+            print request.POST['pk']
+            if 'pk' in request.POST:
+                downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+
+            # this event's updog user
+            uduser = request.user.updoguser
+
+            startDate = downtime.start_time
+            endDate = downtime.end_time
+
+        
+
+            # get all events overlapping with this event
+            overlapping_events = uduser.events.filter(start_time__gte=startDate, 
+                start_time__lte=endDate) | uduser.events.filter(end_time__gte=startDate,
+                end_time__lte=endDate) | uduser.events.filter(start_time__lte=startDate,
+                end_time__gte=endDate)
+
+            list_of_new_downtimes = []
+
+            print "number of overlapping events:"
+            print len(overlapping_events)
+            print "overlapping_events:"
+            print overlapping_events
+
+            num_overlapping_events = len(overlapping_events)
+            if num_overlapping_events == 1:
+                new_downtimes = handle_overlap(overlapping_events[0], downtime)
+                if new_downtimes:
+                    for new_downtime in new_downtimes:
+                        list_of_new_downtimes.append(new_downtime)
+            elif num_overlapping_events != 0:
+                new_downtimes = handle_multiple_overlaps(overlapping_events, downtime)
+                if new_downtimes:
+                    for new_downtime in new_downtimes:
+                        list_of_new_downtimes.append(new_downtime)
+
+            json_downtimes = serializers.serialize("json", list_of_new_downtimes)
+
+            # return all the downtimes that overlap with the changed event
+            return HttpResponse(json_downtimes)
+        else: return HttpResponse("event_conflicts got a non-post ajax call")
+    else: return HttpResponse("failed event_conflicts")
+
+# this function will return the earliest available
+# downtime, or it will return None
+def earliest_downtime(downtimes):
+    if downtimes:
+        earliest_downtime = downtimes[0]
+    else: return None
+
+    for downtime in downtimes:
+        if downtime.start_time < earliest_downtime.start_time:
+            earliest_downtime = downtime
+    return earliest_downtime
 
 @login_required
 @csrf_exempt
@@ -779,7 +912,6 @@ def remove_event(request):
             event.owners.remove(request.user.updoguser)
             if not event.owners:
                 event.delete()
-
 
             return HttpResponse("Success here!!!!!")
     else: return HttpResponse("Failure here!!!!")
@@ -817,20 +949,55 @@ def get_friends(request):
 @login_required
 @csrf_exempt
 def find_friends(request):
-    if request.is_ajax():
-        if request.method == 'GET':
-            l = len(request.GET["search"])
+    try:
+        if request.is_ajax():
+            if request.method == 'GET':
 
-            friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
-            fl = len(friends_list)
-            user_list = []
+                friendships_list = Friendship.objects.filter(to_user = request.user.updoguser)
+                friendships_list = friendships_list.order_by('-is_mutual')
 
-            for i in xrange(0,fl):
-                friendship = Friendship.objects.filter(to_user = request.user.updoguser, from_user = friends_list[i])
-                if not friendship:
-                    user_list.append(friends_list[i].user)
-            user_list = serializers.serialize('json', user_list)
-            return HttpResponse(user_list)
+                friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
+                friends_list = friends_list.exclude(user__username = request.user.username)
+
+                users = []
+
+                
+                fl = len(friendships_list)
+                f2 = len(friends_list)
+                user_list = []
+                friend_status = []
+
+                for i in xrange(0,fl):
+                    if friendships_list[i].is_mutual == True:
+                        users.append(friendships_list[i].from_user)
+
+                ul = len(users)
+
+                for i in xrange(0,ul):
+                    if (users[i] in friends_list):
+                        if friendships_list[i].is_mutual:
+                            user_list.append(users[i].user)
+                            friend_status.append(1)
+
+                for i in xrange(0,f2):
+                    if (friends_list[i] in users):
+                        i = i
+                    else:
+                        check = Friendship.objects.filter(to_user = request.user.updoguser, from_user = friends_list[i].user, is_mutual = False)
+                        if not check:   
+                            user_list.append(friends_list[i].user)
+                            friend_status.append(0)
+
+                if user_list:
+                    user_list = serializers.serialize('json', user_list)
+                    json_stuff = simplejson.dumps([user_list, friend_status])
+                    return HttpResponse(json_stuff, content_type ="application/json")
+
+                else:
+                    return HttpResponse("no friends")
+
+    except Exception as e:
+        print e
 
     return HttpResponse("Uh-Oh")
 
@@ -1002,6 +1169,8 @@ def suggest(request):
     else:
         return HttpResponse("You messup!!?!?!?")
 
+# this function returns the overlapped time between one and two as
+# an event and adds the event
 def get_overlap(one, two):
 
     if one.start_time >= two.end_time or one.end_time <= two.start_time:
@@ -1023,6 +1192,172 @@ def get_overlap(one, two):
     overlap.add_user(one.owner)
     #overlap.add_user(two.owner)
     return overlap
+
+# when multiple events overlap with a downtime, act accordingly.  Return any
+# newly created, or changed, downtimes
+def handle_multiple_overlaps(overlapping_events, downtime):
+    overlapping_events = sorted(overlapping_events, key=attrgetter('start_time'))
+    num_overlapping_events = len(overlapping_events)
+
+    start_times = []
+    end_times = []
+
+    # if change is -1, then all is in order, otherwise it indicates that we are
+    # effectively merging two events in terms of their start and end times
+    change = -1
+    # this is the last endtime from several events that need to be merged
+    last_endtime = -1
+    # start at the first event to check if the first event has an end time after
+    # the second event's start time.  If this is the case, treat the two events
+    # as one event with start time being the first's start time and end time
+    # being the second's end time.  Continue doing this so we have a list of
+    # effective start and end times afterwards
+    for i in range(1, num_overlapping_events):
+        # if we need to do some merging
+        if last_endtime != -1:
+            if overlapping_events[i].start_time <= last_endtime:
+                if change == -1:
+                    change = 1
+                    last_endtime = overlapping_events[i-1].end_time
+                else: change = change + 1
+                if overlapping_events[i].end_time > last_endtime:
+                    last_endtime = overlapping_events[i].end_time
+            else:
+                start_times.append(overlapping_events[i-change-1].start_time)
+                end_times.append(last_endtime)
+                change = -1
+                last_endtime = -1
+        # if we have a new merge
+        elif overlapping_events[i].start_time <= overlapping_events[i-1].end_time:
+            if change == -1:
+                change = 1
+                last_endtime = overlapping_events[i-1].end_time
+            else: change = change + 1
+            if overlapping_events[i].end_time > last_endtime:
+                last_endtime = overlapping_events[i].end_time
+        # if the previous event didn't involve a merge with this event
+        # or a past event, then append it as its own event
+        elif overlapping_events[i-1].end_time not in end_times:
+            start_times.append(overlapping_events[i-1].start_time)
+            end_times.append(overlapping_events[i-1].end_time)
+
+    if change == -1:
+        # the last two events are merged
+        if overlapping_events[i].start_time <= overlapping_events[i-1].end_time:
+            start_times.append(overlapping_events[i-1].start_time)
+            if overlapping_events[i-1].end_time > overlapping_events[i].end_time:
+                end_times.append(overlapping_events[i-1].end_time)
+            else: end_times.append(overlapping_events[i].end_time)
+            #start_times.append(overlapping_events[i-1].start_time)
+            #end_times.append(overlapping_events[i].end_time)
+        # the last event is considered its own event (not merged)
+        else:
+            start_times.append(overlapping_events[num_overlapping_events-1].start_time)
+            end_times.append(overlapping_events[num_overlapping_events-1].end_time)
+    else:
+        # the last 2 + change events are merged
+        if overlapping_events[i].start_time <= last_endtime:
+            start_times.append(overlapping_events[i-change].start_time)
+            if overlapping_events[i].end_time > last_endtime:
+                last_endtime = overlapping_events[i].end_time
+            end_times.append(last_endtime)
+        # previous events are merged and the last event is its own event
+        else:
+            # merge the previous events
+            start_times.append(overlapping_events[i-change-1].start_time)
+            end_times.append(last_endtime)
+            # append the last event
+            start_times.append(overlapping_events[i].start_time)
+            end_times.append(overlapping_events[i].end_time)
+
+    # if one or more previous events need to be merged, but not with this
+    # event, then merge them
+    print "start_times:"
+    print start_times
+    print "end_times:"
+    print end_times
+
+    preferred_activity = downtime.preferred_activity
+    owner = downtime.owner
+
+    # to use for the last downtime
+    downtimeEnd = downtime.end_time;
+
+    # the first new downtime
+    if start_times[0] > downtime.start_time:
+        downtime.end_time = start_times[0]
+        downtime.save()
+    # a list of downtimes to return
+        new_downtimes = [downtime,]
+    # delete the downtime if its start_time overlaps with an event
+    else:
+        temp_downtime = Downtime(start_time=downtime.start_time,
+                end_time=downtime.start_time, preferred_activity=downtime.preferred_activity,
+                owner=downtime.owner, pk=downtime.pk)
+        downtime.delete()
+        new_downtimes = [temp_downtime,]
+
+    for i in range(1, len(start_times)):
+        new_downtime = Downtime.objects.get_or_create(start_time=end_times[i-1],
+                end_time=start_times[i], preferred_activity=preferred_activity,
+                owner=owner)[0]
+        new_downtimes.append(new_downtime)
+    if downtimeEnd > end_times[len(end_times)-1]:
+        new_downtime = Downtime.objects.get_or_create(start_time=end_times[len(end_times)-1],
+                end_time=downtimeEnd, preferred_activity=preferred_activity,
+                owner=owner)[0]
+        new_downtimes.append(new_downtime)
+
+    print "new_downtimes:"
+    print new_downtimes
+
+#    downtime.delete()
+    return new_downtimes
+
+# when an event overlaps with a downtime, act accordingly.  Return any newly
+# created, or changed, downtimes
+def handle_overlap(event, downtime):
+    print "event:"
+    print event
+    print "downtime:"
+    print downtime
+    # no overlap
+    if event.start_time >= downtime.end_time or event.end_time <= downtime.start_time:
+        return
+    # event starts before downtime
+    if event.start_time <= downtime.start_time:
+        # remove the downtime
+        if event.end_time >= downtime.end_time:
+            # we purposely make the start_time and end_time the same so that when we find
+            # this downtime on the front end, we can properly delete it
+            temp_downtime = Downtime(start_time=downtime.start_time,
+                end_time=downtime.start_time, preferred_activity=downtime.preferred_activity,
+                owner=downtime.owner, pk=downtime.pk)
+            print downtime.pk
+            downtime.delete()
+            print temp_downtime.pk
+            return [temp_downtime, ]
+        # cut out the downtime that overlaps with the event, but keep the part of
+        # the downtime that goes later than the event
+        else:
+            downtime.start_time = event.end_time
+            downtime.save()
+            return [downtime,]
+    # event starts after downtime
+    else:
+        # remove the end of the downtime's end_time
+        if event.end_time >= downtime.end_time:
+            downtime.end_time = event.start_time
+            downtime.save()
+            return [downtime,]
+        # split the downtime
+        else:
+            new_downtime = Downtime.objects.get_or_create(start_time=event.end_time,
+                end_time=downtime.end_time, preferred_activity=downtime.preferred_activity,
+                owner=downtime.owner)
+            downtime.end_time = event.start_time
+            downtime.save()
+            return [new_downtime[0], downtime]
 
 @login_required
 def display_friend_requests(request):
@@ -1076,14 +1411,11 @@ def get_notifications(request):
 
             current_uduser = request.user.updoguser
             event_notifications = EventNotification.objects.filter(to_user=current_uduser)
-            print len(event_notifications)
-            print event_notifications
             if event_notifications:
                 el = len(event_notifications)
 
                 if el > 0:
                   for i in xrange(0,el):
-                    print event_notifications[i]
                     if event_notifications[i].is_seen == False:
                         event_notifications[i].is_seen = True
                         event_notifications[i].save()
@@ -1280,7 +1612,7 @@ def display(request):
             json_events = gimme_events(current_user, display) + gimme_downtimes(current_user, display)
             return HttpResponse(serializers.serialize('json', json_events))
     else:
-        return HttpResponse("fucking franklyn!")
+        return HttpResponse("failure")
 
 @login_required
 @csrf_exempt
