@@ -1,7 +1,7 @@
 *{font-family:"Trebuchet MS", Helvetica, sans-serif;}
 
 body{
-   min-width:1000px; /* suppose you want minimun width of 1000px */
+   min-width:100px; /* suppose you want minimun width of 1000px */
    width: auto !important;  /* Firefox will set width as auto */
-   width:1000px;             /* As IE ignores !important it will set width as 1000px; */
+   width:100px;             /* As IE ignores !important it will set width as 1000px; */
 }
