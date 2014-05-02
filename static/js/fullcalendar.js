@@ -68,11 +68,11 @@ var defaults = {
 	buttonText: {
 		prev: "<span class='fc-text-arrow'>&lsaquo;</span>",
 		next: "<span class='fc-text-arrow'>&rsaquo;</span>",
-		prevYear: "<div class='fc-text-arrow'>&laquo;</div>",
-		nextYear: "<div class='fc-text-arrow'>&raquo;</div>",
+		prevYear: "<span class='fc-text-arrow'>&laquo;</span>",
+		nextYear: "<span class='fc-text-arrow'>&raquo;</span>",
 		today: 'today',
 		month: 'Month',
-		week: 'Week',
+		week: 'REEK',
 		day: 'day'
 	},
 	
@@ -100,8 +100,8 @@ var rtlDefaults = {
 		right: 'title'
 	},
 	buttonText: {
-		prev: "<div class='fc-text-arrow'>&rsaquo;</div>",
-		next: "<div class='fc-text-arrow'>&lsaquo;</div>",
+		prev: "<span class='fc-text-arrow'>&rsaquo;</span>",
+		next: "<span class='fc-text-arrow'>&lsaquo;</span>",
 		prevYear: "<span class='fc-text-arrow'>&raquo;</span>",
 		nextYear: "<span class='fc-text-arrow'>&laquo;</span>"
 	},
