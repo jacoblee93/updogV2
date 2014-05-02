@@ -4,15 +4,6 @@
 
 {% block above_calendar_block %}
 
-<div class="hero-unit">
-  <br />
-  <br />
-
-  <center>
-    <h1>What's Up, {{ user.first_name }}?</h1>
-  </center>
-</div>
-
 <script>
   var varRepeatingEvent = "<br/>Event does not repeat";
   // this function is called when a user selects "None" for
@@ -552,7 +543,7 @@ header: {
   right: 'next',
 },
 
-titleFormat:"\'What's up, {{ user.first_name }}? \'",
+titleFormat:"\'What is up, {{ user.first_name }}? \'",
 
 selectable: {
   month: false,
