@@ -50,7 +50,6 @@ def calendar(request):
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[0])
 
-<<<<<<< HEAD
     comment = """current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
