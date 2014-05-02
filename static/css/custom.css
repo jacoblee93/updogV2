@@ -1,3 +1,5 @@
+*{font-family:Algerian;}
+
 .navbar-harvest .navbar-inner {
   	background: #f36c00;
 	background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #f68a28), color-stop(100%, #f36c00));
