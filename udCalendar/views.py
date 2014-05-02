@@ -338,6 +338,9 @@ def add_event(request):
             if 'num_repeating_events' in request.POST:
                 num_repeating_events = int(request.POST['num_repeating_events'])
 
+            print "num_repeating_events:"
+            print num_repeating_events
+
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
 
@@ -661,6 +664,38 @@ def edit_downtime(request):
                     
             return HttpResponse(response)
     return HttpResponse("Invalid request")
+@login_required
+@csrf_exempt
+def resolve_repeating_conflicts(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            event = Event.objects.filter(pk=request.POST['pk'])[0]
+
+            startDate = event.start_time
+            endDate = event.end_time
+
+            # this event's updog user
+            uduser = request.user.updoguser
+
+            # get all downtimes overlapping with this event
+            overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
+                start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
+                end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
+                end_time__gte=endDate)
+
+            list_of_new_downtimes = []
+
+            # store all the downtimes that overlap with the changed event
+            for downtime in overlapping_downtimes:
+                new_downtimes = handle_overlap(event, downtime)
+                if new_downtimes:
+                    for new_downtime in new_downtimes:
+                        list_of_new_downtimes.append(new_downtime)
+
+            json_downtimes = serializers.serialize("json", list_of_new_downtimes)
+            return HttpResponse(json_downtimes);
+        else: return HttpResponse("Didn't sent a POST request to resolve_repeating_conflicts");
+    else: return HttpResponse("Failed function resolve_repeating_conflicts");
 
 @login_required
 @csrf_exempt
@@ -793,6 +828,9 @@ def change_downtime(request):
                         if dt != downtime:
                             dt.delete()
                     
+
+            print "response = "
+            print response        
             return HttpResponse(response)
     else: return HttpResponse("Failure123")
 
@@ -803,12 +841,18 @@ def change_downtime(request):
 def event_conflicts(request):
     if request.is_ajax():
         if request.method == 'POST':
-            downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+            print "pk = "
+            print request.POST['pk']
+            if 'pk' in request.POST:
+                downtime = Downtime.objects.filter(pk=request.POST['pk'])[0]
+
             # this event's updog user
             uduser = request.user.updoguser
 
             startDate = downtime.start_time
             endDate = downtime.end_time
+
+        
 
             # get all events overlapping with this event
             overlapping_events = uduser.events.filter(start_time__gte=startDate, 
