@@ -1517,63 +1517,77 @@ $dialog.dialog('open');
               success: function(data) {
             // Make the unconfirmed event show up in your calendar
             if (data === "None") {
-              alert("You have no upcoming downtimes.")
+            alert("You have no upcoming downtimes.")
+          }
+          else {
+            if (data == "NoFriends") {
+              alert("You have no friends.")
             }
             else {
-              if (data == "NoFriends") {
-                alert("You have no friends.")
+              if (data == "NoMatch") {
+                alert("No free times align")
               }
               else {
-                if (data == "NoMatch") {
-                  alert("No free times align")
-                }
-                else {
-                  var r = confirm("Send Request?");
-                  // if user clicked Okay:
-                  if (r == true) {
-                    // send the other user a request:
-                    //************** SEND EVENT NOTIFICATION *******************//
-                    var alldata = JSON.parse(data);
-                    console.log(alldata);
-                    mydata = [];
-                    var friends = [];
-                    for (var i = 0; i < alldata.length; i++) {
-                      if (alldata[i].model == "udCalendar.updoguser") {
-                        friends.push(alldata[i].pk);
-                      }
-
-                      else {
-                        mydata.push(alldata[i]);
-                      }
+                var alldata = JSON.parse(data);
+                  mydata = [];
+                  var index;
+                  var friends = [];
+                  for (var i = 0; i < alldata.length; i++) {
+                    console.log(alldata[i])
+                    if (alldata[i].model == "auth.user") {
+                      friends.push(alldata[i].fields.username);
+                      index = i;
                     }
-                    $.ajax({
-                      type: "POST",
-                      url: "/calendar/send_event_notifications/",
-                      data: {
-                        "event": mydata[0].pk,
-                        "to_users": JSON.stringify(friends),
-                        "data_type": "pk",
-                      },
-                      success: function(data) {
 
-                        console.log(data);
-                      }
-                    });
+                    else {
+                      mydata.push(alldata[i]);
+                    }
+                }
+                console.log(mydata[0]);
+                var start_d = new Date(mydata[0].fields.start_time);
+                var end_d = new Date(mydata[0].fields.end_time)
+                var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
+                var date_string = start_d.toDateString();
 
-                    //************** SEND EVENT NOTIFICATION *******************//
 
-                    // display the unconfirmed event on the initiator's calendar
-                    var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
-                    $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
-                  }
-                  // if user clicked Cancel:
-                  else {
-                    // remove the unconfirmed event from the back end
-                    $.ajax({
+                var r = confirm("Hangout with " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " on " + date_string + " from " + time_string + "?");
+
+                if (r == true) {
+                 // if user clicked Okay:
+                                 
+
+                  // send the other user a request:
+                  //************** SEND EVENT NOTIFICATION *******************//
+
+                  $.ajax({
+                    type: "POST",
+                    url: "/calendar/send_event_notifications/",
+                    data: {
+                      "event": mydata[0].pk,
+                      "to_users": JSON.stringify(friends),
+                      "data_type": "username",
+                    },
+                    success: function(data) {
+                      console.log(data);
+                    }
+                  });
+
+                  //************** SEND EVENT NOTIFICATION *******************//
+
+                  // display the unconfirmed event on the initiator's calendar
+
+                  var unconf = make_events(mydata, 'blue', '{{ username }}', false, true);
+                  $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+                }
+                // if user clicked Cancel:
+                else {
+                  // remove the unconfirmed event from the back end
+                  $.ajax({
                       type: "POST",
                       url: "/calendar/remove_event/",
                       data: {"pk": JSON.parse(data)[0].pk},
                     });
+
                   }
                 }
               }
@@ -2343,7 +2357,6 @@ $dialog.dialog('open');
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header modal-sm">
-       <!--       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>-->
        <h4 class="modal-title">Schedule An Event</h4>
      </div>
      <div class="modal-body">
@@ -2371,7 +2384,6 @@ $dialog.dialog('open');
     <div class="modal-footer">
       <button type="button" class="btn btn-default" data-dismiss="modal" onclick="invite_cancel()">Cancel</button>
       <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="send_invite()">Invite!</button>
-      <!--<button type="button" class="btn btn-primary">Done</button>-->
     </div>
   </div><!-- /.modal-content -->
 </div><!-- /.modal-dialog -->

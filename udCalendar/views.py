@@ -878,6 +878,26 @@ def invite_search(request):
 
 @login_required
 @csrf_exempt
+def suggest_search(request):
+    if request.is_ajax():
+        if request.method == 'GET':
+            if 'search' in request.GET:
+                l = len(request.GET["search"])
+                friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
+                friends_list = friends_list.exclude(user__username = request.user.username);
+                fl = len(friends_list)
+                user_list = []
+
+                for i in xrange(0,fl):
+                    if Friendship.objects.filter(to_user=request.user.updoguser, from_user=friends_list[i], is_mutual=True):
+                        user_list.append(friends_list[i].user)
+                user_list = serializers.serialize('json', user_list)
+                return HttpResponse(user_list)
+
+    return HttpResponse("Uh-Oh")
+
+@login_required
+@csrf_exempt
 def send_friend_request(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -955,6 +975,62 @@ def reject_friend_request(request):
 
 @login_required
 @csrf_exempt
+def multi_suggest(request):
+    if request.is_ajax():
+        if request.method == 'GET':
+            if 'suggest_list' in request.GET:
+                comment = """users = json.loads(request.GET['suggest_list'])
+                current_user = request.user.updoguser
+
+                delta = 36000
+                start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
+                after_today = current_user.downtime_set.filter(start_time__gte=start_date)
+
+                ordered = after_today.order_by('start_time')
+                if len(ordered) == 0:
+                    return HttpResponse(None)
+                
+                if len(users) == 0:
+                    return HttpResponse("NoFriends")
+
+                for my_dt in ordered: # cycle through logged in users downtimes
+                    for user in users:
+                        amigo = UpDogUser.objects.filter(user__username=user)
+                        options = amigo.downtime_set.filter(start_time__gte=my_dt.start_time, 
+                            start_time__lte=my_dt.end_time) | amigo.downtime_set.filter(end_time__gte=my_dt.start_time,
+                             end_time__lte=my_dt.end_time) | amigo.downtime_set.filter(start_time__lte=my_dt.start_time,
+                              end_time__gte=my_dt.end_time)
+
+                        options = options.exclude(start_time=my_dt.end_time)
+                        options = options.exclude(end_time=my_dt.start_time)
+
+
+
+                        if len(options) == 0:
+                            ordered.exclude(pk=my_dt.pk)
+                            if len(ordered) == 0:
+                                return HttpResponse("NoMatch")
+                            continue
+                            ####continue to next my_dt
+
+
+                        my_friends_ord = my_friends_ord.exclude(to_user = amigo)
+                        if len(my_friends_ord) == 0 and len(options) == 0:
+                            return HttpResponse("NoMatch")
+
+                choose = options.order_by('start_time')[0]
+                single = []
+                single.append(get_overlap(my_dt, choose))
+                single.append(amigo.user)
+                print single
+                json_me = serializers.serialize('json',single)
+                return HttpResponse(json_me)"""
+                return HttpResponse('success')
+    else:
+        return HttpResponse("You messup!!?!?!?")
+
+@login_required
+@csrf_exempt
 def suggest(request):
     if request.is_ajax():
         if request.method == 'GET':
@@ -977,7 +1053,6 @@ def suggest(request):
             minscore = 0
 
             options = []
-
             while len(options) == 0:
                 maxscore = len(my_friends_ord)-1
                 amigo = my_friends_ord[int(minscore+(maxscore-minscore)*random.random()**2)].to_user
@@ -996,32 +1071,43 @@ def suggest(request):
             choose = options.order_by('start_time')[0]
             single = []
             single.append(get_overlap(my_dt, choose))
-            single.append(amigo)
+            single.append(amigo.user)
+            print single
             json_me = serializers.serialize('json',single)
             return HttpResponse(json_me)
     else:
         return HttpResponse("You messup!!?!?!?")
 
 def get_overlap(one, two):
-
     if one.start_time >= two.end_time or one.end_time <= two.start_time:
         return None
     if one.start_time < two.start_time:
         if one.end_time < two.end_time:
-            overlap = Event.objects.get_or_create(start_time=two.start_time, end_time=one.end_time,
-             is_confirmed = False)[0]
+            overlap = Event.objects.get_or_create(start_time=two.start_time, end_time=one.end_time)[0]
         else:
-            overlap = Event.objects.get_or_create(start_time=two.start_time, end_time=two.end_time,
-             is_confirmed = False)[0]
+            overlap = Event.objects.get_or_create(start_time=two.start_time, end_time=two.end_time)[0]
     else:
         if one.end_time >= two.end_time:
-            overlap = Event.objects.get_or_create(start_time=one.start_time, end_time=two.end_time,
-             is_confirmed = False)[0]
+            overlap = Event.objects.get_or_create(start_time=one.start_time, end_time=two.end_time)[0]
         else:
-            overlap = Event.objects.get_or_create(start_time=one.start_time, end_time=one.end_time, 
-                is_confirmed = False)[0]
+            overlap = Event.objects.get_or_create(start_time=one.start_time, end_time=one.end_time)[0]
     overlap.add_user(one.owner)
     #overlap.add_user(two.owner)
+    return overlap
+
+def intersect(one, two):
+    if one.start_time >= two.end_time or one.end_time <= two.start_time:
+        return
+    if one.start_time < two.start_time:
+        if one.end_time < two.end_time:
+            overlap = [two.start_time, one.end_time]
+        else:
+            overlap = [two.start_time, two.end_time]
+    else:
+        if one.end_time >= two.end_time:
+            overlap = [one.start_time, two.end_time]
+        else:
+            overlap = [one.start_time, one.end_time]
     return overlap
 
 @login_required

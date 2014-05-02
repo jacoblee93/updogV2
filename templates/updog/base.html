@@ -8,6 +8,7 @@
 
     <script src="{% static 'js/jquery.js' %}"></script>
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/bootbox.js' %}"></script>
     <script src="{% static 'js/updog-ajax.js' %}"></script>
     <link href="{% static 'css/fullcalendar.css' %}" rel="stylesheet">
     <link href="{% static 'css/fullcalendar.print.css' %}" rel="stylesheet" media="print">
@@ -161,18 +162,6 @@
                 var start_d = new Date(notey_event.fields.start_time);
                 var end_d = new Date(notey_event.fields.end_time)
 
-                function get_UTC_time(date) {
-                  var time_string = date.toUTCString();
-                  var time_string = time_string.substring(17, time_string.length - 7)
-
-                  if (time_string.substring(1,3) <= 12) {
-                    return (parseInt(time_string.substring(1,3)) % 12).toString() + time_string.substring(2,time_string.length) + " AM";
-                  }
-                  else {
-                    return (parseInt(time_string.substring(1,3)) % 12).toString() + time_string.substring(2,time_string.length) + " PM";
-                  }
-                }
-
                 var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
 
                 var date_string = start_d.toDateString();
@@ -322,8 +311,7 @@
                   </ul>
                 </li>
                 
-                <li><a onclick="suggest_form()">Suggest</a><li>               
-
+                <li><a data-toggle="modal" data-target=".suggest-modal">Suggest</a><li>           
               {% endif %}
             
 	      </ul>
@@ -382,6 +370,18 @@ function getTime(date) {
   return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
 }
 
+function get_UTC_time(date) { 
+  var time_string = date.toUTCString();
+  
+  time_string = time_string.substring(17, time_string.length - 7)
+  if (parseInt(time_string.substring(0,2)) <= 12) {
+    return (parseInt(time_string.substring(0,2))).toString() + time_string.substring(2,time_string.length) + " AM";
+  }
+  else {
+    return (parseInt(time_string.substring(0,2)) - 12).toString() + time_string.substring(2,time_string.length) + " PM";
+  }
+}
+
 function make_events(data, color, owner, hover, is_event) {
 
       if (data.length > 0) {
@@ -409,9 +409,6 @@ function make_events(data, color, owner, hover, is_event) {
               else{
                 single.title = data[i].fields.activity + " in " + data[i].fields.location;
               }
-            }
-            if (!data[i].fields.is_confirmed) {
-              single.color = 'red';
             }
 
             single.next_repeated_event = data[i].fields.next_repeated_event;
@@ -546,89 +543,6 @@ function make_events(data, color, owner, hover, is_event) {
     }
   }
 
-  function suggest_form() {
-    $.ajax({
-      type: "GET",
-      url: "/calendar/suggest/",
-      data: {},
-      success: function(data) {
-          // Make the unconfirmed event show up in your calendar
-          if (data === "None") {
-            alert("You have no upcoming downtimes.")
-          }
-          else {
-            if (data == "NoFriends") {
-              alert("You have no friends.")
-            }
-            else {
-              if (data == "NoMatch") {
-                alert("No free times align")
-              }
-              else {
-                var r = confirm("Send Request?");
-                // if user clicked Okay:
-                if (r == true) {
-                  var alldata = JSON.parse(data);
-                  mydata = [];
-                  var friends = [];
-                  for (var i = 0; i < alldata.length; i++) {
-                    if (alldata[i].model == "udCalendar.updoguser") {
-                      friends.push(alldata[i].pk);
-                    }
-
-                    else {
-                      mydata.push(alldata[i]);
-                    }
-                  }
-
-                  // send the other user a request:
-                  //************** SEND EVENT NOTIFICATION *******************//
-
-                  $.ajax({
-                    type: "POST",
-                    url: "/calendar/send_event_notifications/",
-                    data: {
-                      "event": mydata[0].pk,
-                      "to_users": JSON.stringify(friends),
-                      "data_type": "pk",
-                    },
-                    success: function(data) {
-
-                      console.log(data);
-                    }
-                  });
-  
-
-
-
-
-                  //************** SEND EVENT NOTIFICATION *******************//
-
-                  // display the unconfirmed event on the initiator's calendar
-
-                  var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
-                  $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
-                }
-                // if user clicked Cancel:
-                else {
-                  // remove the unconfirmed event from the back end
-                  $.ajax({
-                      type: "POST",
-                      url: "/calendar/remove_event/",
-                      data: {"pk": JSON.parse(data)[0].pk},
-                    });
-
-                  }
-
-                
-              }
-            }
-          }
-
-      }
-    });
-  }
-
 </script>
 
 <script>
@@ -719,8 +633,218 @@ hover_functions = {
 {% if user.is_authenticated %}
   var x = get_friends('{{ user }}');
 {% endif %}
+$(function() {
+      $(".suggest-submit").click(function() {
+
+        var name = $("#suggest-search").val();
+
+        if (name == '')
+        {
+          $(".suggest-output").html('');
+        }
+        else
+        {
+
+          $.ajax({
+            type: "GET",
+            url: "/calendar/suggest_search/",
+            data: {
+              'search': name,
+            },
+            success: function (data) {
+              var mydata = JSON.parse(data);
+              var dlength = mydata.length;
+              var userhtml = "";
+              
+
+              ; // go get me!
+              if (window.suggest_list != undefined) {
+                users = [];
+                for (var i = 0; i < dlength; i++) {
+                  if ($.inArray(mydata[i].fields.username, window.suggest_list) == -1) {
+                    users.push(mydata[i]);
+                  }
+                }
+              }
+              else {
+                window.suggest_list = [];
+                users = mydata;
+              }
+
+              if (users.length != 0) {
+                for (var i = 0; i < users.length; i++) {
+                  userhtml = userhtml + '<div id="sug_' + users[i].fields.username + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="add_suggest(\'' + users[i].fields.username + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\' )">Add</button></div></a></div>';
+                }
+              }
+              else {
+                userhtml = "No results.";
+
+              }
+              $(".suggest-output").html(userhtml);
+
+            }
+          });
+}
+return false;
+});
+});
+
+function add_suggest(user, user_firstname, user_lastname) {
+    // delete sonia from above in search
+    $("#sug_" + user).remove();
+    // add sonia below
+    addedhtml = "";    
+    addedhtml = addedhtml + '<div id="sugged_' + user + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="anotherundesirablebutton_' + user + '"><button type="button" onclick="remove_suggest(\'' + user + '\', \'' + user_firstname + '\', \'' + user_lastname+ '\' )">Remove</button></div></a></div>';
+  
+    $(".Suggest-list").append(addedhtml);
+
+    // retrieve the event (on the front end) that we're editing
+
+    window.suggest_list.push(user);
+
+  }
+
+  function remove_suggest(user, user_firstname, user_lastname) {
+
+    $("#sugged_" + user).remove();
+    index = window.suggest_list.indexOf(user);
+    if (index > -1) {
+      window.suggest_list.splice(index, 1);
+    }
+  }
+
+  function cancel_suggest() {
+    window.suggest_list = [];
+  }
+
+  function send_suggest() {
+    $.ajax({
+      type: "GET",
+      url: "/calendar/multi_suggest/",
+      data: {
+        'suggest_list': JSON.stringify(window.suggest_list),
+      },
+      success: function(data) {
+        console.log("send_suggest function");
+          // Make the unconfirmed event show up in your calendar
+          if (data === "None") {
+            alert("You have no upcoming downtimes.")
+          }
+          else {
+            if (data == "NoFriends") {
+              alert("Please suggest people.")
+            }
+            else {
+              if (data == "NoMatch") {
+                alert("No free times align")
+              }
+              else {
+                var alldata = JSON.parse(data);
+                  mydata = [];
+                  var index;
+                  var friends = [];
+                  for (var i = 0; i < alldata.length; i++) {
+                    if (alldata[i].model == "auth.user") {
+                      friends.push(alldata[i].fields.username);
+                      index = i;
+                    }
+
+                    else {
+                      mydata.push(alldata[i]);
+                    }
+                }
+                var start_d = new Date(mydata[0].fields.start_time);
+                var end_d = new Date(mydata[0].fields.end_time)
+                var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
+                var date_string = start_d.toDateString();
+                //bootbox.alert("Hello world!");
+
+                var r = bootbox.confirm("Invite " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " to hangout on " + date_string + " from " + time_string + "?", function (result) {
+                  if (result == true) {
+                  $.ajax({
+                    type: "POST",
+                    url: "/calendar/send_event_notifications/",
+                    data: {
+                      "event": mydata[0].pk,
+                      "to_users": JSON.stringify(friends),
+                      "data_type": "username",
+                    },
+                    success: function(data) {
+                      console.log(data);
+                    }
+                  });
+
+                  var unconf = make_events(mydata, 'blue', '{{ username }}', false, true);
+                  $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+                }
+                else {
+                  $.ajax({
+                      type: "POST",
+                      url: "/calendar/remove_event/",
+                      data: {"pk": JSON.parse(data)[0].pk},
+                    });
+
+                  }
+
+                });
+
+                
+
+                
+              }
+            }
+          }
+
+      }
+    });
+  }
 
 </script>
+<style>
+  body .modal.fade.schedule-modal {
+    max-width: 450px;
+    margin-left: 30%;
+  }
+  body .modal-footer {
+    max-width: 450px;
+  }
+</style>
+
+<div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modal-sm">
+       <h4 class="modal-title">Suggest An Event</h4>
+     </div>
+     <div class="modal-body">
+
+      <div id="scroll-able-2">
+        <div class="list-group col-xs-6 col-sm-9">
+          <form class="list-group-item list-group-item-info" method="post" name="form">
+            Select friends:<input id="suggest-search" size="17" name="search" type="text" />
+            <input type="submit" value="Search" class="suggest-submit"/>
+            <span class="error" style="display:none"> Please Enter Valid Data</span>
+            <span class="success" style="display:none"></span></a>
+          </form>
+          <div class="suggest-output"></div>
+        </div><!--/span-->
+      </div>
+
+      <div id="scroll-able">
+        <div class="list-group col-xs-6 col-sm-9">
+          <a class="list-group-item list-group-item-info">Invite List</a>
+          <div class="Suggest-list"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" data-dismiss="modal" onclick="cancel_suggest()">Cancel</button>
+      <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="send_suggest()">Suggest!</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</div>
 
   </body>  
   <hr>
