@@ -85,6 +85,7 @@
           ret = users.length;
           if (users.length != 0) {
             for (var i = 0; i < users.length; i++) {
+              // fixed
               userhtml = userhtml + '<li style="width:275px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50">' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li><li class="divider"></li>';
             }
           }
@@ -134,7 +135,7 @@
           if (items.length != 0) {
             for (var i = 0; i < items.length; i++) {
               if (!items[i].fields.is_reply) {
-                userhtml = userhtml + '<li style="width:400px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + items[i].first_name + ' ' + items[i].last_name + ' wants to hang out!' + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li><li class="divider"></li>';
+                userhtml = userhtml + '<li style="width:450px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + items[i].first_name + ' ' + items[i].last_name + ' wants to hang out!' + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li><li class="divider"></li>';
               }
               else {
                 userhtml = userhtml + '<li style="width:400px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> You are now hanging out with ' + items[i].fields.first_name + ' ' + items[i].fields.last_name + '!</li><li class="divider"></li>';

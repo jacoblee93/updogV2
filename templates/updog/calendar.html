@@ -68,23 +68,43 @@
 <!-- updated to fit calendar onto window -->
 <style>
 div#scroll-able {
-  height: 175px;
+  height: 410px;
   overflow: scroll;
 }
 </style>
 
-<!-- the function to find the friends the user searches for -->
+<!-- rolling both searchbars into one -->
 <div>
   <script type="text/javascript">
   $(function() {
-    $(".submit").click(function() {
-      var name = $("#search").val();
+    $(".submit-friends").click(function() {
+      var name = $("#search-friends").val();
 
       if (name == '')
       {
-        //$('.success').fadeOut(200).hide();
-        //$('.error').fadeOut(200).show();
-        $(".output").html('');
+        $.ajax({
+          type: "GET",
+          url: "/calendar/get_friends/",
+          data: {'user': '{{ user }}'},
+          success: function(data) {
+
+            real_data = JSON.parse(data);
+            fl = real_data.length;
+            userhtml = '';
+              if (fl != 0) {
+              
+                for (var i = 0; i < fl; i++) {
+                  userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].fields.username + '"><div><img src="/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
+                };
+              } else {
+                userhtml = '<strong>No friends.</strong>';
+            };
+            $(".frandz").html(userhtml);
+            for (var i = 0; i < fl; i++) {
+              hover_stuff(real_data[i]);
+            };
+          } 
+        });
       }
       else
       {
@@ -94,79 +114,35 @@ div#scroll-able {
           data: {"search": name,
         },
         success: function(data) {
-          mydata = JSON.parse(data);
-          if (data.length > 0) {
-            var dlength = mydata.length;
-            var users = [];
-            var isFriend = 0;
+          if (data != "no friends") {
+            users_returned = JSON.parse(data[0]);
+            friend_status = data[1];
             userhtml = "";
+            real_friends = [];
+            if (users_returned.length > 0) {
+              var l = users_returned.length;
 
-            for (var i = 0; i < dlength; i++) {
-              isFriend = 0;
-              {% if friends_list %}
-              {% for friend in friends_list %}
-              if ('{{ friend }}' === mydata[i].fields.username)
-                isFriend = 1;
-              {% endfor %}
-              {% endif %}
+              for (var i = 0; i < l; i++) {
+                if (friend_status[i] == 1) {
+                  userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + users_returned[i].fields.username + '\')" id="friend_' + users_returned[i].fields.username + '"><div><img src="/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + users_returned[i].fields.first_name + ' ' + users_returned[i].fields.last_name + '</span></div></a>';
 
-              if (mydata[i].fields.username != '{{ user.username }}' && isFriend == 0) {
-                users.push(mydata[i].fields.username);
-              }
-            };
-          }
-          if (users.length != 0) {
-            for (var i = 0; i < users.length; i++) {
-              userhtml = userhtml + '<div><a class="list-group-item"><img src="/media/profile_pictures/' + users[i] + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + mydata[i].fields.first_name + ' ' +  mydata[i].fields.last_name + '<div style="float:right"><div id="add-button' + users[i] + '"><button type="button" onclick="send_friend_request(\'' + users[i] + '\', \'' + i +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
+                  real_friends.push(i);
+                }
+                else {
+                  userhtml = userhtml + '<div><a class="list-group-item"><img src="/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].fields.username + '"><button type="button" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
+                }
+              };
+
             }
-          }
-          $('.error').fadeOut(200).hide();
-          $(".output").html(userhtml);
-        }
-      });
-}
-return false;
-});
-});
-</script>
-</div>
-
-<!-- this is the function to search through current friends-->
-<div>
-  <script type="text/javascript">
-  $(function() {
-    $(".submit-friends").click(function() {
-      var name = $("#search-friends").val();
-      if (name == '')
-      {
-        get_friends('{{ user }}') 
-      }
-      else
-      {
-        $.ajax({
-          type: "GET",
-          url: "/calendar/search_friends/",
-          data: {"search": name,
-        },
-        success: function(data) {
-          mydata = JSON.parse(data);
-          console.log(data);
-          userhtml = "";
-          if (mydata.length > 0) {
-            var dlength = mydata.length;
-
-            for (var i = 0; i < dlength; i++) {
-             userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + mydata[i].fields.username + '\')" id="friend_' + mydata[i].fields.username + '"><div><img src="/media/profile_pictures/' + mydata[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + mydata[i].fields.first_name + ' ' + mydata[i].fields.last_name + '</span></div></a>';
-            }
+              $(".frandz").html(userhtml);
+              rfl = real_friends.length;
+              for (var i =  0; i < rfl; i++) {
+                hover_stuff(users_returned[real_friends[i]]);
+              };
           }
           else {
-            userhtml = "No friends matched";
+            $(".frandz").html('No friends found');
           }
-          $('.error').fadeOut(200).hide();
-          $(".frandz").html(userhtml);
-          for (var i = 0; i < dlength; i++) {
-            hover_stuff(mydata[i]);
-          };
         }
       });
 }
@@ -175,6 +151,7 @@ return false;
 });
 </script>
 </div>
+
 
 <!-- THIS IS THE CALENDAR!!! -->
 <div class="span12">
@@ -190,17 +167,19 @@ return false;
     {% if user.is_authenticated %}
     <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
       <div class="list-group">
-        <form class="list-group-item list-group-item-info" method="post" name="form">Search current friends:<input id="search-friends" size="17" name="search" type="text" />
+        <form class="list-group-item list-group-item-info" method="post" name="form">Search for Friends:<input id="search-friends" size="17" name="search" type="text" />
           <input type="submit" value="Search" class="submit-friends"/>
+          Empty search to reset
           <span class="error" style="display:none"> Please Enter Valid Data</span>
           <span class="success" style="display:none"></span></a>
         </form>
+
         <div id="scroll-able"><div class="frandz"></div></div>
 
       </div>
       <!-- this is the searchbar -->
       <!--<div id="scroll-able">-->
-      <div class="list-group">
+      <!--<div class="list-group">
         <form class="list-group-item list-group-item-info" method="post" name="form">
           Find friends to add:<input id="search" size="17" name="search" type="text" />
           <input type="submit" value="Search" class="submit"/>
@@ -208,7 +187,7 @@ return false;
           <span class="success" style="display:none"></span></a>
         </form>
         <div id="scroll-able"><div class="output"></div></div>
-      </div><!--/span-->
+      </div>--><!--/span-->
       <!--</div>-->
     </div>
     {% endif %}
@@ -229,9 +208,11 @@ return false;
             var data2 = data.substring(s+1, data.length);
             if (data1 === "Request Pending") {
               $("#div"+data2).text("Request Pending");
+              $("#add-button"+new_friend).remove();
             }
             else {
               $("#div"+data2).text("friend request sent");
+              $("#add-button"+new_friend).remove();
             }
           }
 
@@ -314,6 +295,28 @@ function hover_stuff(friend) {
   }
   $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
 }
+
+function accept_friend_request(new_friend) {
+    $.ajax({
+      type: "POST",
+      url: "/calendar/accept_friend_request/",
+      data: {'new_friend': new_friend},
+      success: function(data){
+        get_friends('{{ user }}');
+      }
+    });
+  }
+
+  function reject_friend_request(new_friend) {
+    $.ajax({
+      type: "POST",
+      url: "/calendar/reject_friend_request/",
+      data: {'new_friend': new_friend},
+      success: function(data){
+        console.log(data)
+      }
+    });
+  }
 
     function getevents(obj) {
       $.ajax({
