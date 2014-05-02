@@ -547,10 +547,12 @@ function erase_events(obj) {
         });
 },
 header: {
-  left: 'prev, today',
-  //center: 'title',
-  right: 'month,agendaWeek, next',
+  left: 'prev, month, agendaWeek',
+  center: 'title',
+  right: 'next',
 },
+
+titleFormat:'\'What\'s up with you, {{ username }}? \'',
 
 selectable: {
   month: false,
