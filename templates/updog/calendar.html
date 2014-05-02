@@ -150,12 +150,12 @@ else
 
         for (var i = 0; i < l; i++) {
           if (friend_status[i] == 1) {
-            userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + users_returned[i].fields.username + '\')" id="friend_' + users_returned[i].fields.username + '"><div><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + users_returned[i].fields.first_name + ' ' + users_returned[i].fields.last_name + '</span></div></a>';
+            userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + users_returned[i].fields.username + '\')" id="friend_' + users_returned[i].fields.username + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + users_returned[i].fields.first_name + ' ' + users_returned[i].fields.last_name + '</span></div></a>';
 
             real_friends.push(i);
           }
           else {
-            userhtml = userhtml + '<div><a class="list-group-item"><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].fields.username + '"><button type="button" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
+            userhtml = userhtml + '<div><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].fields.username + '"><button type="button" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
           }
         };
 
