@@ -421,12 +421,12 @@ function erase_events(obj) {
   <div>
     <script>
     // This function converts a Date object, date, into a time of the form: 2:00 PM or 11:00 AM
-    function getTime(date) {
+    /*function getTime(date) {
       var local_time = date.toLocaleTimeString()
       var lt_length = local_time.length;
 
       return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
-    } 
+    } */
     $(document).ready(function() {
 
 
@@ -1315,7 +1315,7 @@ $dialog.dialog('open');
       $dialog.dialog('close');
     ///////      }
   };
-
+//console.log(event.start);
   $($dialog).empty().append(
     $('<p />').text(event.start.toDateString())
     );

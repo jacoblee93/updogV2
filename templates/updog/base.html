@@ -112,6 +112,7 @@
       return ret;
     }
 
+
     function display_notifications() {
       var ret = 0;
       $.ajax({
@@ -136,6 +137,7 @@
             for (var i = 0; i < items.length; i++) {
 
               var from_user;
+              var notey_event;
               $.ajax({
                 type: "GET",
                 url: "/calendar/get_from_user/",
@@ -144,15 +146,53 @@
                   "pk": items[i].pk,
                 },
                 success: function(data) {
-
-                  from_user = JSON.parse(data)[0];
+                  var mydata = JSON.parse(data);
+                  from_user = mydata[0];
+                  notey_event = mydata[1];
                 }
               });
               if (from_user)
                 from_users.push(from_user);
-              //console.log(items[i].fields.event);
               if (!items[i].fields.is_reply) {
-                userhtml = userhtml + '<div id=invite_notey' + items[i].pk + '><li style="width:450px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' wants to hang out!' + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li><li class="divider"></li></div>';
+
+                // we may not need to get the backend event
+                var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' wants to ';
+                
+                var start_d = new Date(notey_event.fields.start_time);
+                var end_d = new Date(notey_event.fields.end_time)
+
+                function get_UTC_time(date) {
+                  var time_string = date.toUTCString();
+                  var time_string = time_string.substring(17, time_string.length - 7)
+
+                  if (time_string.substring(1,3) <= 12) {
+                    return (parseInt(time_string.substring(1,3)) % 12).toString() + time_string.substring(2,time_string.length) + " AM";
+                  }
+                  else {
+                    return (parseInt(time_string.substring(1,3)) % 12).toString() + time_string.substring(2,time_string.length) + " PM";
+                  }
+                }
+
+                var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
+
+                var date_string = start_d.toDateString();
+
+                var act = "";
+                if (notey_event.fields.activity) {
+                  act = notey_event.fields.activity;
+                }
+                else {
+                  act = "hang out";
+                }
+                info_string = info_string + act;
+                
+                if (notey_event.fields.location) {
+                  info_string = info_string + " at " + notey_event.fields.location;
+                }
+
+                info_string = info_string + " on " + date_string + " from " + time_string;
+
+                userhtml = userhtml + '<div id=invite_notey' + items[i].pk + '><li style="width:450px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + info_string + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li><li class="divider"></li></div>';
               }
               else {
                 userhtml = userhtml + '<div id=reply_notey' + items[i].pk + '><li style="width:450px"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> You are now hanging out with ' + from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + '!</li><li class="divider"></li></div>';
@@ -334,6 +374,13 @@ var myVar = setInterval(function() {check_for_notifications()}, 180000);
 
 
 <script>
+
+function getTime(date) {
+  var local_time = date.toLocaleTimeString()
+  var lt_length = local_time.length;
+
+  return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
+}
 
 function make_events(data, color, owner, hover, is_event) {
 

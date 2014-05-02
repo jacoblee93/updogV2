@@ -1354,7 +1354,7 @@ def get_from_user(request):
         if 'pk' in request.GET:
             try:
                 eventNotey = EventNotification.objects.filter(pk=request.GET['pk'])[0]
-                return HttpResponse(serializers.serialize('json', [eventNotey.from_user.user]))
+                return HttpResponse(serializers.serialize('json', [eventNotey.from_user.user, eventNotey.event]))
             except Exception as e:
                 print e
     else:
