@@ -81,7 +81,7 @@
           if (users.length != 0) {
             for (var i = 0; i < users.length; i++) {
               // fixed
-              userhtml = userhtml + '<li style="width:275px">img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li><li class="divider"></li>';
+              userhtml = userhtml + '<li style="width:275px"><img src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li><li class="divider"></li>';
             }
           }
           userhtml = userhtml+"</div></div>";
