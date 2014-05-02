@@ -1,38 +1,7 @@
 *{font-family:"Trebuchet MS", Helvetica, sans-serif;}
 
-.navbar-simple .brand {
- 	padding-top: 15px;
-	padding-bottom: 15px;
-}
-.navbar-simple .navbar-inner {
-	background: #094A5A;
-	filter: none !important;
-	box-shadow: 0 2px 15px rgba(0,0,0,0.25);
-	-moz-box-shadow: 0 2px 15px rgba(0,0,0,0.25);
-	-webkit-box-shadow: 0 2px 15px rgba(0,0,0,0.25);
-	border-bottom: 1px solid rgba(0,0,0,0.2);
-}
-.navbar-simple .navbar-inner .nav {
-	float: right;
-}
-.navbar-simple .navbar-inner .nav li a {
-	background: none;
-	-webkit-box-shadow: none;
-	-moz-box-shadow: none;
-	box-shadow: none;
-	color: #777;
-	font-size: 13px;
-	padding-top: 15px;
-	padding-bottom: 15px;
-	font-weight: 600;
-}
-.navbar-simple .navbar-inner .nav li a:hover {
-	background: none;
-	-webkit-box-shadow: none;
-	-moz-box-shadow: none;
-	box-shadow: none;
-	color: #bf3604;
-}		
-.navbar-simple .navbar-inner .nav li.active a {
-	color: #bf3604;
+body{
+   min-width:1000px; /* suppose you want minimun width of 1000px */
+   width: auto !important;  /* Firefox will set width as auto */
+   width:1000px;             /* As IE ignores !important it will set width as 1000px; */
 }
