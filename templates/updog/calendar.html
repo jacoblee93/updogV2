@@ -124,52 +124,53 @@
               } else {
                 userhtml = '<strong>No friends.</strong>';
               };
-             
-                        $(".frandz").html(userhtml);
-                        for (var i = 0; i < fl; i++) {
-                          hover_stuff(real_data[i]);
-                        };
-                      } 
-                    });
-                  }
-                  else
-                  {
-                    $.ajax({
-                      type: "GET",
-                      url: "/calendar/find_friends/",
-                      data: {"search": name,
-                    },
-                    success: function(data) {
-                      if (data != "no friends") {
-                        users_returned = JSON.parse(data[0]);
-                        friend_status = data[1];
-                        userhtml = "";
-                        real_friends = [];
-                        if (users_returned.length > 0) {
-                          var l = users_returned.length;
 
-                          for (var i = 0; i < l; i++) {
-                            if (friend_status[i] == 1) {
-                              userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + users_returned[i].fields.username + '\')" id="friend_' + users_returned[i].fields.username + '"><div><img src="/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + users_returned[i].fields.first_name + ' ' + users_returned[i].fields.last_name + '</span></div></a>';
+              $(".frandz").html(userhtml);
+              for (var i = 0; i < fl; i++) {
+                hover_stuff(real_data[i]);
+              };
+            } 
+          });
+}
+else
+{
+  $.ajax({
+    type: "GET",
+    url: "/calendar/find_friends/",
+    data: {"search": name,
+  },
+  success: function(data) {
+    if (data != "no friends") {
+      users_returned = JSON.parse(data[0]);
+      friend_status = data[1];
+      userhtml = "";
+      real_friends = [];
+      if (users_returned.length > 0) {
+        var l = users_returned.length;
 
-                              real_friends.push(i);
-                            }
-                            else {
-                              userhtml = userhtml + '<div><a class="list-group-item"><img src="/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].fields.username + '"><button type="button" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
-                            }
-                          };
+        for (var i = 0; i < l; i++) {
+          if (friend_status[i] == 1) {
+            userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + users_returned[i].fields.username + '\')" id="friend_' + users_returned[i].fields.username + '"><div><img src="/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + users_returned[i].fields.first_name + ' ' + users_returned[i].fields.last_name + '</span></div></a>';
 
-                         $(".frandz").html(userhtml);
-                         rfl = real_friends.length;
-                         for (var i =  0; i < rfl; i++) {
-                          hover_stuff(users_returned[real_friends[i]]);
-                        };
-                      }
-                      else {
-                        $(".frandz").html('No friends found');
-                      }
-                    }
-                  });
+            real_friends.push(i);
+          }
+          else {
+            userhtml = userhtml + '<div><a class="list-group-item"><img src="/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"> ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].fields.username + '"><button type="button" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
+          }
+        };
+
+        $(".frandz").html(userhtml);
+        rfl = real_friends.length;
+        for (var i =  0; i < rfl; i++) {
+          hover_stuff(users_returned[real_friends[i]]);
+        };
+      }
+      else {
+        $(".frandz").html('No friends found');
+      }
+    }
+  }
+  });
 }
 return false;
 });
