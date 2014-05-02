@@ -59,6 +59,31 @@
     }
   }
 
+
+  function resolve_event_downtime_conflicts(downtimes) {
+    if (downtimes.length > 0) {
+      // downtimes is a list of downtimes and moved_event_or_downtime is an event
+      if (downtimes[0].model == "udCalendar.downtime") {
+        var new_downtimes = [];
+
+        for (var i = 0; i < downtimes.length; i++) {
+          if (downtimes[i].fields.start_time == downtimes[i].fields.end_time) {
+            $('#calendar').fullCalendar('removeEvents', -downtimes[i].pk);
+          }
+          else new_downtimes.push(downtimes[i]);
+        }
+        var updated_downtimes = make_events(new_downtimes, 'green', "{{ username }}", false, false);
+
+        for (var i = 0; i < new_downtimes.length; i++) {
+            $('#calendar').fullCalendar('removeEvents', -new_downtimes[i].pk);
+            $('#calendar').fullCalendar('rerenderEvents');
+            $('#calendar').fullCalendar('renderEvent', updated_downtimes[i], stick=true);
+          }
+        }
+        else alert("can't pass events to function resolve_event_downtime_conflicts!");
+    }
+  }
+
 </script>
 
 {% endblock %}
@@ -195,9 +220,10 @@ return false;
   </div>
 </div>
 
-    <script>
+  <script>
 
       function send_friend_request(new_friend, i) {
+        console.log("sending frined request")
         $.ajax({
           type: "POST",
           url: "/calendar/send_friend_request/",
@@ -214,18 +240,18 @@ return false;
               $("#div"+data2).text("friend request sent");
               $("#add-button"+new_friend).remove();
             }
+
           }
+      });
+    }
 
-        });
-      }
-
-      function get_friends(user) {
-        $.ajax({
-          type: "GET",
-          url: "/calendar/get_friends/",
-          data: {'user': user},
-          success: function(data) {
-            real_data = JSON.parse(data);
+    function get_friends(user) {
+      $.ajax({
+        type: "GET",
+        url: "/calendar/get_friends/",
+        data: {'user': user},
+        success: function(data) {
+          real_data = JSON.parse(data);
       // everything before this pulls friends
       fl = real_data.length
       userhtml = ''
@@ -325,19 +351,20 @@ function accept_friend_request(new_friend) {
         data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
         success: function(data) {
 
+
           var our_data = JSON.parse(data);
           var get_some_events = make_events(our_data, 'orange', obj, false, false);
           if (get_some_events) {
 
-            existing_events = $("#calendar").fullCalendar('clientEvents');
+        existing_events = $("#calendar").fullCalendar('clientEvents');
 
-            for (var i = 0; i < get_some_events.length; i++) {
-              var is_unique = true;
-              for (var j = 0; j < existing_events.length; j++) {
-                if (get_some_events[i].id == existing_events[j].id) {
-                  if (existing_events[j].owners[0] != "hover") {
-                    is_unique = false;
-                  }
+        for (var i = 0; i < get_some_events.length; i++) {
+          var is_unique = true;
+          for (var j = 0; j < existing_events.length; j++) {
+            if (get_some_events[i].id == existing_events[j].id) {
+              if (existing_events[j].owners[0] != "hover") {
+                is_unique = false;
+              }
                   // existing event owner is hover
                   else {
                     $('#calendar').fullCalendar('removeEvents', existing_events[j].id); // remove the one with 'hover' owner
@@ -417,7 +444,7 @@ function erase_events(obj) {
       })
 
       $('#calendar').fullCalendar('removeEvents', temp_event.id);
-}
+    }
 
   </script>
 
@@ -478,7 +505,8 @@ function erase_events(obj) {
             for (var i = 0; i < my_data.length; i++) {
               unique = true;
               for (var j = 0; j < existing_events.length; j++) {
-                if (existing_events[j].id == my_data[i].pk && ((my_data[i].model == "udCalendar.downtime" && existing_events[j].is_event == false) || (my_data[i].model == "udCalendar.event" && existing_events[j].is_event == true))) {
+
+                if ((existing_events[j].id == my_data[i].pk || existing_events[j].id == -my_data[i].pk) && ((my_data[i].model == "udCalendar.downtime" && existing_events[j].is_event == false) || (my_data[i].model == "udCalendar.event" && existing_events[j].is_event == true))) {
                   unique = false;
                 }
               }
@@ -523,16 +551,19 @@ header: {
   right: 'month,agendaWeek',
 },
 
-      selectable: {
-        month: false,
-        agenda: true
-      },
-      selecthelper: true,
+selectable: {
+  month: false,
+  agenda: true
+},
+selecthelper: true,
 
       editable: false, // TESTING IT OUT AS FALSE, DONT KILL ME FRANKLYN
       // set the default view to be the agendaWeek view
       defaultView: 'agendaWeek',
-      //events: downtimes_and_events,
+
+      // failed attempt at importing googlecal
+      //events: 'http://www.google.com/calendar/feeds/fdarnis%40princeton.edu/public/basic',
+
       allDaySlot: false,
       firstDay: date.getDay(),
       firstHour: 8,
@@ -847,7 +878,7 @@ header: {
           repeatingEvent.value = "Repeating Event!!!"
           var textRepeatingEvent = document.createTextNode("Repeating Event");
           repeatingEvent.appendChild(textRepeatingEvent);
-*/
+          */
           var repeating_text = document.createElement("span");
           repeating_text.innerHTML = varRepeatingEvent;
 
@@ -1029,16 +1060,16 @@ $dialog.append(del);
 
             if (repeating_event_length == -1) {
 
-            $.ajax({
-              type: "POST",
-              url: "/calendar/edit_event/",
-              data: {'activity': $('#activity_field').val(),
-              'location': $('#location_field').val(),
-              'pk': event.id,
-              'start_date': $('#txtStartDate').val(),
-              'end_date': $('#txtEndDate').val(),
-              'start_time': $('#txtStartTime').val(),
-              'end_time': $('#txtEndTime').val(),
+              $.ajax({
+                type: "POST",
+                url: "/calendar/edit_event/",
+                data: {'activity': $('#activity_field').val(),
+                'location': $('#location_field').val(),
+                'pk': event.id,
+                'start_date': $('#txtStartDate').val(),
+                'end_date': $('#txtEndDate').val(),
+                'start_time': $('#txtStartTime').val(),
+                'end_time': $('#txtEndTime').val(),
               // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
               'repeating_event_length': repeating_event_length
             },
@@ -1085,30 +1116,30 @@ $dialog.append(del);
 
                       },
                     })
-                prev_event = $('#calendar').fullCalendar('clientEvents', event.prev_repeated_event);
-                next_event = $('#calendar').fullCalendar('clientEvents', event.next_repeated_event);
+prev_event = $('#calendar').fullCalendar('clientEvents', event.prev_repeated_event);
+next_event = $('#calendar').fullCalendar('clientEvents', event.next_repeated_event);
 
 
 }
 else {
-        var edit_single_event = document.getElementById('EditThisEventOnly');
-        edit_single_event.onclick = function() {
-          $.ajax({
-            type: "POST",
-            url: "/calendar/edit_event/",
-            data: {"pk": event.id,
-            'activity': $('#activity_field').val(),
-            'location': $('#location_field').val(),
-            'pk': event.id,
-            'start_date': $('#txtStartDate').val(),
-            'end_date': $('#txtEndDate').val(),
-            'start_time': $('#txtStartTime').val(),
-            'end_time': $('#txtEndTime').val(),
+  var edit_single_event = document.getElementById('EditThisEventOnly');
+  edit_single_event.onclick = function() {
+    $.ajax({
+      type: "POST",
+      url: "/calendar/edit_event/",
+      data: {"pk": event.id,
+      'activity': $('#activity_field').val(),
+      'location': $('#location_field').val(),
+      'pk': event.id,
+      'start_date': $('#txtStartDate').val(),
+      'end_date': $('#txtEndDate').val(),
+      'start_time': $('#txtStartTime').val(),
+      'end_time': $('#txtEndTime').val(),
             // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
             'repeating_event_length': repeating_event_length
           },
-            success: function(data) {
-              
+          success: function(data) {
+
                         // data[0] now holds the event to add
                         var data = JSON.parse(data);
 
@@ -1159,29 +1190,29 @@ else {
 
                           $dialog.dialog('close');
                         }
-            },
-          })
-        };
+                      },
+                    })
+};
 
 
 
-        var edit_repeating_events = document.getElementById('EditRepeatingEvents');
-        edit_repeating_events.onclick = function() {
+var edit_repeating_events = document.getElementById('EditRepeatingEvents');
+edit_repeating_events.onclick = function() {
 
-          console.log("repeating_event_length = " + repeating_event_length);
+  console.log("repeating_event_length = " + repeating_event_length);
 
    //             repeating_event_length = 14;
-         console.log("Click edit repeating events!!!!!");
-            $.ajax({
-              type: "POST",
-              url: "/calendar/edit_repeating_events/",
-              data: {'activity': $('#activity_field').val(),
-              'location': $('#location_field').val(),
-              'pk': event.id,
-              'start_date': $('#txtStartDate').val(),
-              'end_date': $('#txtEndDate').val(),
-              'start_time': $('#txtStartTime').val(),
-              'end_time': $('#txtEndTime').val(),
+   console.log("Click edit repeating events!!!!!");
+   $.ajax({
+    type: "POST",
+    url: "/calendar/edit_repeating_events/",
+    data: {'activity': $('#activity_field').val(),
+    'location': $('#location_field').val(),
+    'pk': event.id,
+    'start_date': $('#txtStartDate').val(),
+    'end_date': $('#txtEndDate').val(),
+    'start_time': $('#txtStartTime').val(),
+    'end_time': $('#txtEndTime').val(),
               // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
               'repeating_event_length': repeating_event_length
             },
@@ -1263,14 +1294,14 @@ else {
 
   /*              prev_event = $('#calendar').fullCalendar('clientEvents', event.prev_repeated_event);
                 next_event = $('#calendar').fullCalendar('clientEvents', event.next_repeated_event);
-*/
+                */
 
 
       //   $dialog.dialog('close');
-       };
-       var cancel_edit_repeating_events = document.getElementById('CancelEditRepeatingEvents');
+    };
+    var cancel_edit_repeating_events = document.getElementById('CancelEditRepeatingEvents');
 
-};
+  };
 };
 
 
@@ -1430,7 +1461,7 @@ $dialog.dialog('open');
               // if the previous event has no previous event, it is no longer part
               // of a linked list of repeating events, so mark it as such
               if (prev_event[0].prev_repeated_event == -1) {
-                  prev_event[0].repeating_time_delta = -1;
+                prev_event[0].repeating_time_delta = -1;
               }
             }
           }
@@ -1440,7 +1471,7 @@ $dialog.dialog('open');
             // if the next event has no next event, it is no longer part of a
             // linked list of repeating events, so mark it as such
             if (next_event[0].next_repeated_event == -1) {
-                next_event[0].repeating_time_delta = -1;
+              next_event[0].repeating_time_delta = -1;
             }
           }
 
@@ -1451,16 +1482,16 @@ $dialog.dialog('open');
         var delete_repeating_events = document.getElementById('DeleteRepeatingEvents');
         delete_repeating_events.onclick = function() {
 //             repeating_event_length = 14;
-   console.log("Click delete repeating events!!!!!");
+console.log("Click delete repeating events!!!!!");
 
-   deleteRepeatingEventsFunction(event);
+deleteRepeatingEventsFunction(event);
 
 
 
-   $dialog.dialog('close');
- };
- var cancel_delete_repeating_events = document.getElementById('CancelDeleteRepeatingEvents');
- cancel_delete_repeating_events.onclick = function() {
+$dialog.dialog('close');
+};
+var cancel_delete_repeating_events = document.getElementById('CancelDeleteRepeatingEvents');
+cancel_delete_repeating_events.onclick = function() {
   console.log("Click cancel delete in repeating events!!!!!");
 
 
@@ -1607,7 +1638,7 @@ edit.onclick = function() {
   if (event.title != "{{username}} is free") {
 
     var nameLength = "{{username}}".length;
-    activity.setAttribute("value", event.title.substring(nameLength + 10, event.title.length));
+    activity.setAttribute("value", event.title.substring(nameLength + 25, event.title.length));
   }
 
           // span makes it so there's no newline at the end, while "br" would
@@ -1651,6 +1682,13 @@ edit.onclick = function() {
             $dialog.dialog('close');
           };
 
+          // this button will make an existing downtime into an event
+      /*    var make_downtime_event = document.createElement("button");
+          make_downtime_event.className = "btn btn-primary";
+          make_downtime_event.setAttribute*/
+
+
+
           var submit = document.createElement("button");
           submit.className = "btn btn-primary";
           submit.setAttribute('type',"submit");
@@ -1675,7 +1713,7 @@ edit.onclick = function() {
                 event.title = event.title.split(" ")[0] + ' is free';
               }
               else {
-                event.title = event.title.split(" ")[0] + ' wants to ' + $('#activity_field').val();
+                event.title = event.title.split(" ")[0] + "'s preferred activity: \n" + $('#activity_field').val();
               }
 
               $("#calendar").fullCalendar('renderEvent', event, stick=true);
@@ -1776,11 +1814,11 @@ var cancel = document.createElement("button");
         $dialog.append(suggest);
       }
     }
-    };
-  },
+  };
+},
   //  }
 //    },
-    eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
+eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
       // make sure a dropped event is no longer part of a linked list
       // of repeating events
       if (event.prev_repeated_event != -1) {
@@ -1791,46 +1829,55 @@ var cancel = document.createElement("button");
         next_event = $('#calendar').fullCalendar('clientEvents', event.next_repeated_event)[0];
         next_event.prev_repeated_event = event.prev_repeated_event;
       }
-      event.repeating_time_delta = -1
-      event.prev_repeated_event = -1
-      event.next_repeated_event = -1
+      event.repeating_time_delta = -1;
+      event.prev_repeated_event = -1;
+      event.next_repeated_event = -1;
 
       if (event.is_event) {
 
-    $.ajax({
-      type: "POST",
-      url: "/calendar/change_event/",
-      data: {"pk": event.id, 
-      "day_delta": dayDelta,
-      "minute_delta": minuteDelta,
-      "resize": "false",
-    },
-  });
-  }
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_event/",
+          data: {"pk": event.id, 
+          "day_delta": dayDelta,
+          "minute_delta": minuteDelta,
+          "resize": "false",
+        },
+        success: function(data) {
+          console.log(data);
 
-  else {
+          var parsed = JSON.parse(data);
+          resolve_event_downtime_conflicts(parsed);
 
-    $.ajax({
-      type: "POST",
-      url: "/calendar/change_downtime/",
-      data: {"pk": event.id, 
-      "day_delta": dayDelta,
-      "minute_delta": minuteDelta,
-      "resize": "false",
-    },
-    success: function(data) {
+          //console.log("event.id = " + event.id);
 
-      parsed = JSON.parse(data);
-      if (parsed.length > 1) {
-        event.start = parsed[0].fields.start_time;
-        event.end = parsed[0].fields.end_time;
-        $("#calendar").fullCalendar('renderEvent', event, stick=true);
-        for (var i = 0; i < parsed.length; i++) {
-          if (parsed[i].pk != -event.id && parsed[i].model == "udCalendar.downtime") {
-            $('#calendar').fullCalendar('removeEvents', -parsed[i].pk);
+
           }
-        }
+        });
       }
+      // if event is a downtime
+      else {
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_downtime/",
+          data: {"pk": event.id, 
+          "day_delta": dayDelta,
+          "minute_delta": minuteDelta,
+          "resize": "false",
+        },
+        success: function(data) {
+
+          parsed = JSON.parse(data);
+          if (parsed.length > 1) {
+            event.start = parsed[0].fields.start_time;
+            event.end = parsed[0].fields.end_time;
+            $("#calendar").fullCalendar('renderEvent', event, stick=true);
+            for (var i = 0; i < parsed.length; i++) {
+              if (parsed[i].pk != -event.id && parsed[i].model == "udCalendar.downtime") {
+                $('#calendar').fullCalendar('removeEvents', -parsed[i].pk);
+              }
+            }
+          }
           else {
             if (parsed.length == 1) {
               $('#calendar').fullCalendar('removeEvents', -parsed[0].pk); // changed to negative 11:20 pm
@@ -1838,10 +1885,67 @@ var cancel = document.createElement("button");
           }
           if (parsed.length != 0) {
             $('#calendar').fullCalendar('rerenderEvents'); 
-          }               
+          }
+
+
+          console.log("event.id = " + event.id);
+
+          if ($('#calendar').fullCalendar('clientEvents', event.id).length > 0) {
+            $.ajax({
+                type: "POST",
+                url: "/calendar/event_conflicts/",
+                data: {"pk": -event.id,
+                "day_delta": dayDelta,
+                "minute_delta": minuteDelta,
+                "resize": "false",
+              },
+              success: function(data) {
+                var parsed = JSON.parse(data);
+
+                console.log("parsed:");
+                console.log(parsed);
+
+                resolve_event_downtime_conflicts(parsed);
+
+               /* $('#calendar').fullCalendar('removeEvents', event.id);
+                $('#calendar').fullCalendar('rerenderEvents');*/
+              },
+            });
+
+
+/*
+
+          $.ajax({
+              type: "POST",
+              url: "/calendar/event_conflicts/",
+              data: {"pk": -event.id, 
+              "resize": "true",
+            },
+            success: function(data) {
+              console.log("HERE!!!!!!!!!!!")
+              var new_downtimes = JSON.parse(data);
+              console.log("new_downtimes = ");
+              console.log(new_downtimes);
+              resolve_event_downtime_conflicts(new_downtimes);
+            },
+          });
+
+*/
+
+
+
+
+
+
+
+
+
+
+          }
+
         },
       });
-}
+  }
 },
 eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
     var view = $('#calendar').fullCalendar('getView');
@@ -1860,20 +1964,23 @@ eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
       event.prev_repeated_event = -1
       event.next_repeated_event = -1
 
-  if (event.is_event) {
-    $.ajax({
-      type: "POST",
-      url: "/calendar/change_event/",
-      data: {"pk": event.id, 
-      "day_delta": dayDelta,
-      "minute_delta": minuteDelta,
-      "resize": "true",
-    },
-  });
-  }
+      if (event.is_event) {
+        $.ajax({
+          type: "POST",
+          url: "/calendar/change_event/",
+          data: {"pk": event.id, 
+          "day_delta": dayDelta,
+          "minute_delta": minuteDelta,
+          "resize": "true",
+        },
+        success: function(data) {
+          var parsed = JSON.parse(data);
+          resolve_event_downtime_conflicts(parsed);
+        }
+      });
+      }
 
-  else {
-
+      else {
     $.ajax({
       type: "POST",
       url: "/calendar/change_downtime/",
@@ -1905,9 +2012,21 @@ eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
         $('#calendar').fullCalendar('rerenderEvents'); 
       }
 
-    },
-  });
-  }
+          $.ajax({
+              type: "POST",
+              url: "/calendar/event_conflicts/",
+              data: {"pk": -event.id, 
+              "resize": "true",
+            },
+            success: function(data) {
+              console.log("HERE!!!!!!!!!!!")
+              var new_downtimes = JSON.parse(data);
+              resolve_event_downtime_conflicts(new_downtimes);
+            },
+          });
+        },        
+      });
+}
 
 
 }
@@ -1947,6 +2066,21 @@ select: function(startDate, endDate, allDay, jsEvent, view) {
         $("#calendar").fullCalendar('renderEvent', displayed_downtime[0], stick=true);
           }
         }
+        $.ajax({
+            type: "POST",
+            url: "/calendar/event_conflicts/",
+            data: {"pk": -displayed_downtime[0].id,
+            "resize": "true",
+          },
+          success: function(data) {
+            var parsed = JSON.parse(data);
+
+            console.log("parsed:");
+            console.log(parsed);
+
+            resolve_event_downtime_conflicts(parsed);
+          },
+        });
       },         
     })
   }
@@ -1964,7 +2098,7 @@ dayClick:function( date, allDay, jsEvent, view ) {
               {
                 title:'Add Event',
                 width: 500,
-                height: 200
+                height: 215
               }
               );
 
@@ -2120,34 +2254,159 @@ dayClick:function( date, allDay, jsEvent, view ) {
                 repeating_text.innerHTML = "<br/>Event does not repeat";
 
                 var repeatNone = document.getElementById('None');
+
+                // if we don't have a repeating event, these two values will be -1
+                var repeating_end = -1;
+                var repeating_end_text = -1;
+
+                function reset_dialog_without_end_repeating($dialog) {
+                    $dialog.dialog('close');
+                    $dialog.empty().append(activity_text);
+                    $dialog.append(activity);
+
+                    $dialog.append(location_text);
+                    $dialog.append(location);
+
+                    $dialog.append(date_text)
+                    $dialog.append(startDate);
+                    $dialog.append(startTime);
+
+                    $dialog.append(to_text);
+
+                    $dialog.append(endDate);
+                    $dialog.append(endTime);
+                    $dialog.append(newline);
+
+                    $dialog.append(repeatingEvent);
+
+                    $dialog.append(cancel);
+                    $dialog.append(submit);
+
+                    $dialog.append(repeating_text);
+
+                    $dialog.dialog('open');
+                }
+
                 repeatNone.onclick = function() {
                   repeating_text.innerHTML = "<br/>Event does not repeat";
                   repeating_event_length = -1;
                   console.log("Click None blah!!!!!");
+
+                  repeating_end = -1;
+                  repeating_end_text = -1;
+
+                  reset_dialog_without_end_repeating($dialog);
+
                 };
+
                 var repeatDay = document.getElementById('EveryDay');
                 repeatDay.onclick = function() {
-                  repeating_text.innerHTML = "<br/>Event repeats every day";
+                  repeating_text.innerHTML = "<br/>Event repeats every day: ";
                   repeating_event_length = 1;
                   console.log("Click every day blah!!!!!");
+
+                  if (repeating_end != 1) {
+                    // this input box allows user to specify how many times
+                    // their event will repeat
+                    repeating_end = document.createElement("input");
+                    repeating_end.setAttribute('type', "text");
+                    repeating_end.setAttribute('name', "repeating_end");
+                    repeating_end.setAttribute('id', 'repeating_end_field'); 
+                    repeating_end.setAttribute('size', '2');
+                    repeating_end.setAttribute('maxlength', '2');
+
+                    repeating_end_text = document.createElement("span");
+                    repeating_end_text.innerHTML = ' times';
+
+                    reset_dialog_without_end_repeating($dialog);
+
+                    $dialog.append(repeating_end);
+                    $dialog.append(repeating_end_text);
+
+                    repeating_end = 1;
+                  }
                 };
+
                 var repeatWeek = document.getElementById('EveryWeek');
                 repeatWeek.onclick = function() {
-                  repeating_text.innerHTML = "<br/>Event repeats every week";
+                  repeating_text.innerHTML = "<br/>Event repeats every week: ";
                   repeating_event_length = 7;
                   console.log("Click every week blah!!!!!");
+
+                  if (repeating_end != 1) {
+                    // this input box allows user to specify how many times
+                    // their event will repeat
+                    repeating_end = document.createElement("input");
+                    repeating_end.setAttribute('type', "text");
+                    repeating_end.setAttribute('name', "repeating_end");
+                    repeating_end.setAttribute('id', 'repeating_end_field'); 
+                    repeating_end.setAttribute('size', '2');
+                    repeating_end.setAttribute('maxlength', '2');
+
+                    repeating_end_text = document.createElement("span");
+                    repeating_end_text.innerHTML = ' times';
+
+                    reset_dialog_without_end_repeating($dialog);
+
+                    $dialog.append(repeating_end);
+                    $dialog.append(repeating_end_text);
+
+                    repeating_end = 1;
+                  }
                 };
                 var repeat2Weeks = document.getElementById('Every2Weeks');
                 repeat2Weeks.onclick = function() {
-                  repeating_text.innerHTML = "<br/>Event repeats every two weeks";
+                  repeating_text.innerHTML = "<br/>Event repeats every two weeks: ";
                   repeating_event_length = 14;
                   console.log("Click every 2 weeks blah!!!!!");
+
+                  if (repeating_end != 1) {
+                    // this input box allows user to specify how many times
+                    // their event will repeat
+                    repeating_end = document.createElement("input");
+                    repeating_end.setAttribute('type', "text");
+                    repeating_end.setAttribute('name', "repeating_end");
+                    repeating_end.setAttribute('id', 'repeating_end_field'); 
+                    repeating_end.setAttribute('size', '2');
+                    repeating_end.setAttribute('maxlength', '2');
+
+                    repeating_end_text = document.createElement("span");
+                    repeating_end_text.innerHTML = ' times';
+
+                    reset_dialog_without_end_repeating($dialog);
+
+                    $dialog.append(repeating_end);
+                    $dialog.append(repeating_end_text);
+
+                    repeating_end = 1;
+                  }
                 };
                 var repeat4Weeks = document.getElementById('Every4Weeks');
                 repeat4Weeks.onclick = function() {
-                  repeating_text.innerHTML = "<br/>Event repeats every four weeks";
+                  repeating_text.innerHTML = "<br/>Event repeats every four weeks: ";
                   repeating_event_length = 28;
                   console.log("Click every 4 weeks blah!!!!!");
+
+                  if (repeating_end != 1) {
+                    // this input box allows user to specify how many times
+                    // their event will repeat
+                    repeating_end = document.createElement("input");
+                    repeating_end.setAttribute('type', "text");
+                    repeating_end.setAttribute('name', "repeating_end");
+                    repeating_end.setAttribute('id', 'repeating_end_field'); 
+                    repeating_end.setAttribute('size', '2');
+                    repeating_end.setAttribute('maxlength', '2');
+
+                    repeating_end_text = document.createElement("span");
+                    repeating_end_text.innerHTML = ' times';
+
+                    reset_dialog_without_end_repeating($dialog);
+
+                    $dialog.append(repeating_end);
+                    $dialog.append(repeating_end_text);
+
+                    repeating_end = 1;
+                  }
                 };
 
                 $dialog.empty().append(activity_text);
@@ -2199,54 +2458,179 @@ dayClick:function( date, allDay, jsEvent, view ) {
                 submit.appendChild(textSubmit);
 
                 submit.onclick = function() {
-                  $.ajax({
-                    type: "POST",
-                    url: "/calendar/add_event/",
-                    data: {'activity': $('#activity_field').val(),
-                    'location': $('#location_field').val(),
-                    'start_date': $('#txtStartDate').val(),
-                    'end_date': $('#txtEndDate').val(),
-                    'start_time': $('#txtStartTime').val(),
-                    'end_time': $('#txtEndTime').val(),
-                    // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
-                    'repeating_event_length': repeating_event_length
-                  },
-                    // data is what the server returns
-                    success: function(data) {
+                  // if we don't have a repeating event
+                  if (!$('#repeating_end_field').val()) {
+                    var num_repeating_events = -1;
+                  }
+                  // if we have a repeating event
+                  else var num_repeating_events = $('#repeating_end_field').val();
+
+                  // if a "repeating event" doesn't actually repeat, make it a non-repeating event
+                  if (num_repeating_events == 1) {
+                    num_repeating_events = -1;
+                    repeating_event_length = -1;
+                  }
+
+
+
+
+                  console.log("num_repeating_events = " + num_repeating_events);
+
+
+                  if (num_repeating_events != -1) {
+                    if (!(num_repeating_events.match(/^([0-9])([0-9]?)$/))) {
+                      alert("Event must repeat an integer number of times!");
+                    }
+                  }
+
+             //   if (num_repeating_events != -1) {
+                  // can't have an event that repeats 0 times
+                  if (num_repeating_events == 0) {
+                          alert("Can't create an event that repeats 0 times!");
+                  }
+                  // the number of times repeating an event is incorrect
+                  else if (num_repeating_events > 15) {
+                    alert("Event must repeat 15 times or fewer!");
+                  }
+                  // if we have a valid input for number of repeating events
+                  else {
+
+                    $.ajax({
+                      type: "POST",
+                      url: "/calendar/add_event/",
+                      data: {'activity': $('#activity_field').val(),
+                      'location': $('#location_field').val(),
+                      'start_date': $('#txtStartDate').val(),
+                      'end_date': $('#txtEndDate').val(),
+                      'start_time': $('#txtStartTime').val(),
+                      'end_time': $('#txtEndTime').val(),
+                      // if this is -1, then we don't have a repeating length, otherwise its value is the number of days between repeated events
+                      'repeating_event_length': repeating_event_length,
+                      // if this is -1, then we don't have a repeating event, otherwise its value is the number of times an event repeats
+                      'num_repeating_events': num_repeating_events,
+                    },
+                      // data is what the server returns
+                      success: function(data) {
                         // data[0] now holds the event to add
                         var data = JSON.parse(data);
+                        console.log("number repeats = " + num_repeating_events);
 
-                        // get the day, month, and year for the start and end dates
-                        var start_year = data[0].fields.start_time.substring(0,4);
-                        var start_month = data[0].fields.start_time.substring(5,7);
-                        var start_day = data[0].fields.start_time.substring(8,10);
-                        var start_hour = data[0].fields.start_time.substring(11,13);
-                        var start_minute = data[0].fields.start_time.substring(14,16);
-                        var start_second = data[0].fields.start_time.substring(17,19);
+                        // this event exists num_repeating_events times
+                        if (num_repeating_events != -1) {
+                            // get the day, month, and year for the start and end dates
+                            var start_year = data[0].fields.start_time.substring(0,4);
+                            var start_month = data[0].fields.start_time.substring(5,7);
+                            var start_day = data[0].fields.start_time.substring(8,10);
+                            var start_hour = data[0].fields.start_time.substring(11,13);
+                            var start_minute = data[0].fields.start_time.substring(14,16);
+                            var start_second = data[0].fields.start_time.substring(17,19);
 
-                        var end_year = data[0].fields.end_time.substring(0,4);
-                        var end_month = data[0].fields.end_time.substring(5,7);
-                        var end_day = data[0].fields.end_time.substring(8, 10);
-                        var end_hour = data[0].fields.end_time.substring(11,13);
-                        var end_minute = data[0].fields.end_time.substring(14,16);
-                        var end_second = data[0].fields.end_time.substring(17,19);
+                            var end_year = data[0].fields.end_time.substring(0,4);
+                            var end_month = data[0].fields.end_time.substring(5,7);
+                            var end_day = data[0].fields.end_time.substring(8, 10);
+                            var end_hour = data[0].fields.end_time.substring(11,13);
+                            var end_minute = data[0].fields.end_time.substring(14,16);
+                            var end_second = data[0].fields.end_time.substring(17,19);
 
-                        var firstDate = new Date(start_year, start_month, start_day, start_hour, start_minute, start_second, 0);
-                        var secondDate = new Date(end_year, end_month, end_day, end_hour, end_minute, end_second, 0);
+                            var firstDate = new Date(start_year, start_month, start_day, start_hour, start_minute, start_second, 0);
+                            var secondDate = new Date(end_year, end_month, end_day, end_hour, end_minute, end_second, 0);
 
-                        // don't add the event if the dates aren't chronological
-                        if (firstDate >= secondDate) {
-                          alert("Your event's start date must occur before its end date.");
-                        }
-                        else {
-                          for (var i = 0; i < data.length; i++) {
-                            var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
-                            $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
+                            // don't add the event if the dates aren't chronological
+                            if (firstDate >= secondDate) {
+                              alert("Your event's start date must occur before its end date.");
+                            }
+                            else {
+                              for (var i = 0; i < data.length; i++) {
+                                var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
+                                $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
+
+                        // call change_event to resolve any conflicts with downtimes that might now exist with added_event now that it's been added
+                        $.ajax({
+                              type: "POST",
+                              url: "/calendar/resolve_repeating_conflicts/",
+                              data: {"pk": added_event.id, 
+                              // day_delta and minute_delta are 0 because we are not actually changing the added event
+                              "day_delta": 0,
+                              "minute_delta": 0,
+                              "resize": "false",
+                            },
+                            success: function(data) {
+                              console.log(data);
+
+                              var parsed = JSON.parse(data);
+                              resolve_event_downtime_conflicts(parsed);
+
+                              //console.log("event.id = " + event.id);
+
+
                           }
-                          $dialog.dialog('close');
+                        });
+                              }
+                              $dialog.dialog('close');
+                            }
+
                         }
+                        // we don't have a repeating event
+                        else {
+                            // get the day, month, and year for the start and end dates
+                            var start_year = data[0].fields.start_time.substring(0,4);
+                            var start_month = data[0].fields.start_time.substring(5,7);
+                            var start_day = data[0].fields.start_time.substring(8,10);
+                            var start_hour = data[0].fields.start_time.substring(11,13);
+                            var start_minute = data[0].fields.start_time.substring(14,16);
+                            var start_second = data[0].fields.start_time.substring(17,19);
+
+                            var end_year = data[0].fields.end_time.substring(0,4);
+                            var end_month = data[0].fields.end_time.substring(5,7);
+                            var end_day = data[0].fields.end_time.substring(8, 10);
+                            var end_hour = data[0].fields.end_time.substring(11,13);
+                            var end_minute = data[0].fields.end_time.substring(14,16);
+                            var end_second = data[0].fields.end_time.substring(17,19);
+
+                            var firstDate = new Date(start_year, start_month, start_day, start_hour, start_minute, start_second, 0);
+                            var secondDate = new Date(end_year, end_month, end_day, end_hour, end_minute, end_second, 0);
+
+                            // don't add the event if the dates aren't chronological
+                            if (firstDate >= secondDate) {
+                              alert("Your event's start date must occur before its end date.");
+                            }
+                            else {
+                              for (var i = 0; i < data.length; i++) {
+                                var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
+                                $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
+                              }
+                              $dialog.dialog('close');
+                            }
+                        }
+                        // call change_event to resolve any conflicts with downtimes that might now exist with added_event now that it's been added
+                        $.ajax({
+                              type: "POST",
+                              url: "/calendar/change_event/",
+                              data: {"pk": added_event.id, 
+                              // day_delta and minute_delta are 0 because we are not actually changing the added event
+                              "day_delta": 0,
+                              "minute_delta": 0,
+                              "resize": "false",
+                            },
+                            success: function(data) {
+                              console.log(data);
+
+                              var parsed = JSON.parse(data);
+                              resolve_event_downtime_conflicts(parsed);
+
+                              //console.log("event.id = " + event.id);
+
+
+                          }
+                        });
+
+
+
+
+
                       },
                     });
+                  }
 };
 $dialog.append(cancel);
 $dialog.append(submit);
@@ -2266,7 +2650,7 @@ $dialog.dialog('open');
         },
       }
       
-    );
+      );
 });
 
 
@@ -2298,28 +2682,23 @@ $dialog.dialog('open');
     margin-left: 40%;
   }
 </style>
-
-
-<!-- button to drop down modal window
-  <button class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-sm">Smal apsodifj</button>-->
-
-  <!-- repeating events modal window -->
-  <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header modal-sm">
-         <!--       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>-->
-         <h4 class="modal-title">Repeating Event</h4>
-       </div>
-       <div class="modal-body">
-        <!--      <p>One fine body&hellip;</p>-->
-        <div class="btn-group-vertical">
-          <button type="button" onclick="varRepeatingEvent=clickedNone()" class="btn btn-default" data-dismiss="modal" id="None">None</button>
-          <button type="button" onclick="varRepeatingEvent=clickedEveryDay()" class="btn btn-default" data-dismiss="modal" id="EveryDay">Every Day</button>
-          <button type="button" onclick="varRepeatingEvent=clickedEveryWeek()" class="btn btn-default" data-dismiss="modal" id="EveryWeek">Every Week</button>
-          <button type="button" onclick="varRepeatingEvent=clickedEvery2Weeks()" class="btn btn-default" data-dismiss="modal" id="Every2Weeks">Every 2 Weeks</button>
-          <button type="button" onclick="varRepeatingEvent=clickedEvery4Weeks()" class="btn btn-default" data-dismiss="modal" id="Every4Weeks">Every 4 Weeks</button>
-        </div>
+<!-- repeating events modal window -->
+<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modal-sm">
+       <!--       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>-->
+       <h4 class="modal-title">Repeating Event</h4>
+     </div>
+     <div class="modal-body">
+      <!--      <p>One fine body&hellip;</p>-->
+      <div class="btn-group-vertical">
+        <button type="button" onclick="varRepeatingEvent=clickedNone()" class="btn btn-default" data-dismiss="modal" id="None">None</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEveryDay()" class="btn btn-default" data-dismiss="modal" id="EveryDay">Every Day</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEveryWeek()" class="btn btn-default" data-dismiss="modal" id="EveryWeek">Every Week</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEvery2Weeks()" class="btn btn-default" data-dismiss="modal" id="Every2Weeks">Every 2 Weeks</button>
+        <button type="button" onclick="varRepeatingEvent=clickedEvery4Weeks()" class="btn btn-default" data-dismiss="modal" id="Every4Weeks">Every 4 Weeks</button>
+      </div>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -2533,9 +2912,6 @@ function invite(user, user_firstname, user_lastname, event_id) {
 </script>
 </div>
 
-<!-- button to drop down modal window -->
-<!--<button class="btn btn-primary" data-toggle="modal" data-target=".bs-delete-repeating-events">Smal apsodifj</button>-->
-
 <!-- do you want to delete this event only or all repeating events? modal dropdown -->
 <div class="modal fade bs-delete-repeating-events" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -2576,41 +2952,5 @@ function invite(user, user_firstname, user_lastname, event_id) {
     overflow: scroll;
   }
 </style>
-<!--
-<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content">
-      
 
-    </div>
-  </div>
-</div>-->
-
-
-<!--
-<script>
-
-  $(document).ready(function() {
-     /* $(function() {
-          $('input.timepicker').timepicker();
-
-
-          
-      });*/
-      $('#timepicker3').timepicker({
-     //   template: 'dropdown',
-     //   modalBackdrop: 'true',
-        minuteStep: 5,
-        showInputs: true,
-        disableFocus: true
-      });
-  });
-</script>
-
-<div class="bootstrap-timepicker pull-right">
-            <input id="timepicker3" type="text" class="input-small">
-          </div>-->
-
-        </div>
-
-        {% endblock %}
+{% endblock %}
