@@ -41,31 +41,23 @@
        $(".collapse").toggle('in');
      });
    }
+});
+  </script>
 
-  function resolve_event_downtime_conflicts(downtimes) {
-    if (downtimes.length > 0) {
-      // downtimes is a list of downtimes and moved_event_or_downtime is an event
-      if (downtimes[0].model == "udCalendar.downtime") {
-        var new_downtimes = [];
+  {% block above_calendar_block %}
+  {% endblock %}
 
-        for (var i = 0; i < downtimes.length; i++) {
-          if (downtimes[i].fields.start_time == downtimes[i].fields.end_time) {
-            $('#calendar').fullCalendar('removeEvents', -downtimes[i].pk);
-          }
-          else new_downtimes.push(downtimes[i]);
-        }
-        var updated_downtimes = make_events(new_downtimes, 'green', "{{ username }}", false, false);
+  {% block calendar_block %}
+  {% endblock %}
 
-        for (var i = 0; i < new_downtimes.length; i++) {
-            $('#calendar').fullCalendar('removeEvents', -new_downtimes[i].pk);
-            $('#calendar').fullCalendar('rerenderEvents');
-            $('#calendar').fullCalendar('renderEvent', updated_downtimes[i], stick=true);
-          }
-        }
-        else alert("can't pass events to function resolve_event_downtime_conflicts!");
-    }
+  <style>
+  div#scroll-able-nots {
+    height: 300px;
+    overflow: scroll;
   }
+  </style>
 
+  <script>
 function resolve_event_downtime_conflicts(downtimes) {
     if (downtimes.length > 0) {
       // downtimes is a list of downtimes and moved_event_or_downtime is an event
@@ -89,23 +81,6 @@ function resolve_event_downtime_conflicts(downtimes) {
         else alert("can't pass events to function resolve_event_downtime_conflicts!");
     }
   }
-
-  </script>
-
-  {% block above_calendar_block %}
-  {% endblock %}
-
-  {% block calendar_block %}
-  {% endblock %}
-
-  <style>
-  div#scroll-able-nots {
-    height: 300px;
-    overflow: scroll;
-  }
-  </style>
-
-  <script>
 
   function display_friend_requests() {
     var ret = 0;
@@ -332,6 +307,7 @@ function reject_friend_request(new_friend) {
   });
 }
 
+
 </script>
 
 <div class="bs-example bs-navbar-top-example">
@@ -382,7 +358,6 @@ function reject_friend_request(new_friend) {
       </ul>
       <ul class="nav navbar-nav navbar-right"> 
         {% if user.is_authenticated %}
-        <li><a href="#preferences">Preferences</a></li>
         <li><a href="/calendar/logout_user/">Logout</a></li>
         {% else %}
         <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>

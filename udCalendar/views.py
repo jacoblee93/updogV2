@@ -52,7 +52,7 @@ def calendar(request):
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
-    comment = """current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
+    current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[5])
 
@@ -71,7 +71,8 @@ def calendar(request):
     test_from_friendship3.is_mutual = True
     test_to_friendship3.is_new = False
     test_from_friendship3.is_new = False
-    test_to_friendship3.save()"""
+    test_to_friendship3.save()
+    test_from_friendship3.save()
 
     #test_to_friendship2 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
     #test_from_friendship2 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
@@ -113,8 +114,8 @@ def calendar(request):
     #test_to_request.save()
     #current_user.save()
 
-    test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=False)
-    test_notif.save()
+    #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=False)
+    #test_notif.save()
 
     #test_notif2 = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[3], event=Event.objects.all()[0], is_reply=False)
     #test_notif2.save()
@@ -1398,7 +1399,7 @@ def suggest(request):
 
                         options = []
                         while len(my_friends_ord) > 0:
-                            maxscore = len(my_friends_ord)-1
+                            maxscore = len(my_friends_ord)
                             amigo = my_friends_ord[int(minscore+(maxscore-minscore)*random.random()**2)].to_user
                             options = amigo.downtime_set.filter(start_time__gte=my_dt.start_time, 
                                 start_time__lte=my_dt.end_time) | amigo.downtime_set.filter(end_time__gte=my_dt.start_time,
