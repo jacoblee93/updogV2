@@ -5,3 +5,8 @@ body{
    width: auto !important;  /* Firefox will set width as auto */
    width:100px;             /* As IE ignores !important it will set width as 1000px; */
 }
+
+.container {
+
+	max-height: 1vh;
+}
