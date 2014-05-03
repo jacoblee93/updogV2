@@ -54,31 +54,6 @@
     }
   }
 
-
-  function resolve_event_downtime_conflicts(downtimes) {
-    if (downtimes.length > 0) {
-      // downtimes is a list of downtimes and moved_event_or_downtime is an event
-      if (downtimes[0].model == "udCalendar.downtime") {
-        var new_downtimes = [];
-
-        for (var i = 0; i < downtimes.length; i++) {
-          if (downtimes[i].fields.start_time == downtimes[i].fields.end_time) {
-            $('#calendar').fullCalendar('removeEvents', -downtimes[i].pk);
-          }
-          else new_downtimes.push(downtimes[i]);
-        }
-        var updated_downtimes = make_events(new_downtimes, 'green', "{{ username }}", false, false);
-
-        for (var i = 0; i < new_downtimes.length; i++) {
-          $('#calendar').fullCalendar('removeEvents', -new_downtimes[i].pk);
-          $('#calendar').fullCalendar('rerenderEvents');
-          $('#calendar').fullCalendar('renderEvent', updated_downtimes[i], stick=true);
-        }
-      }
-      else alert("can't pass events to function resolve_event_downtime_conflicts!");
-    }
-  }
-
 </script>
 
 {% endblock %}
@@ -546,12 +521,12 @@ function erase_events(obj) {
   <div>
     <script>
     // This function converts a Date object, date, into a time of the form: 2:00 PM or 11:00 AM
-    function getTime(date) {
+    /*function getTime(date) {
       var local_time = date.toLocaleTimeString()
       var lt_length = local_time.length;
 
       return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
-    } 
+    } */
     $(document).ready(function() {
 
       $("#search-friends").width($("#friend-form").width() - 31);
@@ -658,9 +633,6 @@ selecthelper: true,
       editable: false, // TESTING IT OUT AS FALSE, DONT KILL ME FRANKLYN
       // set the default view to be the agendaWeek view
       defaultView: 'agendaWeek',
-
-      // failed attempt at importing googlecal
-      //events: 'http://www.google.com/calendar/feeds/fdarnis%40princeton.edu/public/basic',
 
       allDaySlot: false,
       firstDay: date.getDay(),
@@ -1452,7 +1424,7 @@ $dialog.dialog('open');
       $dialog.dialog('close');
     ///////      }
   };
-
+//console.log(event.start);
   $($dialog).empty().append(
     $('<p />').text(event.start.toDateString())
     );
@@ -1496,8 +1468,8 @@ $dialog.dialog('open');
       invite_text = invite_text + ", " + invite_list[k].fields.first_name + " " + invite_list[k].fields.last_name;
     }
     $($dialog).append(
-      $('<p />').text("Invited: Me" + invite_text)
-      );
+      $('<p />').text("Invited: " + invite_text.substring(2, invite_text.length))
+    );
   }
   else {
     $($dialog).append(
@@ -1647,76 +1619,106 @@ cancel_delete_repeating_events.onclick = function() {
           suggest.setAttribute('type', "submit");
           suggest.setAttribute('value', "Suggest");
           suggest.onclick = function() {
-            $.ajax({
+
+                  $.ajax({
               type: "GET",
               url: "/calendar/suggest/",
-              data: {'pk': event.id},
+              data: {},
               success: function(data) {
+
             // Make the unconfirmed event show up in your calendar
             if (data === "None") {
-              alert("You have no upcoming downtimes.")
+            bootbox.alert("You have no upcoming downtimes.")
+          }
+          else {
+            if (data == "NoFriends") {
+              bootbox.alert("You have no friends.")
             }
             else {
-              if (data == "NoFriends") {
-                alert("You have no friends.")
+              if (data == "NoMatch") {
+                bootbox.alert("No free times align")
               }
               else {
-                if (data == "NoMatch") {
-                  alert("No free times align")
-                }
-                else {
-                  var r = confirm("Send Request?");
-                  // if user clicked Okay:
-                  if (r == true) {
-                    // send the other user a request:
-                    //************** SEND EVENT NOTIFICATION *******************//
-                    var alldata = JSON.parse(data);
-                    console.log(alldata);
-                    mydata = [];
-                    var friends = [];
-                    for (var i = 0; i < alldata.length; i++) {
-                      if (alldata[i].model == "udCalendar.updoguser") {
-                        friends.push(alldata[i].pk);
-                      }
-
-                      else {
-                        mydata.push(alldata[i]);
-                      }
+                var alldata = JSON.parse(data);
+                
+                  mydata = [];
+                  var index;
+                  var friends = [];
+                  for (var i = 0; i < alldata.length; i++) {
+                    if (alldata[i].model == "auth.user") {
+                      friends.push(alldata[i].fields.username);
+                      index = i;
                     }
-                    $.ajax({
-                      type: "POST",
-                      url: "/calendar/send_event_notifications/",
-                      data: {
-                        "event": mydata[0].pk,
-                        "to_users": JSON.stringify(friends),
-                        "data_type": "pk",
-                      },
-                      success: function(data) {
 
-                        console.log(data);
-                      }
-                    });
+                    else {
+                      mydata.push(alldata[i]);
+                    }
+                }
+                var start_d = new Date(mydata[0].fields.start_time);
+                var end_d = new Date(mydata[0].fields.end_time)
+                var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
+                var date_string = start_d.toDateString();
 
-                    //************** SEND EVENT NOTIFICATION *******************//
 
-                    // display the unconfirmed event on the initiator's calendar
-                    var unconf = make_events(mydata, 'orange', '{{ username }}', false, true);
-                    $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+                bootbox.confirm("Hangout with " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " on " + date_string + " from " + time_string + "?", function (request) {
+                  if (request) {                                 
+
+                  // send the other user a request:
+                  //************** SEND EVENT NOTIFICATION *******************//
+
+                  $.ajax({
+                    type: "POST",
+                    url: "/calendar/send_event_notifications/",
+                    data: {
+                      "event": mydata[0].pk,
+                      "to_users": JSON.stringify(friends),
+                      "data_type": "username",
+                    },
+                    success: function(data) {
+                      console.log(data);
+                    }
+                  });
+
+                  //************** SEND EVENT NOTIFICATION *******************//
+
+                  // display the unconfirmed event on the initiator's calendar
+
+                  var unconf = make_events(mydata, 'blue', '{{ username }}', false, true);
+
+                  $.ajax({
+                    type: "POST",
+                    url: "/calendar/change_event/",
+                    data: {"pk": unconf[0].id, "day_delta": 0, "minute_delta": 0, "resize": false,},
+                    success: function(data) {
+                      var parsed = JSON.parse(data);
+                      resolve_event_downtime_conflicts(parsed);
+                    }
+
+
+
+
+                  });
+
+
+                  $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+
                   }
-                  // if user clicked Cancel:
                   else {
-                    // remove the unconfirmed event from the back end
-                    $.ajax({
+                  // remove the unconfirmed event from the back end
+                  $.ajax({
                       type: "POST",
                       url: "/calendar/remove_event/",
                       data: {"pk": JSON.parse(data)[0].pk},
                     });
+
                   }
+                });
                 }
               }
             }
           }
         });
+            
 $dialog.dialog('close');
 };
 
@@ -1745,34 +1747,11 @@ edit.onclick = function() {
     activity.setAttribute("value", event.title.substring(nameLength + 25, event.title.length));
   }
 
-          // span makes it so there's no newline at the end, while "br" would
-          // include the newline
-          start_text = document.createElement("span");
-          // &nbsp is a non-breaking whitespace character
-          start_text.innerHTML = '<br/>Start Time: &nbsp&nbsp&nbsp&nbsp&nbsp';
-          // input box
-          var start_time = document.createElement("input");
-          // you are typing text into the box
-          start_time.setAttribute('type', "text");
-          // can reference this by using "start_time"
-          start_time.setAttribute('name', "start_time");
-          start_time.setAttribute('id', 'st_field');
-          end_text = document.createElement("span");
-          end_text.innerHTML = '<br/>End Time: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
-          var end_time = document.createElement("input");
-          end_time.setAttribute('type', "test");
-          end_time.setAttribute('name', "end_time");
-          end_time.setAttribute('id', 'et_field');
-
           var newline = document.createElement("span");
           newline.innerHTML = '<br/>';
 
           $dialog.empty().append(activity_text);
           $dialog.append(activity);
-          $dialog.append(start_text);
-          $dialog.append(start_time);
-          $dialog.append(end_text);
-          $dialog.append(end_time);
           $dialog.append(newline);
 
           var cancel = document.createElement("button");
@@ -1948,7 +1927,6 @@ eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
           "resize": "false",
         },
         success: function(data) {
-          console.log(data);
 
           var parsed = JSON.parse(data);
           resolve_event_downtime_conflicts(parsed);
@@ -1996,20 +1974,16 @@ eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
 
           if ($('#calendar').fullCalendar('clientEvents', event.id).length > 0) {
             $.ajax({
-              type: "POST",
-              url: "/calendar/event_conflicts/",
-              data: {"pk": -event.id,
-              "day_delta": dayDelta,
-              "minute_delta": minuteDelta,
-              "resize": "false",
-            },
-            success: function(data) {
-              var parsed = JSON.parse(data);
-
-              console.log("parsed:");
-              console.log(parsed);
-
-              resolve_event_downtime_conflicts(parsed);
+                type: "POST",
+                url: "/calendar/event_conflicts/",
+                data: {"pk": -event.id,
+                "day_delta": dayDelta,
+                "minute_delta": minuteDelta,
+                "resize": "false",
+              },
+              success: function(data) {
+                var parsed = JSON.parse(data);
+                resolve_event_downtime_conflicts(parsed);
 
                /* $('#calendar').fullCalendar('removeEvents', event.id);
                $('#calendar').fullCalendar('rerenderEvents');*/
@@ -2116,20 +2090,19 @@ eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
         $('#calendar').fullCalendar('rerenderEvents'); 
       }
 
-      $.ajax({
-        type: "POST",
-        url: "/calendar/event_conflicts/",
-        data: {"pk": -event.id, 
-        "resize": "true",
-      },
-      success: function(data) {
-        console.log("HERE!!!!!!!!!!!")
-        var new_downtimes = JSON.parse(data);
-        resolve_event_downtime_conflicts(new_downtimes);
-      },
-    });
-    },        
-  });
+          $.ajax({
+              type: "POST",
+              url: "/calendar/event_conflicts/",
+              data: {"pk": -event.id, 
+              "resize": "true",
+            },
+            success: function(data) {
+              var new_downtimes = JSON.parse(data);
+              resolve_event_downtime_conflicts(new_downtimes);
+            },
+          });
+        },        
+      });
 }
 
 
@@ -2502,7 +2475,7 @@ dayClick:function( date, allDay, jsEvent, view ) {
                     repeating_end.setAttribute('maxlength', '2');
 
                     repeating_end_text = document.createElement("span");
-                    repeating_end_text.innerHTML = ' times';
+                    repeating_end_text.innerHTML = ' time(s)';
 
                     reset_dialog_without_end_repeating($dialog);
 
@@ -2648,30 +2621,29 @@ dayClick:function( date, allDay, jsEvent, view ) {
                                 var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
                                 $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
 
-                        // call change_event to resolve any conflicts with downtimes that might now exist with added_event now that it's been added
-                        $.ajax({
-                          type: "POST",
-                          url: "/calendar/resolve_repeating_conflicts/",
-                          data: {"pk": added_event.id, 
-                              // day_delta and minute_delta are 0 because we are not actually changing the added event
-                              "day_delta": 0,
-                              "minute_delta": 0,
-                              "resize": "false",
-                            },
-                            success: function(data) {
-                              console.log(data);
+                                // call change_event to resolve any conflicts with downtimes that might now exist with added_event now that it's been added
+                                $.ajax({
+                                      type: "POST",
+                                      url: "/calendar/resolve_repeating_conflicts/",
+                                      data: {"pk": added_event.id, 
+                                      // day_delta and minute_delta are 0 because we are not actually changing the added event
+                                      "day_delta": 0,
+                                      "minute_delta": 0,
+                                      "resize": "false",
+                                    },
+                                    success: function(data) {
+                                      console.log(data);
 
-                              var parsed = JSON.parse(data);
-                              resolve_event_downtime_conflicts(parsed);
+                                      var parsed = JSON.parse(data);
+                                      resolve_event_downtime_conflicts(parsed);
 
-                              //console.log("event.id = " + event.id);
+                                      //console.log("event.id = " + event.id);
 
-
+                                  }
+                                });
+                              }
+                              $dialog.dialog('close');
                             }
-                          });
-                      }
-                      $dialog.dialog('close');
-                    }
 
                   }
                         // we don't have a repeating event
@@ -2828,7 +2800,6 @@ $dialog.dialog('open');
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header modal-sm">
-       <!--       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>-->
        <h4 class="modal-title">Schedule An Event</h4>
      </div>
      <div class="modal-body">
@@ -2855,7 +2826,6 @@ $dialog.dialog('open');
     <div class="modal-footer">
       <button type="button" class="btn btn-default" data-dismiss="modal" onclick="invite_cancel()">Cancel</button>
       <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="send_invite()">Invite!</button>
-      <!--<button type="button" class="btn btn-primary">Done</button>-->
     </div>
   </div><!-- /.modal-content -->
 </div><!-- /.modal-dialog -->
@@ -2985,6 +2955,7 @@ return false;
 function invite(user, user_firstname, user_lastname, event_id) {
     // delete sonia from above in search
     $("#sch_" + user).remove();
+    $("#schedule-search").val("");
     // add sonia below
     addedhtml = "";
     addedhtml = addedhtml + '<div id="added_' + user + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + user + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + user_firstname + ' ' + user_lastname + '<div style="float:right"><button type="button" onclick="uninvite(\'' + user + '\', \'' + user_firstname + '\', \'' + user_lastname+ '\', \'' + event_id + '\' )">Uninvite</button></div></a></div>';
@@ -3011,6 +2982,9 @@ function invite(user, user_firstname, user_lastname, event_id) {
   function invite_cancel() {
     var event_id = $('.party-button').attr("event");
     var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
+    $("#schedule-search").val("");
+
+    $("div:regex(id, .*sch_.*)").remove();
     event_obj.invitelist = [];
   }
 
@@ -3052,18 +3026,14 @@ function invite(user, user_firstname, user_lastname, event_id) {
           }
         }
       }
-
-
-
-
     }
   }
 
-  else {
-    alert("You have invited no friends!");
-  }
-    //$dialog.dialog('close');
-    //console.log("send teh einvite");
+ else {
+  alert("You have invited no friends!");
+}
+          $("#schedule-search").val("");
+      $("div:regex(id, .*sch_.*)").remove();
 
   }
 

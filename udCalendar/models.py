@@ -109,7 +109,6 @@ class Event(models.Model):
     end_time = models.DateTimeField()
     activity = models.CharField(max_length=100, null=True, blank=True)
     location = models.CharField(max_length=100, null=True, blank=True)
-    is_confirmed = models.BooleanField(default=True)
     # if this value is -1, then we don't have a repeating event.  Otherwise,
     # this float value will be the number of days between repeating events.
     repeating_time_delta = models.FloatField(default=-1)
