@@ -31,7 +31,6 @@ def populate():
     dt4 = add_downtime(ud4, datetime(2014, 4, 21, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 21, 8, 30, 0, tzinfo=utc))
     dt5 = add_downtime(ud5, datetime(2014, 4, 20, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 20, 8, 30, 0, tzinfo=utc))
 
-
     ev1 = add_event(datetime(2014, 5, 6, 12, 0, 0, tzinfo=utc), datetime(2014, 5, 6, 21, 30, 0, tzinfo=utc), [ud1, ud5, ud3],"Frist","Late Meal")
     ev2 = add_event(datetime(2014, 4, 7, 4, 30, 0, tzinfo=utc), datetime(2014, 4, 7, 7, 0, 0, tzinfo=utc), [ud1, ud2],"McCosh Basement","UpDog Meeting")
     ev3 = add_event(datetime(2014, 4, 8, 4, 30, 0, tzinfo=utc), datetime(2014, 4, 8, 7, 0, 0, tzinfo=utc), [ud5],"Princeton","Classes")
