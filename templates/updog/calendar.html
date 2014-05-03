@@ -570,7 +570,7 @@ selecthelper: true,
       contentHeight:window.innerHeight - 200,
       windowResize: function(view) {
 
-        $('#calendar').fullCalendar('option', 'contentHeight', window.innerHeight);
+        $('#calendar').fullCalendar('option', 'contentHeight', window.innerHeight - 200);
       },
 
       // Use below if you want something to happen after
