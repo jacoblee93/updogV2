@@ -567,7 +567,7 @@ selecthelper: true,
       firstHour: 8,
       // makes calendar fit on screen
       height: 510,
-      contentHeight:600,
+      contentHeight:window.innerHeight - 50,
       windowResize: function(view) {
 
         $('#calendar').fullCalendar('option', 'contentHeight', window.innerHeight);
