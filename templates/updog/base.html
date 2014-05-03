@@ -420,6 +420,51 @@ function make_events(data, color, owner, hover, is_event) {
         for (var i = 0; i < dlength; i++) {
           var single = new Object();
           single.color = color;
+
+          single.start = data[i].fields.start_time;
+          single.end = data[i].fields.end_time;
+          single.allDay = false;
+          if (is_event) {
+            single.id = data[i].pk;
+          }
+          else {
+            single.id = -data[i].pk;
+          }
+
+          var able = false;
+          single.owners = [];
+          name = "";
+          $.ajax({
+            type: "GET",
+            url: "/calendar/get_event_owners/",
+            async: false,
+            data: {
+              "pk": single.id,
+              "type": is_event,
+            },
+            success: function(data) {
+              var my_data = JSON.parse(data);
+              if (my_data.length > 0) {
+                name = my_data[0].fields.first_name + " " + my_data[0].fields.last_name.substring(0,1) + ".";
+                for (var i = 0; i < my_data.length; i++) {
+
+                  if (my_data[i].fields.username == "{{username}}") {
+                    able = true;
+                  }
+                  if (single.owners.indexOf(my_data[i].fields.username) == -1)
+                    single.owners.push(my_data[i].fields.username);
+
+                }
+
+              }
+            }
+          });
+          single.is_event = is_event; // true for events, false for downtimes
+          
+
+          
+          time_delta = data[i].fields.repeating_time_delta;
+          single.repeating_time_delta = time_delta;
           if (is_event) {
             // If event has no activity
             if (! data[i].fields.activity) {
@@ -449,54 +494,15 @@ function make_events(data, color, owner, hover, is_event) {
           else { // for downtimes
 
             if (!data[i].fields.preferred_activity)
-              single.title = owner + " is free";
+              single.title = name + " is free";
             else {
 
-              single.title = owner + "'s preferred activity  : \n" + data[i].fields.preferred_activity;
+              single.title = name + "'s preferred activity  : \n" + data[i].fields.preferred_activity;
             }
 
             // the number of repeating events is -1 for downtimes
             single.num_repeating_events = -1;
           }
-
-          single.start = data[i].fields.start_time;
-          single.end = data[i].fields.end_time;
-          single.allDay = false;
-          if (is_event) {
-            single.id = data[i].pk;
-          }
-          else {
-            single.id = -data[i].pk;
-          }
-
-          var able = false;
-          single.owners = [];
-          $.ajax({
-            type: "GET",
-            url: "/calendar/get_event_owners/",
-            async: false,
-            data: {
-              "pk": single.id,
-              "type": is_event,
-            },
-            success: function(data) {
-              var my_data = JSON.parse(data);
-              if (my_data.length > 0) {
-                for (var i = 0; i < my_data.length; i++) {
-
-                  if (my_data[i].fields.username == "{{username}}") {
-                    able = true;
-                  }
-                  if (single.owners.indexOf(my_data[i].fields.username) == -1)
-                    single.owners.push(my_data[i].fields.username);
-
-                }
-
-              }
-            }
-          });
-          single.is_event = is_event; // true for events, false for downtimes
-          
 
           if (is_event) {
             single.editable = true;
@@ -508,9 +514,6 @@ function make_events(data, color, owner, hover, is_event) {
             single.owners = [];
             single.owners.push("hover");
           }
-
-          time_delta = data[i].fields.repeating_time_delta;
-          single.repeating_time_delta = time_delta;
 
           multiple.push(single);
         }
