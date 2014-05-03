@@ -88,7 +88,7 @@
 <!-- updated to fit calendar onto window -->
 <style>
   div#scroll-able {
-    height: 410px;
+    height: calc(100vh - 200px);
     overflow: scroll;
   }
 </style>
@@ -96,6 +96,7 @@
 <!-- rolling both searchbars into one -->
 <div>
   <script type="text/javascript">
+/*
     $(function() {
       $(".submit-friends").click(function() {
         var name = $("#search-friends").val();
@@ -165,11 +166,19 @@ else
       }
     }
   }
-  });
+});
 }
 return false;
 });
-});
+});*/
+
+function inputFocus(i){
+    if(i.value==i.defaultValue){ i.value=""; i.style.color="#000"; }
+}
+function inputBlur(i){
+    if(i.value==""){ i.value=i.defaultValue; i.style.color="#888"; }
+}
+
 </script>
 </div>
 
@@ -188,9 +197,9 @@ return false;
     {% if user.is_authenticated %}
     <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
       <div class="list-group">
-        <form class="list-group-item list-group-item-info" method="post" name="form">Search for Friends:<input id="search-friends" size="17" name="search" type="text" />
-          <input type="submit" value="Search" class="submit-friends"/>
-          Empty search to reset
+        <form class="list-group-item list-group-item-info" id="friend-form" method="post" name="form" autocomplete=off>
+        <input id="search-friends" class="list-group-item" size="17" name="search" type="text" value="Search for people..." onfocus="inputFocus(this)" onblur="inputBlur(this)"/>
+          <!--<input type="submit" value="Search" class="submit-friends"/>-->
           <span class="error" style="display:none"> Please Enter Valid Data</span>
           <span class="success" style="display:none"></span></a>
         </form>
@@ -217,6 +226,96 @@ return false;
 </div>
 
 <script>
+
+
+  get_friends_function = function() {
+          var name = $("#search-friends").val();
+
+          if (name == '')
+          {
+            $.ajax({
+              type: "GET",
+              url: "/calendar/get_friends/",
+              data: {'user': '{{ user }}'},
+              success: function(data) {
+
+                real_data = JSON.parse(data);
+                fl = real_data.length;
+                userhtml = '';
+                if (fl != 0) {
+
+                  for (var i = 0; i < fl; i++) {
+                    userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].fields.username + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">  ' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
+                  };
+                } else {
+                  userhtml = '<strong>No friends.</strong>';
+                };
+
+                $(".frandz").html(userhtml);
+                for (var i = 0; i < fl; i++) {
+                  hover_stuff(real_data[i]);
+                };
+              } 
+            });
+  }
+  else
+  {
+    $.ajax({
+      type: "GET",
+      url: "/calendar/find_friends/",
+      data: {"search": name,
+    },
+    success: function(data) {
+      if (data != "no friends") {
+        users_returned = JSON.parse(data[0]);
+        friend_status = data[1];
+        userhtml = "";
+        real_friends = [];
+        if (users_returned.length > 0) {
+          var l = users_returned.length;
+
+          for (var i = 0; i < l; i++) {
+            if (friend_status[i] == 1) {
+              userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + users_returned[i].fields.username + '\')" id="friend_' + users_returned[i].fields.username + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">  ' + users_returned[i].fields.first_name + ' ' + users_returned[i].fields.last_name + '</span></div></a>';
+
+              real_friends.push(i);
+            }
+            else {
+              userhtml = userhtml + '<div><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].fields.username + '"><button type="button" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
+            }
+          };
+
+          $(".frandz").html(userhtml);
+          rfl = real_friends.length;
+          for (var i =  0; i < rfl; i++) {
+            hover_stuff(users_returned[real_friends[i]]);
+          };
+        }
+        else {
+          $(".frandz").html('No friends found');
+        }
+      }
+    }
+  });
+  }
+  return false;
+  }
+
+    function addTextAreaCallback(textArea, callback, delay) {
+      var timer = null;
+      textArea.onkeyup = function() {
+          if (timer) {
+              window.clearTimeout(timer);
+          }
+          timer = window.setTimeout( function() {
+              timer = null;
+              callback();
+          }, delay );
+      };
+      textArea = null;
+  }
+
+  addTextAreaCallback( document.getElementById("search-friends"), get_friends_function, 100 );
 
   function send_friend_request(new_friend, i) {
     console.log("sending frined request")
@@ -455,6 +554,7 @@ function erase_events(obj) {
     } 
     $(document).ready(function() {
 
+      $("#search-friends").width($("#friend-form").width() - 31);
 
       var date = new Date();
       var d = date.getDate();
@@ -568,6 +668,11 @@ selecthelper: true,
       // makes calendar fit on screen
       height: 510,
       contentHeight:window.innerHeight - 200,
+
+      windowResize: function(view) {
+
+        $("#search-friends").width($("#friend-form").width() - 31);
+      },
 
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
@@ -2730,9 +2835,8 @@ $dialog.dialog('open');
 
       <div id="scroll-able-2">
         <div class="list-group col-xs-6 col-sm-9">
-          <form class="list-group-item list-group-item-info" method="post" name="form">
-            Select friends:<input id="schedule-search" size="17" name="search" type="text" />
-            <input type="submit" value="Search" class="schedule-submit"/>
+          <form class="list-group-item list-group-item-info" method="post" name="form" autocomplete=off>
+            <input id="schedule-search" class="list-group-item" size="55" name="search" type="text" value="Search for people to invite..." onfocus="inputFocus(this)" onblur="inputBlur(this)"/>
             <span class="error" style="display:none"> Please Enter Valid Data</span>
             <span class="success" style="display:none"></span></a>
           </form>
@@ -2761,7 +2865,7 @@ $dialog.dialog('open');
 <div>
   <script type="text/javascript">
 
-    $(function() {
+    /*$(function() {
       $(".schedule-submit").click(function() {
 
         var event_id = $('.party-button').attr("event");
@@ -2818,6 +2922,65 @@ $dialog.dialog('open');
 return false;
 });
 });
+
+*/
+
+invite_friends_function = function() {
+
+        var event_id = $('.party-button').attr("event");
+        var name = $("#schedule-search").val();
+
+        if (name == '')
+        {
+          $(".schedule-output").html('');
+          //$('.success').fadeOut(200).hide();
+          //$('.error').fadeOut(200).show();
+        }
+        else
+        {
+
+          $.ajax({
+            type: "GET",
+            url: "/calendar/invite_search/",
+            data: {
+              'search': name,
+              'event': event_id,
+            },
+            success: function (data) {
+              var mydata = JSON.parse(data);
+              var dlength = mydata.length;
+              userhtml = "";
+              
+              var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
+              if (event_obj.invitelist != undefined) {
+                users = [];
+                for (var i = 0; i < dlength; i++) {
+                  if ($.inArray(mydata[i].fields.username, event_obj.invitelist) == -1) {
+                    users.push(mydata[i]);
+                  }
+                }
+              }
+              else {
+                users = mydata;
+              }
+
+              if (users.length != 0) {
+                for (var i = 0; i < users.length; i++) {
+                  userhtml = userhtml + '<div id="sch_' + users[i].fields.username + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="invite(\'' + users[i].fields.username + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + event_id + '\' )">Invite</button></div></a></div>';
+                }
+              }
+              else {
+                userhtml = "No results.";
+
+              }
+              $(".schedule-output").html(userhtml);
+
+            }
+          });
+}
+return false;
+}
+  addTextAreaCallback( document.getElementById("schedule-search"), invite_friends_function, 100 );
 
 function invite(user, user_firstname, user_lastname, event_id) {
     // delete sonia from above in search
@@ -2903,6 +3066,7 @@ function invite(user, user_firstname, user_lastname, event_id) {
     //console.log("send teh einvite");
 
   }
+
 
 </script>
 </div>
