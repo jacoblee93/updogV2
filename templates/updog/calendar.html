@@ -59,7 +59,7 @@
     }
   }
 
-
+/*
   function resolve_event_downtime_conflicts(downtimes) {
     if (downtimes.length > 0) {
       // downtimes is a list of downtimes and moved_event_or_downtime is an event
@@ -83,6 +83,7 @@
         else alert("can't pass events to function resolve_event_downtime_conflicts!");
     }
   }
+  */
 
 </script>
 
@@ -560,9 +561,6 @@ selecthelper: true,
       editable: false, // TESTING IT OUT AS FALSE, DONT KILL ME FRANKLYN
       // set the default view to be the agendaWeek view
       defaultView: 'agendaWeek',
-
-      // failed attempt at importing googlecal
-      //events: 'http://www.google.com/calendar/feeds/fdarnis%40princeton.edu/public/basic',
 
       allDaySlot: false,
       firstDay: date.getDay(),
@@ -1655,34 +1653,11 @@ edit.onclick = function() {
     activity.setAttribute("value", event.title.substring(nameLength + 25, event.title.length));
   }
 
-          // span makes it so there's no newline at the end, while "br" would
-          // include the newline
-          start_text = document.createElement("span");
-          // &nbsp is a non-breaking whitespace character
-          start_text.innerHTML = '<br/>Start Time: &nbsp&nbsp&nbsp&nbsp&nbsp';
-          // input box
-          var start_time = document.createElement("input");
-          // you are typing text into the box
-          start_time.setAttribute('type', "text");
-          // can reference this by using "start_time"
-          start_time.setAttribute('name', "start_time");
-          start_time.setAttribute('id', 'st_field');
-          end_text = document.createElement("span");
-          end_text.innerHTML = '<br/>End Time: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
-          var end_time = document.createElement("input");
-          end_time.setAttribute('type', "test");
-          end_time.setAttribute('name', "end_time");
-          end_time.setAttribute('id', 'et_field');
-
           var newline = document.createElement("span");
           newline.innerHTML = '<br/>';
 
           $dialog.empty().append(activity_text);
           $dialog.append(activity);
-          $dialog.append(start_text);
-          $dialog.append(start_time);
-          $dialog.append(end_text);
-          $dialog.append(end_time);
           $dialog.append(newline);
 
           var cancel = document.createElement("button");
@@ -2412,7 +2387,7 @@ dayClick:function( date, allDay, jsEvent, view ) {
                     repeating_end.setAttribute('maxlength', '2');
 
                     repeating_end_text = document.createElement("span");
-                    repeating_end_text.innerHTML = ' times';
+                    repeating_end_text.innerHTML = ' time(s)';
 
                     reset_dialog_without_end_repeating($dialog);
 
@@ -2558,27 +2533,27 @@ dayClick:function( date, allDay, jsEvent, view ) {
                                 var added_event = make_events(data, 'blue', '{{username}}', false, true)[i];
                                 $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
 
-                        // call change_event to resolve any conflicts with downtimes that might now exist with added_event now that it's been added
-                        $.ajax({
-                              type: "POST",
-                              url: "/calendar/resolve_repeating_conflicts/",
-                              data: {"pk": added_event.id, 
-                              // day_delta and minute_delta are 0 because we are not actually changing the added event
-                              "day_delta": 0,
-                              "minute_delta": 0,
-                              "resize": "false",
-                            },
-                            success: function(data) {
-                              console.log(data);
+                                // call change_event to resolve any conflicts with downtimes that might now exist with added_event now that it's been added
+                                $.ajax({
+                                      type: "POST",
+                                      url: "/calendar/resolve_repeating_conflicts/",
+                                      data: {"pk": added_event.id, 
+                                      // day_delta and minute_delta are 0 because we are not actually changing the added event
+                                      "day_delta": 0,
+                                      "minute_delta": 0,
+                                      "resize": "false",
+                                    },
+                                    success: function(data) {
+                                      console.log(data);
 
-                              var parsed = JSON.parse(data);
-                              resolve_event_downtime_conflicts(parsed);
+                                      var parsed = JSON.parse(data);
+                                      resolve_event_downtime_conflicts(parsed);
 
-                              //console.log("event.id = " + event.id);
+                                      //console.log("event.id = " + event.id);
 
 
-                          }
-                        });
+                                  }
+                                });
                               }
                               $dialog.dialog('close');
                             }

@@ -6,8 +6,6 @@
     <!-- Bootstrap -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
 
-    <script src="{% static 'js/bootbox.js' %}"></script>
-
     <link href="{% static 'css/fullcalendar.css' %}" rel="stylesheet">
     <link href="{% static 'css/fullcalendar.print.css' %}" rel="stylesheet" media="print">
     <link href="{% static 'css/datepicker.css' %}" rel="stylesheet">
@@ -25,10 +23,11 @@
     <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
     <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
     <script src="{% static 'js/jquery.hoverIntent.js' %}"></script>
-<!--    <script src="{% static 'js/gcal.js' %}"></script>-->
+    <!--<script src="{% static 'js/gcal.js' %}"></script>-->
     <script src="{% static 'js/fullcalendar.js' %}"></script>
     <script src="{% static 'js/csrftoken.js' %}"></script>
     <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
+    <script src="{% static 'js/bootbox.js' %}"></script>
     <title>{% block title %}What's Up With You?{% endblock %}</title>
   </head>
   <body>
@@ -43,6 +42,30 @@
       }
 
     });
+
+  function resolve_event_downtime_conflicts(downtimes) {
+    if (downtimes.length > 0) {
+      // downtimes is a list of downtimes and moved_event_or_downtime is an event
+      if (downtimes[0].model == "udCalendar.downtime") {
+        var new_downtimes = [];
+
+        for (var i = 0; i < downtimes.length; i++) {
+          if (downtimes[i].fields.start_time == downtimes[i].fields.end_time) {
+            $('#calendar').fullCalendar('removeEvents', -downtimes[i].pk);
+          }
+          else new_downtimes.push(downtimes[i]);
+        }
+        var updated_downtimes = make_events(new_downtimes, 'green', "{{ username }}", false, false);
+
+        for (var i = 0; i < new_downtimes.length; i++) {
+            $('#calendar').fullCalendar('removeEvents', -new_downtimes[i].pk);
+            $('#calendar').fullCalendar('rerenderEvents');
+            $('#calendar').fullCalendar('renderEvent', updated_downtimes[i], stick=true);
+          }
+        }
+        else alert("can't pass events to function resolve_event_downtime_conflicts!");
+    }
+  }
 
 
     </script>
@@ -212,6 +235,10 @@
 
   function respond_yes_to_event_notification(notification_pk) {
 
+
+
+
+
     $.ajax({
       type: "POST",
       url: "/calendar/respond_to_event_notification/",
@@ -219,14 +246,36 @@
               'response': 'accept'
             },
       success: function(data) {
+
         // add the event to the front end right away
         var new_event = make_events(JSON.parse(data), 'blue', '{{ username }}', false, true);
         $("#calendar").fullCalendar('renderEvent', new_event, stick=true);
         // get rid of notification in navbar
-
         $("#invite_notey" + notification_pk).remove();
+
+        // call change_event to resolve any conflicts with downtimes that might now exist with added_event now that it's been added
+        $.ajax({
+              type: "POST",
+              url: "/calendar/resolve_repeating_conflicts/",
+              data: {"pk": new_event[0].id,
+              //"notification_pk": notification_pk,
+              // day_delta and minute_delta are 0 because we are not actually changing the added event
+              "day_delta": 0,
+              "minute_delta": 0,
+              "resize": "false",
+            },
+            success: function(data) {
+              console.log(data);
+
+              var parsed = JSON.parse(data);
+
+              console.log(parsed);
+
+              resolve_event_downtime_conflicts(parsed);
+          }
+        });
       }
-    })
+    });
   }
 
   function respond_no_to_event_notification(notification_pk) {
@@ -316,7 +365,7 @@
 	      </ul>
 	      <ul class="nav navbar-nav navbar-right"> 
           {% if user.is_authenticated %}
-            <li><a href="#preferences">Preferences</a></li>
+<!--            <li><a href="#preferences">Preferences</a></li>-->
             <li><a href="/calendar/logout_user/">Logout</a></li>
           {% else %}
             <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
@@ -726,6 +775,8 @@ function add_suggest(user, user_firstname, user_lastname) {
       },
       success: function(data) {
         console.log("send_suggest function");
+        console.log("data = ");
+        console.log(data);
           // Make the unconfirmed event show up in your calendar
           if (data === "None") {
             alert("You have no upcoming downtimes.")
@@ -740,6 +791,7 @@ function add_suggest(user, user_firstname, user_lastname) {
               }
               else {
                 var alldata = JSON.parse(data);
+
                   mydata = [];
                   var index;
                   var friends = [];

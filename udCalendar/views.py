@@ -51,8 +51,8 @@ def calendar(request):
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[0])
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
-    #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
-    #current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
+    current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
+    current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[5])
 
@@ -65,23 +65,23 @@ def calendar(request):
     #test_to_friendship.save()
     #test_from_friendship.save()
 
-    #test_to_friendship3 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[3], from_user=current_user)[0]
-    #test_from_friendship3 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[3], to_user=current_user)[0]
-    #test_to_friendship3.is_mutual = True
-    #test_from_friendship3.is_mutual = True
-    #test_to_friendship3.is_new = False
-    #test_from_friendship3.is_new = False
-    #test_to_friendship3.save()
-    #test_from_friendship3.save()
+    test_to_friendship3 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[3], from_user=current_user)[0]
+    test_from_friendship3 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[3], to_user=current_user)[0]
+    test_to_friendship3.is_mutual = True
+    test_from_friendship3.is_mutual = True
+    test_to_friendship3.is_new = False
+    test_from_friendship3.is_new = False
+    test_to_friendship3.save()
+    test_from_friendship3.save()
 
-    #test_to_friendship2 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
-    #test_from_friendship2 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
-    #test_to_friendship2.is_mutual = True
-    #test_from_friendship2.is_mutual = True
-    #test_to_friendship2.is_new = False
-    #test_from_friendship2.is_new = False
-    #test_to_friendship2.save()
-    #test_from_friendship2.save()
+    test_to_friendship2 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
+    test_from_friendship2 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
+    test_to_friendship2.is_mutual = True
+    test_from_friendship2.is_mutual = True
+    test_to_friendship2.is_new = False
+    test_from_friendship2.is_new = False
+    test_to_friendship2.save()
+    test_from_friendship2.save()
 
     #test_to_friendship1 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[1], from_user=current_user)[0]
     #test_from_friendship1 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[1], to_user=current_user)[0]
@@ -114,8 +114,8 @@ def calendar(request):
     #test_to_request.save()
     #current_user.save()
 
-    #test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=False)
-    #test_notif.save()
+    test_notif = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[2], event=Event.objects.all()[0], is_reply=False)
+    test_notif.save()
 
     #test_notif2 = EventNotification(to_user=request.user.updoguser, from_user=UpDogUser.objects.order_by('-user')[3], event=Event.objects.all()[0], is_reply=False)
     #test_notif2.save()
@@ -664,35 +664,43 @@ def edit_downtime(request):
                     
             return HttpResponse(response)
     return HttpResponse("Invalid request")
+
 @login_required
 @csrf_exempt
 def resolve_repeating_conflicts(request):
     if request.is_ajax():
         if request.method == 'POST':
-            event = Event.objects.filter(pk=request.POST['pk'])[0]
+            try:
+                uduser = request.user.updoguser
 
-            startDate = event.start_time
-            endDate = event.end_time
+                event = Event.objects.filter(pk=request.POST['pk'])[0]
 
-            # this event's updog user
-            uduser = request.user.updoguser
+                startDate = event.start_time
+                endDate = event.end_time
 
-            # get all downtimes overlapping with this event
-            overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
-                start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
-                end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
-                end_time__gte=endDate)
+                # this event's updog user
+                # uduser = request.user.updoguser
 
-            list_of_new_downtimes = []
+                # get all downtimes overlapping with this event
+                overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
+                    start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
+                    end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
+                    end_time__gte=endDate)
 
-            # store all the downtimes that overlap with the changed event
-            for downtime in overlapping_downtimes:
-                new_downtimes = handle_overlap(event, downtime)
-                if new_downtimes:
-                    for new_downtime in new_downtimes:
-                        list_of_new_downtimes.append(new_downtime)
+                list_of_new_downtimes = []
 
-            json_downtimes = serializers.serialize("json", list_of_new_downtimes)
+                # store all the downtimes that overlap with the changed event
+                for downtime in overlapping_downtimes:
+                    new_downtimes = handle_overlap(event, downtime)
+                    if new_downtimes:
+                        for new_downtime in new_downtimes:
+                            list_of_new_downtimes.append(new_downtime)
+
+                json_downtimes = serializers.serialize("json", list_of_new_downtimes)
+
+            except Exception as e:
+                print e
+
             return HttpResponse(json_downtimes);
         else: return HttpResponse("Didn't sent a POST request to resolve_repeating_conflicts");
     else: return HttpResponse("Failed function resolve_repeating_conflicts");
@@ -1593,6 +1601,43 @@ def respond_to_event_notification(request):
                             notification.event.add_user(current_uduser)
                             notification.event.save()
                         reply_notification = EventNotification(to_user=notification.from_user, from_user=current_uduser, event=notification.event, is_reply=True)
+                        
+
+
+
+                        comment = """              handle_overlap(notification.event, downtime)
+
+                                    startDate = event.start_time
+            endDate = event.end_time
+
+            # this event's updog user
+            uduser = request.user.updoguser
+
+            # get all downtimes overlapping with this event
+            overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
+                start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
+                end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
+                end_time__gte=endDate)
+
+            list_of_new_downtimes = []
+
+            # store all the downtimes that overlap with the changed event
+            for downtime in overlapping_downtimes:
+                new_downtimes = handle_overlap(event, downtime)
+                if new_downtimes:
+                    for new_downtime in new_downtimes:
+                        list_of_new_downtimes.append(new_downtime)
+
+            json_downtimes = serializers.serialize("json", list_of_new_downtimes)"""
+
+
+
+
+
+
+
+
+
                         notification.delete()
                         return HttpResponse(serializers.serialize('json', [notification.event]))
                     notification.delete()
