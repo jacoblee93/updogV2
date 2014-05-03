@@ -60,30 +60,7 @@
   }
 
 
-  function resolve_event_downtime_conflicts(downtimes) {
-    if (downtimes.length > 0) {
-      // downtimes is a list of downtimes and moved_event_or_downtime is an event
-      if (downtimes[0].model == "udCalendar.downtime") {
-        var new_downtimes = [];
-
-        for (var i = 0; i < downtimes.length; i++) {
-          if (downtimes[i].fields.start_time == downtimes[i].fields.end_time) {
-            $('#calendar').fullCalendar('removeEvents', -downtimes[i].pk);
-          }
-          else new_downtimes.push(downtimes[i]);
-        }
-        var updated_downtimes = make_events(new_downtimes, 'green', "{{ username }}", false, false);
-
-        for (var i = 0; i < new_downtimes.length; i++) {
-            $('#calendar').fullCalendar('removeEvents', -new_downtimes[i].pk);
-            $('#calendar').fullCalendar('rerenderEvents');
-            $('#calendar').fullCalendar('renderEvent', updated_downtimes[i], stick=true);
-          }
-        }
-        else alert("can't pass events to function resolve_event_downtime_conflicts!");
-    }
-  }
-
+  
 </script>
 
 {% endblock %}
@@ -1543,30 +1520,32 @@ cancel_delete_repeating_events.onclick = function() {
           suggest.setAttribute('type', "submit");
           suggest.setAttribute('value', "Suggest");
           suggest.onclick = function() {
-            $.ajax({
+
+                  $.ajax({
               type: "GET",
               url: "/calendar/suggest/",
-              data: {'pk': event.id},
+              data: {},
               success: function(data) {
+
             // Make the unconfirmed event show up in your calendar
             if (data === "None") {
-            alert("You have no upcoming downtimes.")
+            bootbox.alert("You have no upcoming downtimes.")
           }
           else {
             if (data == "NoFriends") {
-              alert("You have no friends.")
+              bootbox.alert("You have no friends.")
             }
             else {
               if (data == "NoMatch") {
-                alert("No free times align")
+                bootbox.alert("No free times align")
               }
               else {
                 var alldata = JSON.parse(data);
+                
                   mydata = [];
                   var index;
                   var friends = [];
                   for (var i = 0; i < alldata.length; i++) {
-                    console.log(alldata[i])
                     if (alldata[i].model == "auth.user") {
                       friends.push(alldata[i].fields.username);
                       index = i;
@@ -1576,18 +1555,14 @@ cancel_delete_repeating_events.onclick = function() {
                       mydata.push(alldata[i]);
                     }
                 }
-                console.log(mydata[0]);
                 var start_d = new Date(mydata[0].fields.start_time);
                 var end_d = new Date(mydata[0].fields.end_time)
                 var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
                 var date_string = start_d.toDateString();
 
 
-                var r = confirm("Hangout with " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " on " + date_string + " from " + time_string + "?");
-
-                if (r == true) {
-                 // if user clicked Okay:
-                                 
+                bootbox.confirm("Hangout with " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " on " + date_string + " from " + time_string + "?", function (request) {
+                  if (request) {                                 
 
                   // send the other user a request:
                   //************** SEND EVENT NOTIFICATION *******************//
@@ -1610,10 +1585,26 @@ cancel_delete_repeating_events.onclick = function() {
                   // display the unconfirmed event on the initiator's calendar
 
                   var unconf = make_events(mydata, 'blue', '{{ username }}', false, true);
+
+                  $.ajax({
+                    type: "POST",
+                    url: "/calendar/change_event/",
+                    data: {"pk": unconf[0].id, "day_delta": 0, "minute_delta": 0, "resize": false,},
+                    success: function(data) {
+                      var parsed = JSON.parse(data);
+                      resolve_event_downtime_conflicts(parsed);
+                    }
+
+
+
+
+                  });
+
+
                   $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
-                }
-                // if user clicked Cancel:
-                else {
+
+                  }
+                  else {
                   // remove the unconfirmed event from the back end
                   $.ajax({
                       type: "POST",
@@ -1622,11 +1613,13 @@ cancel_delete_repeating_events.onclick = function() {
                     });
 
                   }
+                });
                 }
               }
             }
           }
         });
+            
 $dialog.dialog('close');
 };
 
@@ -1858,7 +1851,6 @@ eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
           "resize": "false",
         },
         success: function(data) {
-          console.log(data);
 
           var parsed = JSON.parse(data);
           resolve_event_downtime_conflicts(parsed);
@@ -2029,7 +2021,6 @@ eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
               "resize": "true",
             },
             success: function(data) {
-              console.log("HERE!!!!!!!!!!!")
               var new_downtimes = JSON.parse(data);
               resolve_event_downtime_conflicts(new_downtimes);
             },
