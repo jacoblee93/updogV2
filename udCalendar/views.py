@@ -52,7 +52,7 @@ def calendar(request):
 
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[1])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[2])
-    current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
+    comment = """current_user.add_friend(UpDogUser.objects.order_by('-user')[3])
     current_user.add_friend(UpDogUser.objects.order_by('-user')[4])
     #current_user.add_friend(UpDogUser.objects.order_by('-user')[5])
 
@@ -72,7 +72,7 @@ def calendar(request):
     test_to_friendship3.is_new = False
     test_from_friendship3.is_new = False
     test_to_friendship3.save()
-    test_from_friendship3.save()
+    test_from_friendship3.save()"""
 
     #test_to_friendship2 = Friendship.objects.filter(to_user=UpDogUser.objects.order_by('-user')[2], from_user=current_user)[0]
     #test_from_friendship2 = Friendship.objects.filter(from_user=UpDogUser.objects.order_by('-user')[2], to_user=current_user)[0]
