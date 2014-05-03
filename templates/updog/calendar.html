@@ -1392,7 +1392,7 @@ $dialog.dialog('open');
       invite_text = invite_text + ", " + invite_list[k].fields.first_name + " " + invite_list[k].fields.last_name;
     }
     $($dialog).append(
-      $('<p />').text("Invited: Me" + invite_text)
+      $('<p />').text("Invited: " + invite_text.substring(2, invite_text.length))
     );
   }
   else {
@@ -1915,10 +1915,6 @@ eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
               },
               success: function(data) {
                 var parsed = JSON.parse(data);
-
-                console.log("parsed:");
-                console.log(parsed);
-
                 resolve_event_downtime_conflicts(parsed);
 
                /* $('#calendar').fullCalendar('removeEvents', event.id);
@@ -2835,6 +2831,7 @@ return false;
 function invite(user, user_firstname, user_lastname, event_id) {
     // delete sonia from above in search
     $("#sch_" + user).remove();
+    $("#schedule-search").val("");
     // add sonia below
     addedhtml = "";
     var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
@@ -2865,6 +2862,9 @@ function invite(user, user_firstname, user_lastname, event_id) {
   function invite_cancel() {
     var event_id = $('.party-button').attr("event");
     var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
+    $("#schedule-search").val("");
+
+    $("div:regex(id, .*sch_.*)").remove();
     event_obj.invitelist = [];
   }
 
@@ -2916,8 +2916,8 @@ function invite(user, user_firstname, user_lastname, event_id) {
  else {
   alert("You have invited no friends!");
 }
-    //$dialog.dialog('close');
-    //console.log("send teh einvite");
+          $("#schedule-search").val("");
+      $("div:regex(id, .*sch_.*)").remove();
 
   }
 

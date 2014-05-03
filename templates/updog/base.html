@@ -1,74 +1,75 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Bootstrap -->
-    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Bootstrap -->
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
 
-    <script src="{% static 'js/bootbox.js' %}"></script>
-
-    <link href="{% static 'css/fullcalendar.css' %}" rel="stylesheet">
-    <link href="{% static 'css/fullcalendar.print.css' %}" rel="stylesheet" media="print">
-    <link href="{% static 'css/datepicker.css' %}" rel="stylesheet">
-
-    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
-    <link href="{% static 'css/jquery-ui-1.10.4.custom.css' %}" rel="stylesheet">
-    <link href="{% static 'css/bootstrap-timepicker.css' %}" rel="stylesheet">
-
-    <script src="{% static 'js/jquery.js' %}"></script>
-    <script src="{% static 'js/jquery.min.js' %}"></script>
-    <script src="{% static 'js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'js/updog-ajax.js' %}"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-    <script src="{% static 'js/jquery-ui.custom.min.js' %}"></script>
-    <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
-    <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
-    <script src="{% static 'js/jquery.hoverIntent.js' %}"></script>
-<!--    <script src="{% static 'js/gcal.js' %}"></script>-->
-    <script src="{% static 'js/fullcalendar.js' %}"></script>
-    <script src="{% static 'js/csrftoken.js' %}"></script>
-    <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
-    <title>{% block title %}What's Up With You?{% endblock %}</title>
-  </head>
-  <body>
-
-    <script>
-      $(document).ready(function() {
   
-      if ($( '.navbar-header' ).is( ':visible' )) {
-         $('.navbar-toggle').on('click', function() {
-         $(".collapse").toggle('in');
-         });
-      }
 
-    });
+  <link href="{% static 'css/fullcalendar.css' %}" rel="stylesheet">
+  <link href="{% static 'css/fullcalendar.print.css' %}" rel="stylesheet" media="print">
+  <link href="{% static 'css/datepicker.css' %}" rel="stylesheet">
+
+  <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+  <link href="{% static 'css/jquery-ui-1.10.4.custom.css' %}" rel="stylesheet">
+  <link href="{% static 'css/bootstrap-timepicker.css' %}" rel="stylesheet">
+
+  <script src="{% static 'js/jquery.js' %}"></script>
+  <script src="{% static 'js/jquery.min.js' %}"></script>
+  <script src="{% static 'js/bootstrap.min.js' %}"></script>
+  <script src="{% static 'js/updog-ajax.js' %}"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+  <script src="{% static 'js/jquery-ui.custom.min.js' %}"></script>
+  <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
+  <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
+  <script src="{% static 'js/jquery.hoverIntent.js' %}"></script>
+  <!--    <script src="{% static 'js/gcal.js' %}"></script>-->
+  <script src="{% static 'js/fullcalendar.js' %}"></script>
+  <script src="{% static 'js/csrftoken.js' %}"></script>
+  <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
+  <script src="{% static 'js/bootbox.js' %}"></script>
+  <title>{% block title %}What's Up With You?{% endblock %}</title>
+</head>
+<body>
+
+  <script>
+  $(document).ready(function() {
+
+    if ($( '.navbar-header' ).is( ':visible' )) {
+     $('.navbar-toggle').on('click', function() {
+       $(".collapse").toggle('in');
+     });
+   }
+
+ });
 
 
-    </script>
-    
-    {% block above_calendar_block %}
-    {% endblock %}
+  </script>
 
-    {% block calendar_block %}
-    {% endblock %}
+  {% block above_calendar_block %}
+  {% endblock %}
 
-    <style>
-    div#scroll-able-nots {
-      height: 300px;
-      overflow: scroll;
-    }
-    </style>
+  {% block calendar_block %}
+  {% endblock %}
 
-    <script>
+  <style>
+  div#scroll-able-nots {
+    height: 300px;
+    overflow: scroll;
+  }
+  </style>
 
-    function display_friend_requests() {
-      var ret = 0;
-      $.ajax({
-        type: "GET",
-        url: "/calendar/display_friend_requests/",
-        data: {"username": '{{ user.username }}'},
-        async: false,
+  <script>
+
+  function display_friend_requests() {
+    var ret = 0;
+    $.ajax({
+      type: "GET",
+      url: "/calendar/display_friend_requests/",
+      data: {"username": '{{ user.username }}'},
+      async: false,
         //},
         success: function(data) {
           if (data == "No new notifications") return;
@@ -92,44 +93,44 @@
           $(".fr_text").html('Friend Requests<b class="caret"></b>');
         }
       });
-      return ret;
-    }
+return ret;
+}
 
-    function get_num_new_friend_requests() {
-      var ret = 0;
-      $.ajax({
-        type: "GET",
-        url: "/calendar/get_num_new_friend_requests/",
-        data: {"username": '{{ user.username }}'},
-        async: false,
+function get_num_new_friend_requests() {
+  var ret = 0;
+  $.ajax({
+    type: "GET",
+    url: "/calendar/get_num_new_friend_requests/",
+    data: {"username": '{{ user.username }}'},
+    async: false,
         //},
         success: function(data) {
           if (data == "No new notifications") return;
           ret = data;
         }
       });
-      return ret;
-    }
+  return ret;
+}
 
 
-    function display_notifications() {
-      var ret = 0;
-      $.ajax({
-        type: "GET",
-        url: "/calendar/get_notifications/",
-        data: {"username": '{{ user.username }}'},
-        async: false,
-        success: function(data) {
-          if (!data) return;
-          mydata = JSON.parse(data);
-          var dlength = mydata.length;
-          var items = [];
-          userhtml = '<div id="scroll-able-nots"><div id="list-group">';
+function display_notifications() {
+  var ret = 0;
+  $.ajax({
+    type: "GET",
+    url: "/calendar/get_notifications/",
+    data: {"username": '{{ user.username }}'},
+    async: false,
+    success: function(data) {
+      if (!data) return;
+      mydata = JSON.parse(data);
+      var dlength = mydata.length;
+      var items = [];
+      userhtml = '<div id="scroll-able-nots"><div id="list-group">';
 
-          for (var i = 0; i < dlength; i++) {
-            items.push(mydata[i]);
-          }
-          ret = items.length;
+      for (var i = 0; i < dlength; i++) {
+        items.push(mydata[i]);
+      }
+      ret = items.length;
           // items are event notifications, they don't have first and last name properties
           if (items.length != 0) {
             from_users = []
@@ -190,35 +191,35 @@
           $(".notifications").html(userhtml);
           $(".notif_text").html('Notifications<b class="caret"></b>');
         }
-     });
-    return ret;
-   }
+      });
+return ret;
+}
 
-   function get_num_new_notifications() {
-      var ret = 0;
-      $.ajax({
-        type: "GET",
-        url: "/calendar/get_num_new_notifications/",
-        data: {"username": '{{ user.username }}'},
-        async: false,
+function get_num_new_notifications() {
+  var ret = 0;
+  $.ajax({
+    type: "GET",
+    url: "/calendar/get_num_new_notifications/",
+    data: {"username": '{{ user.username }}'},
+    async: false,
         //},
         success: function(data) {
           if (data == "No new notifications") return;
           ret = data;
         }
       });
-      return ret;
-    }
+  return ret;
+}
 
-  function respond_yes_to_event_notification(notification_pk) {
+function respond_yes_to_event_notification(notification_pk) {
 
-    $.ajax({
-      type: "POST",
-      url: "/calendar/respond_to_event_notification/",
-      data: {'notification': notification_pk,
-              'response': 'accept'
-            },
-      success: function(data) {
+  $.ajax({
+    type: "POST",
+    url: "/calendar/respond_to_event_notification/",
+    data: {'notification': notification_pk,
+    'response': 'accept'
+  },
+  success: function(data) {
         // add the event to the front end right away
         var new_event = make_events(JSON.parse(data), 'blue', '{{ username }}', false, true);
         $("#calendar").fullCalendar('renderEvent', new_event, stick=true);
@@ -227,110 +228,110 @@
         $("#invite_notey" + notification_pk).remove();
       }
     })
-  }
+}
 
-  function respond_no_to_event_notification(notification_pk) {
+function respond_no_to_event_notification(notification_pk) {
 
-    $.ajax({
-      type: "POST",
-      url: "/calendar/respond_to_event_notification/",
-      data: {'notification': notification_pk,
-              'response': 'decline'
-            },
-      success: function(data) {
-        $("#invite_notey" + notification_pk).remove();
-        console.log("Success!")
-      }
-    })
+  $.ajax({
+    type: "POST",
+    url: "/calendar/respond_to_event_notification/",
+    data: {'notification': notification_pk,
+    'response': 'decline'
+  },
+  success: function(data) {
+    $("#invite_notey" + notification_pk).remove();
+    console.log("Success!")
   }
+})
+}
 
-  function accept_friend_request(new_friend) {
-    $.ajax({
-      type: "POST",
-      url: "/calendar/accept_friend_request/",
-      data: {'new_friend': new_friend},
-      success: function(data){
-        get_friends('{{ user }}');
-      }
-    });
-  }
+function accept_friend_request(new_friend) {
+  $.ajax({
+    type: "POST",
+    url: "/calendar/accept_friend_request/",
+    data: {'new_friend': new_friend},
+    success: function(data){
+      get_friends('{{ user }}');
+    }
+  });
+}
 
-  function reject_friend_request(new_friend) {
-    $.ajax({
-      type: "POST",
-      url: "/calendar/reject_friend_request/",
-      data: {'new_friend': new_friend},
-      success: function(data){
-        console.log(data)
-      }
-    });
-  }
+function reject_friend_request(new_friend) {
+  $.ajax({
+    type: "POST",
+    url: "/calendar/reject_friend_request/",
+    data: {'new_friend': new_friend},
+    success: function(data){
+      console.log(data)
+    }
+  });
+}
 
 </script>
 
-    <div class="bs-example bs-navbar-top-example">
-      <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      
+<div class="bs-example bs-navbar-top-example">
+  <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+
 	    <!-- This makes the dropdown menu in the top right
 	    with Home, About, and Contact -->	
 	    <div class="container-fluid">
-	
-	     <div class="navbar-header">
-	  
-	     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-6">
-          <span class="sr-only">Toggle navigation</span>
+
+        <div class="navbar-header">
+
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-6">
+            <span class="sr-only">Toggle navigation</span>
 	      <!-- these three things make the three lines in
 		   the drop down menu (add more, or take away
 		   some to make more or fewer lines) -->
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-	      </button>
-	  
-	      <a class="navbar-brand" href="">UpDog</a>
-	  
-	     </div>
-	
-	     <div class="navbar-collapse collapse" id="bs-example-navbar-collapse-6">
-	  
-        <ul class="nav navbar-nav">
-              
-              {% if user.is_authenticated %}
-                <li class="dropdown">
-                  <a onclick="display_friend_requests()" class="dropdown-toggle" data-toggle="dropdown"><div class="fr_text"></div></a>
-                  <ul class="dropdown-menu">
-                    <div class="friend_requests"></div>
-                  </ul>
-                </li>
-                <li class="dropdown">
+       <span class="icon-bar"></span>
+       <span class="icon-bar"></span>
+       <span class="icon-bar"></span>
+     </button>
 
-                  <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="dropdown"><div class="notif_text"></div></a>
-                  <ul class="dropdown-menu">
-                    <div class="notifications"></div>
-                  </ul>
-                </li>
-                
-                <li><a data-toggle="modal" data-target=".suggest-modal">Suggest</a><li>           
-              {% endif %}
-            
-	      </ul>
-	      <ul class="nav navbar-nav navbar-right"> 
-          {% if user.is_authenticated %}
-            <li><a href="#preferences">Preferences</a></li>
-            <li><a href="/calendar/logout_user/">Logout</a></li>
-          {% else %}
-            <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
-          {% endif %}
+     <a class="navbar-brand" href="">UpDog</a>
+
+   </div>
+
+   <div class="navbar-collapse collapse" id="bs-example-navbar-collapse-6">
+
+    <ul class="nav navbar-nav">
+
+      {% if user.is_authenticated %}
+      <li class="dropdown">
+        <a onclick="display_friend_requests()" class="dropdown-toggle" data-toggle="dropdown"><div class="fr_text"></div></a>
+        <ul class="dropdown-menu">
+          <div class="friend_requests"></div>
         </ul>
-       </div><!-- /.nav-collapse -->
-	    </div>
-      </nav><!-- /.container -->
-    </div>
-  <!--  <hr>-->
+      </li>
+      <li class="dropdown">
+
+        <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="dropdown"><div class="notif_text"></div></a>
+        <ul class="dropdown-menu">
+          <div class="notifications"></div>
+        </ul>
+      </li>
+
+      <li><a data-toggle="modal" data-target=".suggest-modal">Suggest</a><li>           
+        {% endif %}
+
+      </ul>
+      <ul class="nav navbar-nav navbar-right"> 
+        {% if user.is_authenticated %}
+        <li><a href="#preferences">Preferences</a></li>
+        <li><a href="/calendar/logout_user/">Logout</a></li>
+        {% else %}
+        <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
+        {% endif %}
+      </ul>
+    </div><!-- /.nav-collapse -->
+  </div>
+</nav><!-- /.container -->
+</div>
+<!--  <hr>-->
 
 <script>
 function check_for_notifications() {
-var f = get_num_new_friend_requests();
+  var f = get_num_new_friend_requests();
   if (f > 1) {
     $(".fr_text").html('<a style = "color:blue; pointer-events:none">' + f + ' New Friend Requests<b class="caret"></b></a>');
   }
@@ -341,7 +342,7 @@ var f = get_num_new_friend_requests();
     $(".fr_text").html('Friend Requests<b class="caret"></b>');
   }
 
-var n = get_num_new_notifications();
+  var n = get_num_new_notifications();
   if (n > 1) {
     $(".notif_text").html('<a style = "color:blue; pointer-events:none">' + n + ' New Notifications<b class="caret"></b></a>');
   }
@@ -383,9 +384,9 @@ function get_UTC_time(date) {
 
 function make_events(data, color, owner, hover, is_event) {
 
-      if (data.length > 0) {
-        var dlength = data.length;
-        var multiple = [];
+  if (data.length > 0) {
+    var dlength = data.length;
+    var multiple = [];
         // in each loop, we add another event to the list of events for this user
         for (var i = 0; i < dlength; i++) {
           var single = new Object();
@@ -453,7 +454,7 @@ function make_events(data, color, owner, hover, is_event) {
               var my_data = JSON.parse(data);
               if (my_data.length > 0) {
                 for (var i = 0; i < my_data.length; i++) {
-                  
+
                   if (my_data[i].fields.username == "{{username}}") {
                     able = true;
                   }
@@ -487,45 +488,45 @@ function make_events(data, color, owner, hover, is_event) {
     }
 
     // a list of users usernames and a single event id
-  function is_invited(event, users) {
-    if (users.length > 0 && users) {
-      var mydata;
-    $.ajax({
-      type: "GET",
-      url: "/calendar/is_invited",
-      async: false,
-      data: {
-        "event": event,
-        "users": JSON.stringify(users),
-      },
-      success: function(data) {
-        mydata = JSON.parse(data);
+    function is_invited(event, users) {
+      if (users.length > 0 && users) {
+        var mydata;
+        $.ajax({
+          type: "GET",
+          url: "/calendar/is_invited",
+          async: false,
+          data: {
+            "event": event,
+            "users": JSON.stringify(users),
+          },
+          success: function(data) {
+            mydata = JSON.parse(data);
+          }
+
+        });
+        return mydata;
       }
-      
-    });
+      else {
+        return [false];
+      }
+    }
+
+
+    function who_is_invited(event_id) {
+      var mydata;
+      $.ajax({
+        type: "GET",
+        url: "/calendar/who_is_invited/",
+        async: false,
+        data: {
+          "event": event_id,
+        },
+        success: function(data) {
+          mydata = JSON.parse(data);
+        }
+      });
       return mydata;
     }
-    else {
-      return [false];
-    }
-  }
-
-
-  function who_is_invited(event_id) {
-    var mydata;
-    $.ajax({
-      type: "GET",
-      url: "/calendar/who_is_invited/",
-      async: false,
-      data: {
-        "event": event_id,
-      },
-      success: function(data) {
-        mydata = JSON.parse(data);
-      }
-    });
-    return mydata;
-  }
   // given a list of users usernames and a single event id, returns booolean 
   // list of true/false for whether user is attending said event
   function is_attending(event, users) {
@@ -543,119 +544,119 @@ function make_events(data, color, owner, hover, is_event) {
     }
   }
 
-</script>
+  </script>
 
-<script>
+  <script>
 
-function get_friends(user) {
-  $.ajax({
-    type: "GET",
-    url: "/calendar/get_friends/",
-    data: {'user': user},
-    success: function(data) {
+  function get_friends(user) {
+    $.ajax({
+      type: "GET",
+      url: "/calendar/get_friends/",
+      data: {'user': user},
+      success: function(data) {
 
-      real_data = JSON.parse(data);
-      fl = real_data.length;
-      userhtml = '';
+        real_data = JSON.parse(data);
+        fl = real_data.length;
+        userhtml = '';
         if (fl != 0) {
-        
+
           for (var i = 0; i < fl; i++) {
             userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].fields.username + '"><div><img src="/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
           };
         } else {
           userhtml = '<strong>No friends.</strong>';
-      };
-      $(".frandz").html(userhtml);
-      for (var i = 0; i < fl; i++) {
-        hover_stuff(real_data[i]);
-      };
-    } 
-  });
-}
+        };
+        $(".frandz").html(userhtml);
+        for (var i = 0; i < fl; i++) {
+          hover_stuff(real_data[i]);
+        };
+      } 
+    });
+  }
 
-function hover_stuff(friend) {
-hover_functions = {
-  sensitivity: 3,
-  interval: 50,
-  timeout: 50,
-  over: function on_hover() {
-    var obj = friend.fields.username;
-  $.ajax({
-    type: "POST",
-    url: "/calendar/get_friends_downtimes/",
-    data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
-    success: function(data) {
+  function hover_stuff(friend) {
+    hover_functions = {
+      sensitivity: 3,
+      interval: 50,
+      timeout: 50,
+      over: function on_hover() {
+        var obj = friend.fields.username;
+        $.ajax({
+          type: "POST",
+          url: "/calendar/get_friends_downtimes/",
+          data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
+          success: function(data) {
 
-      var our_data = JSON.parse(data);
-      var get_some_events = make_events(our_data, 'orange', obj, true, false);
+            var our_data = JSON.parse(data);
+            var get_some_events = make_events(our_data, 'orange', obj, true, false);
 
 
-      if (get_some_events) {
-        existing_events = $("#calendar").fullCalendar('clientEvents');
-    
-        for (var i = 0; i < get_some_events.length; i++) {
-          var is_unique = true;
-          for (var j = 0; j < existing_events.length; j++) {
-            if (get_some_events[i].id == existing_events[j].id) {
-              is_unique = false;
+            if (get_some_events) {
+              existing_events = $("#calendar").fullCalendar('clientEvents');
+
+              for (var i = 0; i < get_some_events.length; i++) {
+                var is_unique = true;
+                for (var j = 0; j < existing_events.length; j++) {
+                  if (get_some_events[i].id == existing_events[j].id) {
+                    is_unique = false;
+                  }
+                }
+                if (is_unique) {
+                  $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+                }
+              }
+
             }
+          },
+        });
+
+      },
+      out: function off_hover() {
+        var obj = friend;
+        existing_events = $("#calendar").fullCalendar('clientEvents');
+        for (var i = 0; i < existing_events.length; i++) {
+          able = false;
+          if (existing_events[i].owners[0] === "hover") {
+            able = true;
+
           }
-          if (is_unique) {
-            $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+          if (able) {
+            $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
           }
         }
-
-      }
-    },
-    });
-
-    },
-    out: function off_hover() {
-    var obj = friend;
-    existing_events = $("#calendar").fullCalendar('clientEvents');
-    for (var i = 0; i < existing_events.length; i++) {
-      able = false;
-      if (existing_events[i].owners[0] === "hover") {
-        able = true;
-        
-      }
-      if (able) {
-        $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
-      }
-    }
-    $('#calendar').fullCalendar('rerenderEvents');
+        $('#calendar').fullCalendar('rerenderEvents');
 
       }
     }
     $( "#friend_" + friend.fields.username).hoverIntent(hover_functions);
-    }
+  }
 
-{% if user.is_authenticated %}
+  {% if user.is_authenticated %}
   var x = get_friends('{{ user }}');
-{% endif %}
-$(function() {
-      $(".suggest-submit").click(function() {
+  {% endif %}
+  $(function() {
+    $(".suggest-submit").click(function() {
 
-        var name = $("#suggest-search").val();
+      var name = $("#suggest-search").val();
 
-        if (name == '')
-        {
-          $(".suggest-output").html('');
-        }
-        else
-        {
+      if (name == '')
+      {
+        $(".suggest-output").html('');
+      }
+      else
+      {
 
-          $.ajax({
-            type: "GET",
-            url: "/calendar/suggest_search/",
-            data: {
-              'search': name,
-            },
-            success: function (data) {
-              var mydata = JSON.parse(data);
-              var dlength = mydata.length;
-              var userhtml = "";
-              
+        $.ajax({
+          type: "GET",
+          url: "/calendar/suggest_search/",
+          data: {
+            'search': name,
+          },
+          success: function (data) {
+            var mydata = JSON.parse(data);
+            var dlength = mydata.length;
+            var userhtml = "";
+
 
               ; // go get me!
               if (window.suggest_list != undefined) {
@@ -692,10 +693,11 @@ return false;
 function add_suggest(user, user_firstname, user_lastname) {
     // delete sonia from above in search
     $("#sug_" + user).remove();
+    $("#suggest-search").val("");
     // add sonia below
     addedhtml = "";    
     addedhtml = addedhtml + '<div id="sugged_' + user + '"><a class="list-group-item"><img src="{% static "img/glyphicons-halflings.png" %}" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="anotherundesirablebutton_' + user + '"><button type="button" onclick="remove_suggest(\'' + user + '\', \'' + user_firstname + '\', \'' + user_lastname+ '\' )">Remove</button></div></a></div>';
-  
+
     $(".Suggest-list").append(addedhtml);
 
     // retrieve the event (on the front end) that we're editing
@@ -713,7 +715,23 @@ function add_suggest(user, user_firstname, user_lastname) {
     }
   }
 
+  jQuery.expr[':'].regex = function(elem, index, match) {
+    var matchParams = match[3].split(','),
+    validLabels = /^(data|css):/,
+    attr = {
+      method: matchParams[0].match(validLabels) ? 
+      matchParams[0].split(':')[0] : 'attr',
+      property: matchParams.shift().replace(validLabels,'')
+    },
+    regexFlags = 'ig',
+    regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
+    return regex.test(jQuery(elem)[attr.method](attr.property));
+  }
+
   function cancel_suggest() {
+    $("div:regex(id, .*sugged_.*)").remove();
+    $("div:regex(id, .*sug_.*)").remove();
+    $("#suggest-search").val("");
     window.suggest_list = [];
   }
 
@@ -725,42 +743,62 @@ function add_suggest(user, user_firstname, user_lastname) {
         'suggest_list': JSON.stringify(window.suggest_list),
       },
       success: function(data) {
-        console.log("send_suggest function");
           // Make the unconfirmed event show up in your calendar
           if (data === "None") {
-            alert("You have no upcoming downtimes.")
+            bootbox.alert("You have no upcoming downtimes.")
           }
           else {
             if (data == "NoFriends") {
-              alert("Please suggest people.")
+              bootbox.alert("Please suggest people.")
             }
             else {
               if (data == "NoMatch") {
-                alert("No free times align")
+                bootbox.alert("No free times align")
               }
               else {
-                var alldata = JSON.parse(data);
-                  mydata = [];
-                  var index;
-                  var friends = [];
-                  for (var i = 0; i < alldata.length; i++) {
-                    if (alldata[i].model == "auth.user") {
-                      friends.push(alldata[i].fields.username);
-                      index = i;
-                    }
+                var all_data = JSON.parse(data);
+                console.log(all_data);
+                // first element is the event, all after are the users in the suggest list
 
-                    else {
-                      mydata.push(alldata[i]);
-                    }
+                var mydata = [];
+                var friends = [];
+                for (var i = 0; i < all_data.length; i++) {
+                  if (all_data[i].model == "auth.user") {
+                    friends.push(all_data[i].fields.username); // friends list
+                  }
+
+                  else {
+                    mydata.push(all_data[i]); // my data is a list of the events
+                  }
                 }
+                console.log(mydata);
+                console.log(friends);
+
                 var start_d = new Date(mydata[0].fields.start_time);
                 var end_d = new Date(mydata[0].fields.end_time)
                 var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
                 var date_string = start_d.toDateString();
-                //bootbox.alert("Hello world!");
+                
+                friend_string = "";
+                and = ""
+                if (mydata.length != 1) {
+                  and = " and "
+                }
 
-                var r = bootbox.confirm("Invite " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " to hangout on " + date_string + " from " + time_string + "?", function (result) {
+                for (var k = 1; k < all_data.length - 1; k++) {
+                  friend_string = friend_string + all_data[k].fields.first_name + " " + all_data[k].fields.last_name + ",";
+                }
+                friend_string = friend_string + and + all_data[all_data.length-1].fields.first_name + " " + all_data[all_data.length-1].fields.last_name;
+
+                console.log("Invite " + friend_string + " to hangout on " + date_string + " from " + time_string + "?");
+                console.log("something");
+                bootbox.confirm("Invite " + friend_string + " to hangout on " + date_string + " from " + time_string + "?", function (result) {
+                
+                  console.log(result);
                   if (result == true) {
+                    console.log("you clicked invite");
+                    console.log(mydata[0].pk);
+                    console.log(friends);
                   $.ajax({
                     type: "POST",
                     url: "/calendar/send_event_notifications/",
@@ -778,6 +816,8 @@ function add_suggest(user, user_firstname, user_lastname) {
                   $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
                 }
                 else {
+                  //console.log("you clicked cancel");
+                  
                   $.ajax({
                       type: "POST",
                       url: "/calendar/remove_event/",
@@ -788,26 +828,35 @@ function add_suggest(user, user_firstname, user_lastname) {
 
                 });
 
-                
 
-                
+
               }
             }
           }
 
-      }
-    });
-  }
+        }
+      });
+
+
+$("div:regex(id, .*sugged_.*)").remove();
+$("div:regex(id, .*sug_.*)").remove();
+$("#suggest-search").val("");
+window.suggest_list = [];
+}
+                
+
+
+
 
 </script>
 <style>
-  body .modal.fade.schedule-modal {
-    max-width: 450px;
-    margin-left: 30%;
-  }
-  body .modal-footer {
-    max-width: 450px;
-  }
+body .modal.fade.schedule-modal {
+  max-width: 450px;
+  margin-left: 30%;
+}
+body .modal-footer {
+  max-width: 450px;
+}
 </style>
 
 <div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
@@ -846,23 +895,23 @@ function add_suggest(user, user_firstname, user_lastname) {
 </div><!-- /.modal-dialog -->
 </div>
 
-  </body>  
-  <hr>
+</body>  
+<hr>
 
-  <footer>
-    <div class="container">
-	    <p>&copy; UpDog 2014: What's Up With You?</p>
+<footer>
+  <div class="container">
+   <p>&copy; UpDog 2014: What's Up With You?</p>
       <!--<a data-toggle="tooltip" title="This is what the tooltip displays!">Hover over me!</a>
       <script>
       $(document).ready(function() {
         $('[data-toggle=tooltip]').tooltip();
       });
-      </script>-->
+    </script>-->
 
 
-    </div>
+  </div>
 
-  </footer>
+</footer>
 
-  
+
 </html>
