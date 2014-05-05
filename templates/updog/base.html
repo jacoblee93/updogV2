@@ -385,36 +385,70 @@ function reject_friend_request(new_friend) {
 <script>
 function check_for_notifications() {
   var f = get_num_new_friend_requests();
+  var n = get_num_new_notifications();
 
   if (f > 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
+    $(".fr_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></a>');
   }
   else if (f == 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
+    $(".fr_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></a>');
   }
   else {
     $(".fr_text").html('<span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
 
   }
 
-  var n = get_num_new_notifications();
+
 
   if (n > 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
+    $(".notif_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></a>');
   }
   else if (n == 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
+    $(".notif_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></a>');
   }
   else {
     $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
   }
+
+
 }
 
 check_for_notifications();
 
 var myVar = setInterval(function() {check_for_notifications()}, 180000);
 </script>
+<style>
+.badge {
+  display: block;
+  position: absolute;
+  top: -12px;
+  right: 8px;
+  line-height: 16px;
+  height: 16px;
+  padding: 0 3px;
+  color: white;
+  text-shadow: 0 1px rgba(0, 0, 0, 0.25);
+  
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 5px;
+  border-color: hsla(146, 96%, 38%, 1.0);
+  background-color: hsla(146, 96%, 38%, 1.0);
+}
 
+.glyphicon {
+  .badge {
+    position: absolute;
+    top: -12px;
+  }
+}
+
+.btn-mini {
+  .badge {
+    top: -12px;
+  }
+}
+</style>
 
 
 <script>
