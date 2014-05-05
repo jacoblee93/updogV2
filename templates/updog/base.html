@@ -53,7 +53,7 @@
 
   <style>
   div#scroll-able-nots {
-    height: 300px;
+    max-height: 300px;
     overflow: scroll;
   }
   </style>
@@ -148,14 +148,10 @@ function display_notifications() {
       fl = from_users.length;
       items = JSON.parse(data[2])
       il = items.length;
-      console.log(event_noteys);
-      console.log(from_users);
-      console.log(items);
 
       userhtml = '<div id="scroll-able-nots"><div id="list-group">';
       if (el != 0 && fl != 0 && il != 0) {
         for (var i = 0; i < items.length; i++) {
-
           if (!event_noteys[i].fields.is_reply) {
 
             // we may not need to get the backend event
@@ -183,10 +179,10 @@ function display_notifications() {
 
             info_string = info_string + " on " + date_string + " from " + time_string;
 
-            userhtml = userhtml + '<div id=invite_notey' + items[i].pk + '><li style="width:450px"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + info_string + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li><li class="divider"></li></div>';
+            userhtml = userhtml + '<div id=invite_notey' + event_noteys[i].pk + '><li style="width:450px"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + info_string + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ event_noteys[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + event_noteys[i].pk + ')">decline</button></div></li><li class="divider"></li></div>';
           }
           else {
-            userhtml = userhtml + '<div id=reply_notey' + items[i].pk + '><li style="width:450px"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> You are now hanging out with ' + from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + '!</li><li class="divider"></li></div>';
+            userhtml = userhtml + '<div id=reply_notey' + event_noteys[i].pk + '><li style="width:450px"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> You are now hanging out with ' + from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + '!</li><li class="divider"></li></div>';
           }
         }
       }
@@ -255,7 +251,7 @@ function respond_yes_to_event_notification(notification_pk) {
   }
 
 function respond_no_to_event_notification(notification_pk) {
-
+  console.log(notification_pk)
   $.ajax({
     type: "POST",
     url: "/calendar/respond_to_event_notification/",
@@ -324,16 +320,16 @@ function reject_friend_request(new_friend) {
               {% if user.is_authenticated %}
                 <li class="dropdown">
                   <a onclick="display_friend_requests()" class="dropdown-toggle" data-toggle="dropdown"><div class="fr_text"></div></a>
-                  <ul class="dropdown-menu">
+                  <form class="dropdown-menu"><ul>
                     <div class="friend_requests"></div>
-                  </ul>
+                  </ul></form>
                 </li>
                 <li class="dropdown">
 
                   <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="dropdown"><div class="notif_text"></div></a>
-                  <ul class="dropdown-menu">
+                  <form class="dropdown-menu"><ul>
                     <div class="notifications"></div>
-                  </ul>
+                  </ul></form>
                 </li>
                 
                 <li><a data-toggle="modal" data-target=".suggest-modal">Suggest</a><li>               
@@ -404,7 +400,7 @@ function check_for_notifications() {
 
 check_for_notifications();
 
-var myVar = setInterval(function() {check_for_notifications()}, 180000);
+var myVar = setInterval(function() {check_for_notifications()}, 30000);
 </script>
 
 

@@ -1784,7 +1784,6 @@ def send_event_notifications(request):
         if request.method == 'POST':
             try:
                 current_uduser = request.user.updoguser
-
                 if 'event' in request.POST:
                     event = Event.objects.filter(pk=request.POST['event'])[0]
                     if 'to_users' in request.POST:
@@ -1817,38 +1816,42 @@ def send_event_notifications(request):
 @login_required
 @csrf_exempt
 def respond_to_event_notification(request):
-    if request.is_ajax():
-        if request.method == 'POST':
+    try:
+        if request.is_ajax():
+            if request.method == 'POST':
 
-            current_uduser = request.user.updoguser
+                current_uduser = request.user.updoguser
 
-            if 'notification' in request.POST:
-                notification = EventNotification.objects.filter(pk=request.POST['notification'])[0]
+                if 'notification' in request.POST:
+                    notification = EventNotification.objects.filter(pk=request.POST['notification'])[0]
 
-                if 'response' in request.POST:
-                    response = request.POST['response']
+                    if 'response' in request.POST:
+                        response = request.POST['response']
 
-                    if response == 'accept':
-                        ## update the meet count and the most recent meeting time of the friendship
-                        might_uncomment_later = """friendship = Friendship.objects.filter(to_user=current_uduser, from_user=notification.to_user)[0]
-                        friendship.meeting_count = friendship.meeting_count + 1
-                        friendship.date_last_seen = notification.event.start_time
-                        friendship.save()"""
+                        if response == 'accept':
+                            ## update the meet count and the most recent meeting time of the friendship
+                            might_uncomment_later = """friendship = Friendship.objects.filter(to_user=current_uduser, from_user=notification.to_user)[0]
+                            friendship.meeting_count = friendship.meeting_count + 1
+                            friendship.date_last_seen = notification.event.start_time
+                            friendship.save()"""
 
-                        ## adds the to user as an owner of the event
-                        if current_uduser not in notification.event.owners.all():
-                            notification.event.add_user(current_uduser)
-                            notification.event.save()
+                            ## adds the to user as an owner of the event
+                            if current_uduser not in notification.event.owners.all():
+                                notification.event.add_user(current_uduser)
+                                notification.event.save()
 
-                        ## creates a reply notification for the from user
-                        reply_notification = EventNotification(to_user=notification.from_user, from_user=current_uduser, event=notification.event, is_reply=True)
-                        reply_notification.save()
-                        ## delete the event notification
+                            ## creates a reply notification for the from user
+                            reply_notification = EventNotification(to_user=notification.from_user, from_user=current_uduser, event=notification.event, is_reply=True)
+                            reply_notification.save()
+                            ## delete the event notification
+                            notification.delete()
+                            return HttpResponse(serializers.serialize('json', [notification.event]))
+
                         notification.delete()
-                        return HttpResponse(serializers.serialize('json', [notification.event]))
+                        return HttpResponse("Success")
 
-                    notification.delete()
-                    return HttpResponse("Success")
+    except Exception as e:
+        print e
 
     return HttpResponse("Failure")
 
