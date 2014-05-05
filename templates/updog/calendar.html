@@ -225,7 +225,6 @@ function inputBlur(i){
                 } else {
                   userhtml = '<strong>No friends.</strong>';
                 };
-                bootbox.alert(userhtml);
 
                 $(".frandz").html(userhtml);
                 for (var i = 0; i < fl; i++) {
@@ -290,7 +289,11 @@ function inputBlur(i){
       textArea = null;
   }
 
-  addTextAreaCallback( document.getElementById("search-friends"), get_friends_function, 100 );
+  addTextAreaCallback( document.getElementById("search-friends"), get_friends_function, 200 );
+
+  $('#search-friends').keypress(function(e){
+    if ( e.which == 13 ) return false;
+  });
 
   function send_friend_request(new_friend, i, new_friend_pk) {
     console.log("sending friend request")
@@ -538,10 +541,14 @@ function erase_events(user_pk, username) {
 header: {
   left: 'prev, month,agendaWeek',
   center: 'title',
-  right: 'next',
+  right: 'today, next',
 },
 
-titleFormat:"\'What is up, {{ user.first_name }}? \'",
+titleFormat: {
+
+  week:"\'What is up, {{ user.first_name }}? \'",
+  month:'MMMM yyyy',
+},
 
 selectable: {
   month: false,
@@ -2918,7 +2925,11 @@ invite_friends_function = function() {
 }
 return false;
 }
-  addTextAreaCallback( document.getElementById("schedule-search"), invite_friends_function, 100 );
+  addTextAreaCallback( document.getElementById("schedule-search"), invite_friends_function, 200 );
+
+  $('#schedule-search').keypress(function(e){
+    if ( e.which == 13 ) return false;
+  });
 
 function invite(username, user_firstname, user_lastname, event_id, user_pk) {
     // delete sonia from above in search

@@ -38,6 +38,19 @@ class UpDogUser(models.Model):
             person.remove_friend(self, False)
         return
 
+    def update_last_seen(self, person, date, symm=True):
+
+        friendship = Friendship.objects.filter(from_user=self,
+            to_user=person)[0]
+
+        friendship.meeting_count = friendship.meeting_count + 1
+        friendship.date_last_seen = date
+        friendship.save()
+        if symm:
+            person.update_last_seen(self, date, False)
+
+        return
+
     def get_friends(self):
         return Friendship.objects.filter(from_user=self, is_mutual=True)
 
