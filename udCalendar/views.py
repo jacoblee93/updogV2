@@ -850,7 +850,7 @@ def find_friends(request):
                 friendships_list = Friendship.objects.filter(to_user = request.user.updoguser)
                 friendships_list = friendships_list.order_by('-is_mutual')
 
-                friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
+                friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"]))
                 friends_list = friends_list.exclude(user__username = request.user.username)
 
                 users = []
@@ -901,7 +901,7 @@ def search_friends(request):
         if request.method == 'GET':
             l = len(request.GET["search"])
 
-            friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"])) 
+            friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"])) 
             fl = len(friends_list)
             user_list = []
 
@@ -923,7 +923,7 @@ def invite_search(request):
                 if 'event' in request.GET:
                     event = Event.objects.filter(pk=request.GET['event'])[0]
                     l = len(request.GET["search"])
-                    friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
+                    friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"]))
                     friends_list = friends_list.exclude(user__username = request.user.username);
                     fl = len(friends_list)
                     user_list = []
@@ -944,7 +944,7 @@ def suggest_search(request):
         if request.method == 'GET':
             if 'search' in request.GET:
                 l = len(request.GET["search"])
-                friends_list = UpDogUser.objects.filter(Q(user__first_name__iexact=request.GET["search"]) | Q(user__last_name__iexact=request.GET["search"]) | Q(user__username__iexact=request.GET["search"]) | Q(user__first_name__startswith=request.GET["search"]) | Q(user__last_name__startswith=request.GET["search"]) | Q(user__username__startswith=request.GET["search"]))
+                friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"]))
                 friends_list = friends_list.exclude(user__username = request.user.username);
                 fl = len(friends_list)
                 user_list = []
@@ -1723,27 +1723,39 @@ def get_num_new_friend_requests(request):
 
 @login_required
 def get_notifications(request):
-    if request.is_ajax():
-        if request.method == 'GET':
+    try:
+        if request.is_ajax():
+            if request.method == 'GET':
 
-            current_uduser = request.user.updoguser
-            event_notifications = EventNotification.objects.filter(to_user=current_uduser)
-            if event_notifications:
-                el = len(event_notifications)
+                current_uduser = request.user.updoguser
+                event_notifications = EventNotification.objects.filter(to_user=current_uduser)
+                from_users = []
+                events = []
 
-                if el > 0:
-                  for i in xrange(0,el):
-                    if event_notifications[i].is_seen == False:
-                        event_notifications[i].is_seen = True
-                        event_notifications[i].save()
+                if event_notifications:
+                    el = len(event_notifications)
 
-                event_notifications = serializers.serialize('json', event_notifications)
+                    if el > 0:
+                      for i in xrange(0,el):
+                        if event_notifications[i].is_seen == False:
+                            event_notifications[i].is_seen = True
+                            event_notifications[i].save()
+                        from_users.append(event_notifications[i].from_user.user)
+                        events.append(event_notifications[i].event)
 
+                    event_notifications = serializers.serialize('json', event_notifications)
+                    from_users = serializers.serialize('json', from_users)
+                    events = serializers.serialize('json', events)
 
-            else: 
-                event_notifications = []
+                    json_stuff = simplejson.dumps([event_notifications, from_users, events])
 
-            return HttpResponse(event_notifications)
+                else: 
+                    event_notifications = []
+
+                return HttpResponse(json_stuff, content_type="application/json")
+
+    except Exception as e:
+        print e
                     
     return HttpResponse("Failure")
 
@@ -1830,7 +1842,7 @@ def respond_to_event_notification(request):
 
                         ## creates a reply notification for the from user
                         reply_notification = EventNotification(to_user=notification.from_user, from_user=current_uduser, event=notification.event, is_reply=True)
-
+                        reply_notification.save()
                         ## delete the event notification
                         notification.delete()
                         return HttpResponse(serializers.serialize('json', [notification.event]))

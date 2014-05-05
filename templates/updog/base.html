@@ -162,39 +162,22 @@ function display_notifications() {
     data: {"username": '{{ user.username }}'},
     async: false,
     success: function(data) {
-      if (!data) return;
-      mydata = JSON.parse(data);
-      var dlength = mydata.length;
-      var items = [];
+      if (!data || !data[0] || !data[1] || !data[2]) return;
+      event_noteys = JSON.parse(data[0]);
+      el = event_noteys.length;
+      from_users = JSON.parse(data[1]);
+      fl = from_users.length;
+      items = JSON.parse(data[2])
+      il = items.length;
+      console.log(event_noteys);
+      console.log(from_users);
+      console.log(items);
+
       userhtml = '<div id="scroll-able-nots"><div id="list-group">';
+      if (el != 0 && fl != 0 && il != 0) {
+        for (var i = 0; i < items.length; i++) {
 
-      for (var i = 0; i < dlength; i++) {
-        items.push(mydata[i]);
-      }
-      ret = items.length;
-          // items are event notifications, they don't have first and last name properties
-          if (items.length != 0) {
-            from_users = []
-            for (var i = 0; i < items.length; i++) {
-
-              var from_user;
-              var notey_event;
-              $.ajax({
-                type: "GET",
-                url: "/calendar/get_from_user/",
-                async: false,
-                data: {
-                  "pk": items[i].pk,
-                },
-                success: function(data) {
-                  var mydata = JSON.parse(data);
-                  from_user = mydata[0];
-                  notey_event = mydata[1];
-                }
-              });
-              if (from_user)
-                from_users.push(from_user);
-              if (!items[i].fields.is_reply) {
+          if (!event_noteys[i].fields.is_reply) {
 
                 // we may not need to get the backend event
                 var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' wants to ';
@@ -209,24 +192,23 @@ function display_notifications() {
               var start_d = new Date(notey_event.fields.start_time);
                 var end_d = new Date(notey_event.fields.end_time)
 
-                var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
 
-                var date_string = start_d.toDateString();
+            var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
 
-                var act = "";
-                if (notey_event.fields.activity) {
-                  act = notey_event.fields.activity;
-                }
-                else {
-                  act = "hang out";
-                }
-                info_string = info_string + act;
-                
-                if (notey_event.fields.location) {
-                  info_string = info_string + " at " + notey_event.fields.location;
-                }
+            var date_string = start_d.toDateString();
 
-                
+            var act = "";
+            if (items[i].fields.activity) {
+              act = items[i].fields.activity;
+            }
+            else {
+              act = "hang out";
+            }
+            info_string = info_string + act;
+            
+            if (items[i].fields.location) {
+              info_string = info_string + " at " + items[i].fields.location;
+            }                
 
               if (!items[i].fields.is_reply) {
                 info_string = info_string + " on " + date_string + " from " + time_string;
@@ -244,8 +226,14 @@ function display_notifications() {
           userhtml = userhtml+ "</div></div>";
           $(".notifications").html(userhtml);
           $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b>');
+
         }
-      });
+      }
+      userhtml = userhtml+ "</div></div>";
+      $(".notifications").html(userhtml);
+      $(".notif_text").html('Notifications<b class="caret"></b>');
+    }
+  });
 return ret;
 }
 
@@ -422,6 +410,7 @@ function check_for_notifications() {
   }
   else {
     $(".fr_text").html('<span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
+
   }
 
   var n = get_num_new_notifications();
