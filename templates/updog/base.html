@@ -120,8 +120,6 @@ function resolve_event_downtime_conflicts(downtimes) {
               }
 
               name = name;
-              console.log(fixed_length-namelength);
-              console.log(name);
 
               //bootbox.alert(name)
               //name = name.replace(/\s/g, '&nbsp;');
@@ -169,71 +167,56 @@ function display_notifications() {
       fl = from_users.length;
       items = JSON.parse(data[2])
       il = items.length;
-      console.log(event_noteys);
-      console.log(from_users);
-      console.log(items);
 
       userhtml = '<div id="scroll-able-nots"><div id="list-group">';
       if (el != 0 && fl != 0 && il != 0) {
         for (var i = 0; i < items.length; i++) {
 
           if (!event_noteys[i].fields.is_reply) {
-
-                // we may not need to get the backend event
-                var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' wants to ';
-               
-              }
-              else {
-                //  "___ ___ accepted your invite to ___ at ____ on ___ from ____"
-
-                var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' accepted your invite to ';
-
-              }
-              var start_d = new Date(notey_event.fields.start_time);
-                var end_d = new Date(notey_event.fields.end_time)
-
-
-            var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
-
-            var date_string = start_d.toDateString();
-
-            var act = "";
-            if (items[i].fields.activity) {
-              act = items[i].fields.activity;
-            }
-            else {
-              act = "hang out";
-            }
-            info_string = info_string + act;
-            
-            if (items[i].fields.location) {
-              info_string = info_string + " at " + items[i].fields.location;
-            }                
-
-              if (!items[i].fields.is_reply) {
-                info_string = info_string + " on " + date_string + " from " + time_string;
-
-                userhtml = userhtml + '<div id=invite_notey' + items[i].pk + '><li style="display: inline-block;"><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button style="float:right" class="btn btn-primary" type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">Accept</button><button style="float:right" class="btn btn-primary" type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">Decline</button><div style="margin-left:65px; margin-right:160px"> ' + info_string + '</div></li><li class="divider"></li></div>';
-              }
-              else {
-                info_string = info_string + " for " + date_string + " from " + time_string;
-// changed li to div
-//style="width:450px"
-                userhtml = userhtml + '<div id=reply_notey' + items[i].pk + '><li style="display: inline-block"><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><div style="margin-left:65px"> ' + info_string + '</div></li><li class="divider"></li></div>';
-              }
-            }
+            // we may not need to get the backend event
+            var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' wants to ';
           }
-          userhtml = userhtml+ "</div></div>";
-          $(".notifications").html(userhtml);
-          $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b>');
+          else {
+            //  "___ ___ accepted your invite to ___ at ____ on ___ from ____"
+            var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' accepted your invite to ';
+          }
+          var start_d = new Date(items[i].fields.start_time);
+          var end_d = new Date(items[i].fields.end_time);
 
+
+          var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
+
+          var date_string = start_d.toDateString();
+
+          var act = "";
+          if (items[i].fields.activity) {
+            act = items[i].fields.activity;
+          }
+          else {
+            act = "hang out";
+          }
+          info_string = info_string + act;
+
+          if (items[i].fields.location) {
+            info_string = info_string + " at " + items[i].fields.location;
+          }                
+
+          if (!event_noteys[i].fields.is_reply) {
+            info_string = info_string + " on " + date_string + " from " + time_string;
+
+            userhtml = userhtml + '<div id=invite_notey' + event_noteys[i].pk + '><li style="display: inline-block;"><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button style="float:right" class="btn btn-primary" type="button" onclick="respond_yes_to_event_notification('+ event_noteys[i].pk + ')">Accept</button><button style="float:right" class="btn btn-primary" type="button" onclick="respond_no_to_event_notification(' + event_noteys[i].pk + ')">Decline</button><div style="margin-left:65px; margin-right:160px"> ' + info_string + '</div></li><li class="divider"></li></div>';
+          }
+          else {
+            info_string = info_string + " for " + date_string + " from " + time_string;
+            userhtml = userhtml + '<div id=reply_notey' + event_noteys[i].pk + '><li style="display: inline-block"><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><div style="margin-left:65px"> ' + info_string + '</div></li><li class="divider"></li></div>';
+          }
         }
-      }
-      userhtml = userhtml+ "</div></div>";
-      $(".notifications").html(userhtml);
-      $(".notif_text").html('Notifications<b class="caret"></b>');
-    }
-  });
+        }
+        userhtml = userhtml+ "</div></div>";
+        $(".notifications").html(userhtml);
+        $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b>');
+        }
+      });
 return ret;
 }
 
@@ -280,11 +263,9 @@ function respond_yes_to_event_notification(notification_pk) {
               "resize": "false",
             },
             success: function(data) {
-              console.log(data);
 
               var parsed = JSON.parse(data);
 
-              console.log(parsed);
 
               resolve_event_downtime_conflicts(parsed);
           }
@@ -325,6 +306,9 @@ function reject_friend_request(new_friend) {
     url: "/calendar/reject_friend_request/",
     data: {'new_friend': new_friend},
     success: function(data){
+      
+      get_friends('{{ user }}');
+
       console.log(data)
     }
   });
@@ -786,17 +770,13 @@ function make_events(data, color, owner, hover, is_event) {
           },
           success: function (data) {
             var mydata = JSON.parse(data);
-            console.log("snapple apple: ");
-            console.log(mydata);
 
             var dlength = mydata.length;
             var userhtml = "";
 
               // go get me!
               if (window.suggest_list != undefined) {
-            console.log("suggest_list" + window.suggest_list[0]);
 
-                console.log("initialize");
                 users = [];
                 for (var i = 0; i < dlength; i++) {
                   if ($.inArray(mydata[i].fields.username, window.suggest_list) == -1) {
@@ -806,7 +786,6 @@ function make_events(data, color, owner, hover, is_event) {
               }
               else {
 
-                console.log("suggest list is undef");
                 window.suggest_list = [];
                 users = mydata;
               }
@@ -815,7 +794,6 @@ function make_events(data, color, owner, hover, is_event) {
                 for (var i = 0; i < users.length; i++) {
                   userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
                 }
-                console.log(userhtml);
               }
               else {
                 userhtml = "No results.";
@@ -832,13 +810,8 @@ return false;
 
 function add_suggest(user_pk, user_firstname, user_lastname, username) {
     // delete sonia from above in search
-    console.log("here i am");
-    console.log(user_pk);
-    console.log(window.suggest_list)
-    console.log($("#sug_" + user_pk))
     $("#sug_" + user_pk).remove();
 
-    console.log($("#sug_" + user_pk))
 
     $("#suggest-search").val("");
     // add sonia below
@@ -1024,71 +997,7 @@ function add_suggest(user_pk, user_firstname, user_lastname, username) {
 
                       },
                     }
-
-
-        /*            }
-                  }
-                });*/
-
-// if user clicked Okay:
-
-
-                  // send the other user a request:
-                  //************** SEND EVENT NOTIFICATION *******************//
-
-                 /* $.ajax({
-                    type: "POST",
-                    url: "/calendar/send_event_notifications/",
-                    data: {
-                      "event": mydata[0].pk,
-                      "to_users": JSON.stringify(friends),
-                      "data_type": "username",
-                    },
-                    success: function(data) {
-                      console.log(data);
-                    }
-                  });
-
-                  //************** SEND EVENT NOTIFICATION //
-
-                  // display the unconfirmed event on the initiator's calendar
-
-                  var unconf = make_events(mydata, blue, '{{ username }}', false, true);
-
-                  $.ajax({
-                    type: "POST",
-                    url: "/calendar/change_event/",
-                    data: {"pk": unconf[0].id, "day_delta": 0, "minute_delta": 0, "resize": false,},
-                    success: function(data) {
-                      var parsed = JSON.parse(data);
-                      resolve_event_downtime_conflicts(parsed);
-                    }
-                  });
-
-
-                  $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
-
-                }
-                else {
-// remove the unconfirmed event from the back end
-$.ajax({
-  type: "POST",
-  url: "/calendar/remove_event/",
-  data: {"pk": JSON.parse(data)[0].pk},
-});
-
-}*/
-
-
-
-
-
-
-                }); // end confirm
-
-
-
-
+                }); 
 }
 }
 }
@@ -1159,7 +1068,6 @@ $.ajax({
                     ReSuggest: {
                       label: "Re-suggest",
                       callback: function() {
-                        console.log(window.suggest_list);
                         $.ajax({
                           type: "GET",
                           url: "/calendar/multi_suggest/",

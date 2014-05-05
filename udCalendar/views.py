@@ -54,21 +54,6 @@ def calendar(request):
     for ship in ordered_ships_list:
         friends_list.append(ship.to_user.user)
 
-    garbage = """user = UpDogUser.objects.order_by('-user')[1]
-    print user
-    print datetime.datetime(2014, 5, 9, 12, 45, 0, tzinfo=utc)
-    #Downtime.objects.get_or_create(owner=user, start_time=startTime, end_time=endTime)[0]
-    dt = Downtime.objects.get_or_create(owner=user, start_time=datetime.datetime(2014, 5, 9, 12, 45, 0, tzinfo=utc), end_time=datetime.datetime(2014, 5, 9, 13, 30, 0, tzinfo=utc))[0]
-
-    adddts = dt1 = add_downtime(ud1, datetime(2014, 4, 8, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 8, 8, 30, 0, tzinfo=utc))
-    dt2 = add_downtime(ud2, datetime(2014, 5, 9, 10, 45, 0, tzinfo=utc), datetime(2014, 5, 9, 21, 30, 0, tzinfo=utc))
-
-    dt3 = add_downtime(ud3, datetime(2014, 5, 9, 12, 45, 0, tzinfo=utc), datetime(2014, 5, 9, 13, 30, 0, tzinfo=utc))
-    dt4 = add_downtime(ud4, datetime(2014, 4, 21, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 21, 8, 30, 0, tzinfo=utc))
-    dt5 = add_downtime(ud5, datetime(2014, 5, 9, 10, 45, 0, tzinfo=utc), datetime(2014, 5, 9, 20, 30, 0, tzinfo=utc))
-
-    """
-
     # Alex - for local use when rediesigning friends tab 
     #json_friends = serializers.serialize("json", friends_list)
 
@@ -1030,6 +1015,8 @@ def reject_friend_request(request):
                 to_friendship.save()
                 from_friendship.save()
 
+
+
                 return HttpResponse("Success!")
 
     return HttpResponse("Failure!")
@@ -1688,7 +1675,7 @@ def display_friend_requests(request):
                 return HttpResponse("No new notifications")
 
             else:
-                requests = Friendship.objects.filter(to_user=current_uduser, is_mutual = False)
+                requests = Friendship.objects.filter(to_user=current_uduser, is_new = True)
                 rl = len(requests)
                 request_list = []
                 
