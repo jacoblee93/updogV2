@@ -53,8 +53,16 @@
 
   <style>
   div#scroll-able-nots {
-    height: 300px;
+    max-height: 300px;
     overflow: scroll;
+    width: 450px;
+
+  }
+  div#scroll-able-nots1 {
+    max-height: 300px;
+    overflow: scroll;
+    width: 380px;
+
   }
   </style>
 
@@ -96,7 +104,7 @@ function resolve_event_downtime_conflicts(downtimes) {
           mydata = JSON.parse(data);
           var dlength = mydata.length;
           var users = [];
-          userhtml = '<div id="scroll-able-nots"><div id="list-group">';
+          userhtml = '<div id="scroll-able-nots1"><div id="list-group">';
 
           for (var i = 0; i < dlength; i++) {
             users.push(mydata[i]);
@@ -104,13 +112,26 @@ function resolve_event_downtime_conflicts(downtimes) {
           ret = users.length;
           if (users.length != 0) {
             for (var i = 0; i < users.length; i++) {
-              // fixed
-              userhtml = userhtml + '<li style="width:275px"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li><li class="divider"></li>';
+              fixed_length = 24;
+              var name =users[i].fields.first_name + ' ' + users[i].fields.last_name;
+              namelength = name.length;
+              for (var j = 0; j < (fixed_length - namelength); j++) {
+                name = name + ' ';
+              }
+
+              name = name;
+              console.log(fixed_length-namelength);
+              console.log(name);
+
+              //bootbox.alert(name)
+              //name = name.replace(/\s/g, '&nbsp;');
+
+              userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button type="button" style="float:right" class="btn btn-primary" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">Add</button><button style="float:right" class="btn btn-primary" type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">Ignore</button><div style="margin-left:65px; margin-right:120px"><pre style="background-color:transparent; border:0px solid">' + name + '</pre></div></li><li class="divider"></li>';
             }
           }
           userhtml = userhtml+"</div></div>";
           $(".friend_requests").html(userhtml);
-          $(".fr_text").html('Friend Requests<b class="caret"></b>');
+          $(".fr_text").html('<span class="glyphicon glyphicon-user"></span><b class="caret"></b>');
         }
       });
 return ret;
@@ -177,8 +198,15 @@ function display_notifications() {
 
                 // we may not need to get the backend event
                 var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' wants to ';
-                
-                var start_d = new Date(notey_event.fields.start_time);
+               
+              }
+              else {
+                //  "___ ___ accepted your invite to ___ at ____ on ___ from ____"
+
+                var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' accepted your invite to ';
+
+              }
+              var start_d = new Date(notey_event.fields.start_time);
                 var end_d = new Date(notey_event.fields.end_time)
 
                 var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
@@ -198,18 +226,24 @@ function display_notifications() {
                   info_string = info_string + " at " + notey_event.fields.location;
                 }
 
+                
+
+              if (!items[i].fields.is_reply) {
                 info_string = info_string + " on " + date_string + " from " + time_string;
 
-                userhtml = userhtml + '<div id=invite_notey' + items[i].pk + '><li style="width:450px"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + info_string + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">decline</button></div></li><li class="divider"></li></div>';
+                userhtml = userhtml + '<div id=invite_notey' + items[i].pk + '><li style="display: inline-block;"><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button style="float:right" class="btn btn-primary" type="button" onclick="respond_yes_to_event_notification('+ items[i].pk + ')">Accept</button><button style="float:right" class="btn btn-primary" type="button" onclick="respond_no_to_event_notification(' + items[i].pk + ')">Decline</button><div style="margin-left:65px; margin-right:160px"> ' + info_string + '</div></li><li class="divider"></li></div>';
               }
               else {
-                userhtml = userhtml + '<div id=reply_notey' + items[i].pk + '><li style="width:450px"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> You are now hanging out with ' + from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + '!</li><li class="divider"></li></div>';
+                info_string = info_string + " for " + date_string + " from " + time_string;
+// changed li to div
+//style="width:450px"
+                userhtml = userhtml + '<div id=reply_notey' + items[i].pk + '><li style="display: inline-block"><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><div style="margin-left:65px"> ' + info_string + '</div></li><li class="divider"></li></div>';
               }
             }
           }
           userhtml = userhtml+ "</div></div>";
           $(".notifications").html(userhtml);
-          $(".notif_text").html('Notifications<b class="caret"></b>');
+          $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b>');
         }
       });
 return ret;
@@ -339,19 +373,7 @@ function reject_friend_request(new_friend) {
         <ul class="nav navbar-nav">
               
               {% if user.is_authenticated %}
-                <li class="dropdown">
-                  <a onclick="display_friend_requests()" class="dropdown-toggle" data-toggle="dropdown"><div class="fr_text"></div></a>
-                  <ul class="dropdown-menu">
-                    <div class="friend_requests"></div>
-                  </ul>
-                </li>
-                <li class="dropdown">
-
-                  <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="dropdown"><div class="notif_text"></div></a>
-                  <ul class="dropdown-menu">
-                    <div class="notifications"></div>
-                  </ul>
-                </li>
+                
                 
                 <li><a data-toggle="modal" data-target=".suggest-modal">Suggest</a><li>               
 
@@ -363,6 +385,20 @@ function reject_friend_request(new_friend) {
       </ul>
       <ul class="nav navbar-nav navbar-right"> 
         {% if user.is_authenticated %}
+        <li class="dropdown">
+          <a onclick="display_friend_requests()" class="dropdown-toggle" data-toggle="dropdown"><div class="fr_text"></div></a>
+          <ul class="dropdown-menu">
+            <div class="friend_requests container-fluid"></div>
+          </ul>
+        </li>
+        <li class="dropdown">
+
+          <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="dropdown"><div class="notif_text"></div></a>
+          
+          <ul class="dropdown-menu"> <!-- -->
+            <div class="notifications container-fluid"></div>
+          </ul>
+        </li>
         <li><a href="/calendar/logout_user/">Logout</a></li>
         {% else %}
         <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
@@ -379,44 +415,26 @@ function check_for_notifications() {
   var f = get_num_new_friend_requests();
 
   if (f > 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span> Notifications<b class="caret"></b></a>');
+    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
   }
   else if (f == 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span> Notification<b class="caret"></b></a>');
+    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
   }
   else {
-    $(".fr_text").html('Notifications<b class="caret"></b></a>');
-  }/*
-  if (f > 1) {
-    $(".fr_text").html('<a style = "color:blue; pointer-events:none">' + f + ' New Friend Requests<b class="caret"></b></a>');
+    $(".fr_text").html('<span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
   }
-  else if (f == 1) {
-    $(".fr_text").html('<a style = "color:blue; pointer-events:none">' + f + ' New Friend Request<b class="caret"></b></div>');
-  }
-  else {
-    $(".fr_text").html('Friend Requests<b class="caret"></b>');
-  }*/
 
   var n = get_num_new_notifications();
 
   if (n > 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span> Notifications<b class="caret"></b></a>');
+    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
   }
   else if (n == 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span> Notification<b class="caret"></b></a>');
+    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
   }
   else {
-    $(".notif_text").html('Notifications<b class="caret"></b></a>');
+    $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
   }
-  /*if (n > 1) {
-    $(".notif_text").html('<a style = "color:blue; pointer-events:none">' + n + ' New Notifications<b class="caret"></b></a>');
-  }
-  else if (n == 1) {
-    $(".notif_text").html('<a style = "color:blue; pointer-events:none">' + n + ' New Notification<b class="caret"></b></a>');
-  }
-  else {
-    $(".notif_text").html('Notifications<b class="caret"></b>');
-  }*/
 }
 
 check_for_notifications();
@@ -754,7 +772,7 @@ function make_events(data, color, owner, hover, is_event) {
       
       }
     }
-    //$( "#friend_" + friend.pk).hoverIntent(hover_functions);
+    $( "#friend_" + friend.pk).hoverIntent(hover_functions);
   }
 
   {% if user.is_authenticated %}
@@ -1297,6 +1315,11 @@ body .modal-footer {
   div#scroll-able-3 {
     height: 60px;
   }
+
+ /* .dropdown-menu {
+
+    white-space: normal;
+  }*/
 </style>
 
 <div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
