@@ -63,7 +63,7 @@
 <!-- updated to fit calendar onto window -->
 <style>
   div#scroll-able {
-    height: calc(100vh - 200px);
+    max-height: calc(100vh - 200px);
     overflow: scroll;
   }
 </style>
@@ -383,24 +383,14 @@ function getevents(user_pk, username) {
 
 }
 function erase_events(user_pk, username) {
-
   existing_events = $("#calendar").fullCalendar('clientEvents');
 
   for (var i = 0; i < existing_events.length; i++) {
-    able = false;
-
-    for (var j = 0; j < existing_events[i].owners.length; j++) {
-
-      if (existing_events[i].owners == username) able = true;
-    }
-
-    if (able) {
+    if (existing_events[i].owners.indexOf(username) != -1) {
       $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
     }
   }
   $('#calendar').fullCalendar('rerenderEvents');
-
-
 
   var test = document.getElementById('friend_'+user_pk);
   test.setAttribute("onclick", "getevents("+JSON.stringify(user_pk) + "," + JSON.stringify(username) +")");
@@ -3094,7 +3084,7 @@ function showTimePicker11() {
 
 <style>
   div#scroll-able-2 {
-    height: 200px;
+    max-height: 200px;
     overflow: scroll;
   }
 </style>
