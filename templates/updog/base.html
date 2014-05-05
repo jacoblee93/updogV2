@@ -31,6 +31,14 @@
   <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
   <script src="{% static 'js/bootbox.js' %}"></script>
   <title>{% block title %}What's Up With You?{% endblock %}</title>
+
+  <script type="text/javascript">
+    if (window.location.hash == '#_=_'){
+    history.replaceState 
+        ? history.replaceState(null, null, window.location.href.split('#')[0])
+        : window.location.hash = '';
+}
+  </script>
 </head>
 <body>
 
@@ -385,7 +393,7 @@ function check_for_notifications() {
     $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span> Notification<b class="caret"></b></a>');
   }
   else {
-    $(".fr_text").html('Notifications<b class="caret"></b></a>');
+    $(".fr_text").html('Friend Requests<b class="caret"></b></a>');
   }/*
   if (f > 1) {
     $(".fr_text").html('<a style = "color:blue; pointer-events:none">' + f + ' New Friend Requests<b class="caret"></b></a>');
@@ -690,7 +698,7 @@ function make_events(data, color, owner, hover, is_event) {
         if (fl != 0) {
 
           for (var i = 0; i < fl; i++) {
-            userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].pk+ '\', \'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].pk + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
+            userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].pk+ '\', \'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].pk + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand"> ' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
           };
         } else {
           userhtml = '<strong>No friends.</strong>';
@@ -764,68 +772,6 @@ function make_events(data, color, owner, hover, is_event) {
   {% if user.is_authenticated %}
   var x = get_friends('{{ user }}');
   {% endif %}
-  $(function() {
-    $(".suggest-submit").click(function() {
-      var name = $("#suggest-search").val();
-
-      if (name == '')
-      {
-        $(".suggest-output").html('');
-      }
-      else
-      {
-
-        $.ajax({
-          type: "GET",
-          url: "/calendar/suggest_search/",
-          data: {
-            'search': name,
-          },
-          success: function (data) {
-            var mydata = JSON.parse(data);
-            console.log("snapple apple: ");
-            console.log(mydata);
-
-            var dlength = mydata.length;
-            var userhtml = "";
-
-              // go get me!
-              if (window.suggest_list != undefined) {
-            console.log("suggest_list" + window.suggest_list[0]);
-
-                console.log("initialize");
-                users = [];
-                for (var i = 0; i < dlength; i++) {
-                  if ($.inArray(mydata[i].fields.username, window.suggest_list) == -1) {
-                    users.push(mydata[i]);
-                  }
-                }
-              }
-              else {
-
-                console.log("suggest list is undef");
-                window.suggest_list = [];
-                users = mydata;
-              }
-
-              if (users.length != 0) {
-                for (var i = 0; i < users.length; i++) {
-                  userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
-                }
-                console.log(userhtml);
-              }
-              else {
-                userhtml = "No results.";
-
-              }
-              $(".suggest-output").html(userhtml);
-
-            }
-          });
-}
-return false;
-});
-});
 
 function add_suggest(user_pk, user_firstname, user_lastname, username) {
     // delete sonia from above in search
@@ -1316,9 +1262,8 @@ body .modal-footer {
 
       <div id="scroll-able-2">
         <div class="list-group col-xs-6 col-sm-9">
-          <form class="list-group-item list-group-item-info" method="post" name="form">
-            Select friends: <input id="suggest-search" size="17" name="search" type="text" />
-            <input type="submit" value="Search" class="suggest-submit"/>
+          <form class="list-group-item list-group-item-info" method="post" name="form" autocomplete=off>
+            <input id="suggest-search" class="list-group-item" value="Search for friends to meet up with..." size="55" name="search" type="text" onfocus="inputFocus(this)" onblur="inputBlur(this)" />
             <span class="error" style="display:none"> Please Enter Valid Data</span>
             <span class="success" style="display:none"></span></a>
           </form>
@@ -1348,6 +1293,75 @@ body .modal-footer {
   </div><!-- /.modal-content -->
 </div><!-- /.modal-dialog -->
 </div>
+
+<script>
+suggest_search_function = function() {
+      var name = $("#suggest-search").val();
+
+      if (name == '')
+      {
+        $(".suggest-output").html('');
+      }
+      else
+      {
+
+        $.ajax({
+          type: "GET",
+          url: "/calendar/suggest_search/",
+          data: {
+            'search': name,
+          },
+          success: function (data) {
+            var mydata = JSON.parse(data);
+            console.log("snapple apple: ");
+            console.log(mydata);
+
+            var dlength = mydata.length;
+            var userhtml = "";
+
+              // go get me!
+              if (window.suggest_list != undefined) {
+            console.log("suggest_list" + window.suggest_list[0]);
+
+                console.log("initialize");
+                users = [];
+                for (var i = 0; i < dlength; i++) {
+                  if ($.inArray(mydata[i].fields.username, window.suggest_list) == -1) {
+                    users.push(mydata[i]);
+                  }
+                }
+              }
+              else {
+
+                console.log("suggest list is undef");
+                window.suggest_list = [];
+                users = mydata;
+              }
+
+              if (users.length != 0) {
+                for (var i = 0; i < users.length; i++) {
+                  userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
+                }
+                console.log(userhtml);
+              }
+              else {
+                userhtml = "No results.";
+
+              }
+              $(".suggest-output").html(userhtml);
+
+            }
+          });
+}
+return false;
+}
+
+addTextAreaCallback( document.getElementById("suggest-search"), suggest_search_function, 200 );
+
+$('#suggest-search').keypress(function(e){
+    if ( e.which == 13 ) return false;
+  });
+</script>
 
 </body>  
 <hr>
