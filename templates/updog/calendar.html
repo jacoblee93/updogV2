@@ -63,7 +63,7 @@
 <!-- updated to fit calendar onto window -->
 <style>
   div#scroll-able {
-    height: calc(100vh - 200px);
+    max-height: calc(100vh - 200px);
     overflow: scroll;
   }
 </style>
@@ -380,7 +380,6 @@ function getevents(user_pk, username) {
 
 }
 function erase_events(user_pk, username) {
-  console.log("clicked event for second time");
   existing_events = $("#calendar").fullCalendar('clientEvents');
 
   for (var i = 0; i < existing_events.length; i++) {
@@ -3074,7 +3073,7 @@ function showTimePicker11() {
 
 <style>
   div#scroll-able-2 {
-    height: 200px;
+    max-height: 200px;
     overflow: scroll;
   }
 </style>

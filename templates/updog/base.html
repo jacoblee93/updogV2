@@ -101,14 +101,11 @@ function resolve_event_downtime_conflicts(downtimes) {
         //},
         success: function(data) {
           if (data == "No new notifications") return;
-          mydata = JSON.parse(data);
-          var dlength = mydata.length;
+          users = JSON.parse(data);
+          var dlength = users.length;
           var users = [];
           userhtml = '<div id="scroll-able-nots1"><div id="list-group">';
 
-          for (var i = 0; i < dlength; i++) {
-            users.push(mydata[i]);
-          }
           ret = users.length;
           if (users.length != 0) {
             for (var i = 0; i < users.length; i++) {
@@ -126,6 +123,9 @@ function resolve_event_downtime_conflicts(downtimes) {
 
               userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button type="button" style="float:right" class="btn btn-primary" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">Add</button><button style="float:right" class="btn btn-primary" type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">Ignore</button><div style="margin-left:65px; margin-right:120px"><pre style="background-color:transparent; border:0px solid">' + name + '</pre></div></li><li class="divider"></li>';
             }
+          }
+          else {
+            userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><pre style="background-color:transparent; border:0px solid">' + "No New Friend Requests" + '</pre></li><li class="divider"></li>';
           }
           userhtml = userhtml+"</div></div>";
           $(".friend_requests").html(userhtml);
@@ -211,6 +211,11 @@ function display_notifications() {
             userhtml = userhtml + '<div id=reply_notey' + event_noteys[i].pk + '><li style="display: inline-block"><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><div style="margin-left:65px"> ' + info_string + '</div></li><li class="divider"></li></div>';
           }
         }
+        }
+        else {
+
+          userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><pre style="background-color:transparent; border:0px solid">' + "No New Notifications" + '</pre></li><li class="divider"></li>';
+          
         }
         userhtml = userhtml+ "</div></div>";
         $(".notifications").html(userhtml);
@@ -1235,22 +1240,20 @@ $("#suggest-minute").val("");
 
 </script>
 <style>
-body .modal.fade.schedule-modal {
-  max-width: 450px;
-  margin-left: 30%;
+body .modal.fade.suggest-modal {
+  width: 100%;
+  /*margin-left: 30%;*/
 }
 body .modal-footer {
-  max-width: 450px;
+  width: 100%;
 }
 
   div#scroll-able-3 {
     height: 60px;
+    /*overflow: scroll;*/
+
   }
 
- /* .dropdown-menu {
-
-    white-space: normal;
-  }*/
 </style>
 
 <div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
@@ -1261,30 +1264,35 @@ body .modal-footer {
      </div>
 
      <div class="modal-body">
-
-
-
-      <div id="scroll-able-2">
-        <div class="list-group col-xs-6 col-sm-9">
+      
+        <div class="list-group col-xs-12 col-sm-12">
           <form class="list-group-item list-group-item-info" method="post" name="form">
+
+
             Select friends: <input id="suggest-search" size="17" name="search" type="text" />
             <input type="submit" value="Search" class="suggest-submit"/>
+     
+            <div id="scroll-able-2">
+
+
             <span class="error" style="display:none"> Please Enter Valid Data</span>
             <span class="success" style="display:none"></span></a>
+            </div>
           </form>
           <div class="suggest-output"></div>
         </div><!--/span-->
-      </div>
 
-      <div id="scroll-able-2">
-        <div class="list-group col-xs-6 col-sm-9">
-          <a class="list-group-item list-group-item-info">Invite List</a>
+
+      
+        <div class="list-group col-xs-12 col-sm-12">
+          <div class="list-group-item list-group-item-info">Invite List</div>
+          <div id="scroll-able-2">
           <div class="Suggest-list"></div>
         </div>
       </div>
 
       <div id="scroll-able-3">
-      <div class="list-group col-xs-6 col-sm-9">
+      <div class="list-group col-xs-12 col-sm-12">
           <form class="list-group-item list-group-item-info" method="post" name="form">Input an Event Length: <input id="suggest-hour" size="2" maxlength="2" type="text" /> hour(s) <input id="suggest-minute" size="2" maxlength="2" type="text" /> minute(s)
           </form>
       </div>
