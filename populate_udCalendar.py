@@ -4,6 +4,11 @@ from datetime import datetime
 from django.utils.timezone import utc
 
 def populate():
+
+
+    goodcall = """u0=add_user('bwk', 'brian', 'kernighan', 'cos333', 'bwkernighan@princeton.edu')
+
+
     u1=add_user('lloyd69', 'lloyd', 'lee', 'entourage', 'lloyd@princeton.edu')
     u2=add_user('sskoular', 'sonia', 'skoularikis', 'summer14', 'sskoular@princeton.edu')
     u3=add_user('tank', 'franklyn', 'darnis', 'lift', 'fdarnis@princeton.edu')
@@ -19,17 +24,17 @@ def populate():
     ud1.add_friend(ud2)
     ud1.add_friend(ud3)
     ud1.add_friend(ud4)
-    ud2.add_friend(ud3)
+    ud2.add_friend(ud3)"""
 
-    p = add_pack('cos333', [ud1, ud2, ud3, ud4])
-    p.add_user(ud5)
+    #p = add_pack('cos333', [ud1, ud2, ud3, ud4])
+    #p.add_user(ud5)
 
     dt1 = add_downtime(ud1, datetime(2014, 4, 8, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 8, 8, 30, 0, tzinfo=utc))
-    dt2 = add_downtime(ud2, datetime(2014, 5, 4, 10, 45, 0, tzinfo=utc), datetime(2014, 5, 4, 21, 30, 0, tzinfo=utc))
+    dt2 = add_downtime(ud2, datetime(2014, 5, 9, 10, 45, 0, tzinfo=utc), datetime(2014, 5, 9, 21, 30, 0, tzinfo=utc))
 
-    dt3 = add_downtime(ud3, datetime(2014, 5, 4, 12, 45, 0, tzinfo=utc), datetime(2014, 5, 4, 13, 30, 0, tzinfo=utc))
+    dt3 = add_downtime(ud3, datetime(2014, 5, 9, 12, 45, 0, tzinfo=utc), datetime(2014, 5, 9, 13, 30, 0, tzinfo=utc))
     dt4 = add_downtime(ud4, datetime(2014, 4, 21, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 21, 8, 30, 0, tzinfo=utc))
-    dt5 = add_downtime(ud5, datetime(2014, 4, 20, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 20, 8, 30, 0, tzinfo=utc))
+    dt5 = add_downtime(ud5, datetime(2014, 5, 9, 10, 45, 0, tzinfo=utc), datetime(2014, 5, 9, 20, 30, 0, tzinfo=utc))
 
     ev1 = add_event(datetime(2014, 5, 6, 12, 0, 0, tzinfo=utc), datetime(2014, 5, 6, 21, 30, 0, tzinfo=utc), [ud1, ud5, ud3],"Frist","Late Meal")
     ev2 = add_event(datetime(2014, 4, 7, 4, 30, 0, tzinfo=utc), datetime(2014, 4, 7, 7, 0, 0, tzinfo=utc), [ud1, ud2],"McCosh Basement","UpDog Meeting")
