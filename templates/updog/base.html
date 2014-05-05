@@ -745,11 +745,7 @@ function make_events(data, color, owner, hover, is_event) {
         var obj = friend;
         existing_events = $("#calendar").fullCalendar('clientEvents');
         for (var i = 0; i < existing_events.length; i++) {
-          able = false;
           if (existing_events[i].owners[0] === "hover") {
-            able = true;
-          }
-          if (able) {
             $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
           }
         }
@@ -758,7 +754,7 @@ function make_events(data, color, owner, hover, is_event) {
       
       }
     }
-    $( "#friend_" + friend.pk).hoverIntent(hover_functions);
+    //$( "#friend_" + friend.pk).hoverIntent(hover_functions);
   }
 
   {% if user.is_authenticated %}
