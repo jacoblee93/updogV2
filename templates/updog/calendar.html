@@ -256,7 +256,7 @@ function inputBlur(i){
               real_friends.push(i);
             }
             else {
-              userhtml = userhtml + '<div><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].pk + '"><button type="button" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i + '\', \'' + users_returned[i].pk +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
+              userhtml = userhtml + '<div><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].pk + '"><button type="button" class="btn btn-default" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i + '\', \'' + users_returned[i].pk +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
             }
           };
           $(".frandz").html(userhtml);
@@ -2911,7 +2911,7 @@ invite_friends_function = function() {
 
               if (users.length != 0) {
                 for (var i = 0; i < users.length; i++) {
-                  userhtml = userhtml + '<div id="sch_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="invite(\'' + users[i].fields.username + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + event_id + '\', \'' + users[i].pk + '\' )">Invite</button></div></a></div>';
+                  userhtml = userhtml + '<div id="sch_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button class="btn btn-default" type="button" onclick="invite(\'' + users[i].fields.username + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + event_id + '\', \'' + users[i].pk + '\' )">Invite</button></div></a></div>';
                 }
               }
               else {
@@ -2937,7 +2937,7 @@ function invite(username, user_firstname, user_lastname, event_id, user_pk) {
     $("#schedule-search").val("");
     // add sonia below
     addedhtml = "";
-    addedhtml = addedhtml + '<div id="added_' + user_pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + user_firstname + ' ' + user_lastname + '<div style="float:right"><button type="button" onclick="uninvite(\'' + username + '\', \'' + user_firstname + '\', \'' + user_lastname+ '\', \'' + event_id + '\', \''+ user_pk + '\' )">Uninvite</button></div></a></div>';
+    addedhtml = addedhtml + '<div id="added_' + user_pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + user_firstname + ' ' + user_lastname + '<div style="float:right"><button class="btn btn-default" type="button" onclick="uninvite(\'' + username + '\', \'' + user_firstname + '\', \'' + user_lastname+ '\', \'' + event_id + '\', \''+ user_pk + '\' )">Uninvite</button></div></a></div>';
     var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
 
     $(".Invite-list").append(addedhtml);

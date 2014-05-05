@@ -807,7 +807,7 @@ function add_suggest(user_pk, user_firstname, user_lastname, username) {
     $("#suggest-search").val("");
     // add sonia below
     addedhtml = "";    
-    addedhtml = addedhtml + '<div id="sugged_' + user_pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + username + '-social.jpg" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="anotherundesirablebutton_' + user_pk + '"><button type="button" onclick="remove_suggest(\'' + user_pk + '\', \'' + user_firstname + '\', \'' + user_lastname+  '\', \'' + username + '\' )">Remove</button></div></a></div>';
+    addedhtml = addedhtml + '<div id="sugged_' + user_pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + username + '-social.jpg" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="anotherundesirablebutton_' + user_pk + '"><button class="btn btn-default" type="button" onclick="remove_suggest(\'' + user_pk + '\', \'' + user_firstname + '\', \'' + user_lastname+  '\', \'' + username + '\' )">Remove</button></div></a></div>';
 
 
     $(".Suggest-list").append(addedhtml);
@@ -1213,11 +1213,11 @@ body .modal-footer {
       
         <div class="list-group col-xs-12 col-sm-12">
           <form class="list-group-item list-group-item-info" method="post" name="form" autocomplete=off>
+          <input id="suggest-search" class="list-group-item" value="Search for friends to meet up with..." size="74" name="search" type="text" onfocus="inputFocus(this)" onblur="inputBlur(this)" />
 
       <div id="scroll-able-2">
-        <div class="list-group col-xs-6 col-sm-9">
-          <form class="list-group-item list-group-item-info" method="post" name="form" autocomplete=off>
-            <input id="suggest-search" class="list-group-item" value="Search for friends to meet up with..." size="55" name="search" type="text" onfocus="inputFocus(this)" onblur="inputBlur(this)" />
+
+
             <span class="error" style="display:none"> Please Enter Valid Data</span>
             <span class="success" style="display:none"></span></a>
             </div>
@@ -1296,7 +1296,7 @@ suggest_search_function = function() {
 
               if (users.length != 0) {
                 for (var i = 0; i < users.length; i++) {
-                  userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
+                  userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button class="btn btn-default" type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
                 }
                 console.log(userhtml);
               }
