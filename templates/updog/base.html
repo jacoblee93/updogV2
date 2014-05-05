@@ -34,86 +34,102 @@
 </head>
 <body>
 
-  <script>
-  $(document).ready(function() {
+<script>
+$(document).ready(function() {
 
-    if ($( '.navbar-header' ).is( ':visible' )) {
-     $('.navbar-toggle').on('click', function() {
-       $(".collapse").toggle('in');
-     });
-   }
+  if ($( '.navbar-header' ).is( ':visible' )) {
+   $('.navbar-toggle').on('click', function() {
+     $(".collapse").toggle('in');
+   });
+ }
 });
-  </script>
+</script>
 
-  {% block above_calendar_block %}
-  {% endblock %}
+{% block above_calendar_block %}
+{% endblock %}
 
-  {% block calendar_block %}
-  {% endblock %}
+{% block calendar_block %}
+{% endblock %}
 
-  <style>
-  div#scroll-able-nots {
-    max-height: 300px;
-    overflow: scroll;
-  }
-  </style>
+<style>
+div#scroll-able-nots {
+  max-height: 300px;
+  overflow: scroll;
+  width: 450px;
 
-  <script>
+}
+div#scroll-able-nots1 {
+  max-height: 300px;
+  overflow: scroll;
+  width: 380px;
+
+}
+</style>
+
+<script>
 function resolve_event_downtime_conflicts(downtimes) {
-    if (downtimes.length > 0) {
-      // downtimes is a list of downtimes and moved_event_or_downtime is an event
-      if (downtimes[0].model == "udCalendar.downtime") {
-        var new_downtimes = [];
+  if (downtimes.length > 0) {
+    // downtimes is a list of downtimes and moved_event_or_downtime is an event
+    if (downtimes[0].model == "udCalendar.downtime") {
+      var new_downtimes = [];
 
-        for (var i = 0; i < downtimes.length; i++) {
-          if (downtimes[i].fields.start_time == downtimes[i].fields.end_time) {
-            $('#calendar').fullCalendar('removeEvents', -downtimes[i].pk);
-          }
-          else new_downtimes.push(downtimes[i]);
+      for (var i = 0; i < downtimes.length; i++) {
+        if (downtimes[i].fields.start_time == downtimes[i].fields.end_time) {
+          $('#calendar').fullCalendar('removeEvents', -downtimes[i].pk);
         }
-        var updated_downtimes = make_events(new_downtimes, green, "{{ username }}", false, false);
+        else new_downtimes.push(downtimes[i]);
+      }
+      var updated_downtimes = make_events(new_downtimes, green, "{{ username }}", false, false);
 
-        for (var i = 0; i < new_downtimes.length; i++) {
-            $('#calendar').fullCalendar('removeEvents', -new_downtimes[i].pk);
-            $('#calendar').fullCalendar('rerenderEvents');
-            $('#calendar').fullCalendar('renderEvent', updated_downtimes[i], stick=true);
-          }
-        }
-        else alert("can't pass events to function resolve_event_downtime_conflicts!");
+      for (var i = 0; i < new_downtimes.length; i++) {
+        $('#calendar').fullCalendar('removeEvents', -new_downtimes[i].pk);
+        $('#calendar').fullCalendar('rerenderEvents');
+        $('#calendar').fullCalendar('renderEvent', updated_downtimes[i], stick=true);
+      }
     }
+    else alert("can't pass events to function resolve_event_downtime_conflicts!");
   }
+}
 
-  function display_friend_requests() {
-    var ret = 0;
-    $.ajax({
-      type: "GET",
-      url: "/calendar/display_friend_requests/",
-      data: {"username": '{{ user.username }}'},
-      async: false,
-        //},
-        success: function(data) {
-          if (data == "No new notifications") return;
-          mydata = JSON.parse(data);
-          var dlength = mydata.length;
-          var users = [];
-          userhtml = '<div id="scroll-able-nots"><div id="list-group">';
+function display_friend_requests() {
+  var ret = 0;
+  $.ajax({
+    type: "GET",
+    url: "/calendar/display_friend_requests/",
+    data: {"username": '{{ user.username }}'},
+    async: false,
+      //},
+      success: function(data) {
+        if (data == "No new notifications") return;
+        mydata = JSON.parse(data);
+        var dlength = mydata.length;
+        var users = [];
+        userhtml = '<div id="scroll-able-nots1"><div id="list-group">';
 
-          for (var i = 0; i < dlength; i++) {
-            users.push(mydata[i]);
-          }
-          ret = users.length;
-          if (users.length != 0) {
-            for (var i = 0; i < users.length; i++) {
-              // fixed
-              userhtml = userhtml + '<li style="width:275px"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">add</button><button type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">ignore</button></div></li><li class="divider"></li>';
-            }
-          }
-          userhtml = userhtml+"</div></div>";
-          $(".friend_requests").html(userhtml);
-          $(".fr_text").html('Friend Requests<b class="caret"></b>');
+        for (var i = 0; i < dlength; i++) {
+          users.push(mydata[i]);
         }
-      });
-return ret;
+        ret = users.length;
+        if (users.length != 0) {
+          for (var i = 0; i < users.length; i++) {
+            fixed_length = 24;
+            var name =users[i].fields.first_name + ' ' + users[i].fields.last_name;
+            namelength = name.length;
+            for (var j = 0; j < (fixed_length - namelength); j++) {
+              name = name + ' ';
+            }
+
+            name = name;
+
+            userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button type="button" style="float:right" class="btn btn-primary" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">Add</button><button style="float:right" class="btn btn-primary" type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">Not Now</button><div style="margin-left:65px; margin-right:120px"><pre style="background-color:transparent; border:0px solid">' + name + '</pre></div></li><li class="divider"></li>';
+          }
+        }
+        userhtml = userhtml+"</div></div>";
+        $(".friend_requests").html(userhtml);
+        $(".fr_text").html('<span class="glyphicon glyphicon-user"></span><b class="caret"></b>');
+      }
+  });
+  return ret;
 }
 
 function get_num_new_friend_requests() {
@@ -141,24 +157,35 @@ function display_notifications() {
     data: {"username": '{{ user.username }}'},
     async: false,
     success: function(data) {
-      if (!data || !data[0] || !data[1] || !data[2]) return;
-      event_noteys = JSON.parse(data[0]);
-      el = event_noteys.length;
-      from_users = JSON.parse(data[1]);
-      fl = from_users.length;
-      items = JSON.parse(data[2])
-      il = items.length;
+      userhtml = ''
+      if (data == "No Notifications") {
+        userhtml = "No Notifications";
+      }
+      else if (!data || !data[0] || !data[1] || !data[2]) {
+        return;
+      }
+      else {
+        event_noteys = JSON.parse(data[0]);
+        el = event_noteys.length;
+        from_users = JSON.parse(data[1]);
+        fl = from_users.length;
+        items = JSON.parse(data[2])
+        il = items.length;
 
-      userhtml = '<div id="scroll-able-nots"><div id="list-group">';
-      if (el != 0 && fl != 0 && il != 0) {
-        for (var i = 0; i < items.length; i++) {
-          if (!event_noteys[i].fields.is_reply) {
-
-            // we may not need to get the backend event
-            var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' wants to ';
-            
+        userhtml = '<div id="scroll-able-nots"><div id="list-group">';
+        if (el != 0 && fl != 0 && il != 0) {
+          for (var i = 0; i < items.length; i++) {
+            if (!event_noteys[i].fields.is_reply) {
+              // we may not need to get the backend event
+              var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' wants to ';
+            }
+            else {
+              //  "___ ___ accepted your invite to ___ at ____ on ___ from ____"
+              var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' accepted your invite to ';
+            }
             var start_d = new Date(items[i].fields.start_time);
-            var end_d = new Date(items[i].fields.end_time)
+            var end_d = new Date(items[i].fields.end_time);
+
 
             var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
 
@@ -172,26 +199,40 @@ function display_notifications() {
               act = "hang out";
             }
             info_string = info_string + act;
-            
+
             if (items[i].fields.location) {
               info_string = info_string + " at " + items[i].fields.location;
+            }                
+
+            if (!event_noteys[i].fields.is_reply) {
+              info_string = info_string + " on " + date_string + " from " + time_string;
+              userhtml = userhtml + '<div id=invite_notey' + event_noteys[i].pk + '><li style="display: inline-block;"><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button style="float:right" class="btn btn-primary" type="button" onclick="respond_yes_to_event_notification('+ event_noteys[i].pk + ')">Accept</button><button style="float:right" class="btn btn-primary" type="button" onclick="respond_no_to_event_notification(' + event_noteys[i].pk + ')">Decline</button><div style="margin-left:65px; margin-right:160px"> ' + info_string + '</div></li><li class="divider"></li></div>';
             }
-
-            info_string = info_string + " on " + date_string + " from " + time_string;
-
-            userhtml = userhtml + '<div id=invite_notey' + event_noteys[i].pk + '><li style="width:450px"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + info_string + '<div style="float:right"><button type="button" onclick="respond_yes_to_event_notification('+ event_noteys[i].pk + ')">accept</button><button type="button" onclick="respond_no_to_event_notification(' + event_noteys[i].pk + ')">decline</button></div></li><li class="divider"></li></div>';
-          }
-          else {
-            userhtml = userhtml + '<div id=reply_notey' + event_noteys[i].pk + '><li style="width:450px"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> You are now hanging out with ' + from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + '!</li><li class="divider"></li></div>';
+            else {
+              info_string = info_string + " for " + date_string + " from " + time_string;
+              userhtml = userhtml + '<div id=reply_notey' + event_noteys[i].pk + '><li style="display: inline-block"><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button style="float:right" class="btn btn-primary" type="button"onclick="remove_reply_notification(' + event_noteys[i].pk + ')">Remove</button><div style="margin-left:65px; margin-right:160px"> ' + info_string + '</div></li><li class="divider"></li></div>';
+            }
           }
         }
+        userhtml = userhtml + "</div></div>";
       }
-      userhtml = userhtml+ "</div></div>";
       $(".notifications").html(userhtml);
-      $(".notif_text").html('Notifications<b class="caret"></b>');
+      $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b>');
     }
   });
-return ret;
+  return ret;
+}
+
+function remove_reply_notification(notification_pk) {
+  $.ajax({
+    type: "POST",
+    url: "/calendar/remove_reply_notification/",
+    data: {"notification_pk": notification_pk},
+    success: function(data){
+      $("#reply_notey" + notification_pk).remove();
+    }
+  });
+
 }
 
 function get_num_new_notifications() {
@@ -227,9 +268,9 @@ function respond_yes_to_event_notification(notification_pk) {
 
         // call change_event to resolve any conflicts with downtimes that might now exist with added_event now that it's been added
         $.ajax({
-              type: "POST",
-              url: "/calendar/resolve_repeating_conflicts/",
-              data: {"pk": new_event[0].id,
+          type: "POST",
+          url: "/calendar/resolve_repeating_conflicts/",
+          data: {"pk": new_event[0].id,
               //"notification_pk": notification_pk,
               // day_delta and minute_delta are 0 because we are not actually changing the added event
               "day_delta": 0,
@@ -237,18 +278,16 @@ function respond_yes_to_event_notification(notification_pk) {
               "resize": "false",
             },
             success: function(data) {
-              console.log(data);
 
               var parsed = JSON.parse(data);
 
-              console.log(parsed);
 
               resolve_event_downtime_conflicts(parsed);
-          }
-        });
+            }
+          });
       }
     });
-  }
+}
 
 function respond_no_to_event_notification(notification_pk) {
   console.log(notification_pk)
@@ -282,6 +321,9 @@ function reject_friend_request(new_friend) {
     url: "/calendar/reject_friend_request/",
     data: {'new_friend': new_friend},
     success: function(data){
+
+      get_friends('{{ user }}');
+
       console.log(data)
     }
   });
@@ -304,98 +346,78 @@ function reject_friend_request(new_friend) {
 	      <!-- these three things make the three lines in
 		   the drop down menu (add more, or take away
 		   some to make more or fewer lines) -->
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-	      </button>
-	  
-	      <a class="navbar-brand" href="">UpDog</a>
-	  
-	     </div>
-	
-	     <div class="navbar-collapse collapse" id="bs-example-navbar-collapse-6">
-	  
-        <ul class="nav navbar-nav">
-              
-              {% if user.is_authenticated %}
-                <li class="dropdown">
-                  <a onclick="display_friend_requests()" class="dropdown-toggle" data-toggle="dropdown"><div class="fr_text"></div></a>
-                  <form class="dropdown-menu"><ul>
-                    <div class="friend_requests"></div>
-                  </ul></form>
-                </li>
-                <li class="dropdown">
+       <span class="icon-bar"></span>
+       <span class="icon-bar"></span>
+       <span class="icon-bar"></span>
+     </button>
 
-                  <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="dropdown"><div class="notif_text"></div></a>
-                  <form class="dropdown-menu"><ul>
-                    <div class="notifications"></div>
-                  </ul></form>
-                </li>
-                
-                <li><a data-toggle="modal" data-target=".suggest-modal">Suggest</a><li>               
+     <a class="navbar-brand" href="">UpDog</a>
 
-              {% endif %}
-            
-	      </ul>
-      </li>
+   </div>
 
-      </ul>
-      <ul class="nav navbar-nav navbar-right"> 
-        {% if user.is_authenticated %}
-        <li><a href="/calendar/logout_user/">Logout</a></li>
-        {% else %}
-        <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
+   <div class="navbar-collapse collapse" id="bs-example-navbar-collapse-6">
+
+    <ul class="nav navbar-nav">
+
+      {% if user.is_authenticated %}
+
+      <li><a data-toggle="modal" data-target=".suggest-modal">Suggest</a></li>               
+
         {% endif %}
-      </ul>
-    </div><!-- /.nav-collapse -->
-  </div>
+
+  </ul>
+  <ul class="nav navbar-nav navbar-right"> 
+    {% if user.is_authenticated %}
+    <li class="dropdown">
+      <a onclick="display_friend_requests()" class="dropdown-toggle" data-toggle="dropdown"><div class="fr_text"></div></a>
+      <form class="dropdown-menu"><ul>
+        <div class="friend_requests container-fluid"></div>
+      </ul></form>
+    </li>
+    <li class="dropdown">
+
+      <a onclick="display_notifications()" class="dropdown-toggle" data-toggle="dropdown"><div class="notif_text"></div></a>
+
+      <form class="dropdown-menu"><ul>
+        <div class="notifications container-fluid"></div>
+      </ul></form>
+    </li>
+    <li><a href="/calendar/logout_user/">Logout</a></li>
+    {% else %}
+    <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
+    {% endif %}
+  </ul>
+</div><!-- /.nav-collapse -->
+</div>
 </nav><!-- /.container -->
 </div>
 <!--  <hr>-->
-
 <script>
 function check_for_notifications() {
   var f = get_num_new_friend_requests();
 
   if (f > 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span> Friend Requests<b class="caret"></b></a>');
+    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
   }
   else if (f == 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span> Friend Request<b class="caret"></b></a>');
+    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
   }
   else {
-    $(".fr_text").html('Friend Requests<b class="caret"></b></a>');
-  }/*
-  if (f > 1) {
-    $(".fr_text").html('<a style = "color:blue; pointer-events:none">' + f + ' New Friend Requests<b class="caret"></b></a>');
+    $(".fr_text").html('<span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
+
   }
-  else if (f == 1) {
-    $(".fr_text").html('<a style = "color:blue; pointer-events:none">' + f + ' New Friend Request<b class="caret"></b></div>');
-  }
-  else {
-    $(".fr_text").html('Friend Requests<b class="caret"></b>');
-  }*/
 
   var n = get_num_new_notifications();
 
   if (n > 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span> Notifications<b class="caret"></b></a>');
+    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
   }
   else if (n == 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span> Notification<b class="caret"></b></a>');
+    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
   }
   else {
-    $(".notif_text").html('Notifications<b class="caret"></b></a>');
+    $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
   }
-  /*if (n > 1) {
-    $(".notif_text").html('<a style = "color:blue; pointer-events:none">' + n + ' New Notifications<b class="caret"></b></a>');
-  }
-  else if (n == 1) {
-    $(".notif_text").html('<a style = "color:blue; pointer-events:none">' + n + ' New Notification<b class="caret"></b></a>');
-  }
-  else {
-    $(".notif_text").html('Notifications<b class="caret"></b>');
-  }*/
 }
 
 check_for_notifications();
@@ -460,319 +482,307 @@ function make_events(data, color, owner, hover, is_event) {
     var list_of_owners = [];
     var name_list = [];
 
-          $.ajax({
-            type: "GET",
-            url: "/calendar/get_event_owners/",
-            async: false,
-            data: {
-              "pks": JSON.stringify(id_list),
-              "types": JSON.stringify(is_event_list),
-            },
-            success: function(data) {
-
-              var my_data = JSON.parse(data);
-
-              if (my_data.length > 0) {
-
-                var index = 0;
-                while (index < my_data.length) {
-
-                  if (is_event) {
-
-
-                    single_owners = ["{{username}}"];
-                    index = index + 1;
-                    if (index >= my_data.length) {
-                      list_of_owners.push(single_owners);
-                      break;
-                    }
-                    while (my_data[index].fields.username != "{{username}}") {
-                      if (single_owners.indexOf(my_data[index].fields.username) == -1)
-                        single_owners.push(my_data[index].fields.username);
-                                            
-                      index = index + 1;
-                      if (index >= my_data.length) {
-                        break;
-                      }
-                    
-                    }
-                    list_of_owners.push(single_owners);
-                  }
-                  // if its a downtime
-                  else {
-                    var is_editable = (my_data[index].fields.username == "{{username}}")
-                    able_list.push(is_editable);
-                    list_of_owners.push(my_data[index].fields.username);
-                    name_list.push(my_data[index].fields.first_name + " " + my_data[index].fields.last_name.substring(0,1) + ".");
-                    index = index + 1;
-                  }
-
-
-                }
-
-                
-            }
-            }
-          });
-
-        // in each loop, we add another event to the list of events for this user
-        for (var i = 0; i < dlength; i++) {
-          var single = new Object();
-          single.owners = list_of_owners[i];
-          single.color = color;
-
-          single.start = data[i].fields.start_time;
-          single.end = data[i].fields.end_time;
-          single.allDay = false;
-          if (is_event) {
-            single.id = data[i].pk;
-          }
-          else {
-            single.id = -data[i].pk;
-          }
-
-
-          single.is_event = is_event; // true for events, false for downtimes
-          
-
-          
-          time_delta = data[i].fields.repeating_time_delta;
-          single.repeating_time_delta = time_delta;
-          if (is_event) {
-            // If event has no activity
-            if (! data[i].fields.activity) {
-              if (! data[i].fields.location) {
-                single.title = "Busy";
-              }
-              else{
-                single.title = "Busy in " + data[i].fields.location;
-              }
-            }
-            // If event has an activity
-            else {
-              if (! data[i].fields.location) {
-                single.title = data[i].fields.activity;
-              }
-              else{
-                single.title = data[i].fields.activity + " in " + data[i].fields.location;
-              }
-            }
-
-            single.next_repeated_event = data[i].fields.next_repeated_event;
-            single.prev_repeated_event = data[i].fields.prev_repeated_event;
-            // create an empty invite list
-            single.invitelist = [];
-
-          }
-          else { // for downtimes
-
-            if (!data[i].fields.preferred_activity)
-              single.title = name_list[i] + " is free";
-            else {
-
-              single.title = name_list[i] + "'s preferred activity: \n" + data[i].fields.preferred_activity;
-            }
-
-            // the number of repeating events is -1 for downtimes
-            single.num_repeating_events = -1;
-          }
-
-          if (is_event) {
-            single.editable = true;
-          }
-          else if (able_list[i]) {
-            single.editable = true;
-          }
-          else if (hover) {
-            single.owners = [];
-            single.owners.push("hover");
-          }
-
-          multiple.push(single);
-        }
-      }
-
-      return multiple;
-    }
-
-    // a list of users usernames and a single event id
-    function is_invited(event, users) {
-      if (users.length > 0 && users) {
-        var mydata;
-        $.ajax({
-          type: "GET",
-          url: "/calendar/is_invited",
-          async: false,
-          data: {
-            "event": event,
-            "users": JSON.stringify(users),
-          },
-          success: function(data) {
-            mydata = JSON.parse(data);
-          }
-
-        });
-        return mydata;
-      }
-      else {
-        return [false];
-      }
-    }
-
-
-    function who_is_invited(event_id) {
-      var mydata;
-      $.ajax({
-        type: "GET",
-        url: "/calendar/who_is_invited/",
-        async: false,
-        data: {
-          "event": event_id,
-        },
-        success: function(data) {
-          mydata = JSON.parse(data);
-        }
-      });
-      return mydata;
-    }
-  // given a list of users usernames and a single event id, returns booolean 
-  // list of true/false for whether user is attending said event
-  function is_attending(event, users) {
-    if (users.length > 0 && users) {
-      var is_attending = []
-      var event_obj = $('#calendar').fullCalendar('clientEvents', event)[0];
-
-      for (var i = 0; i < users.length; i++) {
-        is_attending.push(event_obj.owners.indexOf(users[i]) != -1);
-      }
-      return is_attending;
-    }
-    else {
-      return [false];
-    }
-  }
-
-  </script>
-
-  <script>
-
-  function get_friends(user) {
     $.ajax({
       type: "GET",
-      url: "/calendar/get_friends/",
-      data: {'user': user},
+      url: "/calendar/get_event_owners/",
+      async: false,
+      data: {
+        "pks": JSON.stringify(id_list),
+        "types": JSON.stringify(is_event_list),
+      },
       success: function(data) {
 
-        real_data = JSON.parse(data);
-        fl = real_data.length;
-        userhtml = '';
-        if (fl != 0) {
+        var my_data = JSON.parse(data);
 
-          for (var i = 0; i < fl; i++) {
-            userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].pk+ '\', \'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].pk + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
-          };
-        } else {
-          userhtml = '<strong>No friends.</strong>';
-        };
+        if (my_data.length > 0) {
 
-        $(".frandz").html(userhtml);
-        for (var i = 0; i < fl; i++) {
-          hover_stuff(real_data[i]);
-        };
-      } 
-    });
-  }
+          var index = 0;
+          while (index < my_data.length) {
 
-  function hover_stuff(friend) {
-    hover_functions = {
-      sensitivity: 7,
-      interval: 100,
-      timeout: 0,
-      over: function on_hover() {
-        var obj = friend.fields.username;
-        $.ajax({
-          type: "POST",
-          url: "/calendar/get_friends_downtimes/",
-          data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
-          success: function(data) {
-
-            var our_data = JSON.parse(data);
-            var get_some_events = make_events(our_data, orange, obj, true, false);
+            if (is_event) {
 
 
-            if (get_some_events) {
-              existing_events = $("#calendar").fullCalendar('clientEvents');
-
-              for (var i = 0; i < get_some_events.length; i++) {
-                var is_unique = true;
-                for (var j = 0; j < existing_events.length; j++) {
-                  if (get_some_events[i].id == existing_events[j].id) {
-                    is_unique = false;
-                  }
-                }
-                if (is_unique) {
-                  $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
-                }
+              single_owners = ["{{username}}"];
+              index = index + 1;
+              if (index >= my_data.length) {
+                list_of_owners.push(single_owners);
+                break;
               }
+              while (my_data[index].fields.username != "{{username}}") {
+                if (single_owners.indexOf(my_data[index].fields.username) == -1)
+                  single_owners.push(my_data[index].fields.username);
 
+                index = index + 1;
+                if (index >= my_data.length) {
+                  break;
+                }
+
+              }
+              list_of_owners.push(single_owners);
             }
-          },
-        });
-
-      },
-      out: function off_hover() {
-        var obj = friend;
-        existing_events = $("#calendar").fullCalendar('clientEvents');
-        for (var i = 0; i < existing_events.length; i++) {
-          able = false;
-          if (existing_events[i].owners[0] === "hover") {
-            able = true;
-          }
-          if (able) {
-            $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+            // if its a downtime
+            else {
+              var is_editable = (my_data[index].fields.username == "{{username}}")
+              able_list.push(is_editable);
+              list_of_owners.push(my_data[index].fields.username);
+              name_list.push(my_data[index].fields.first_name + " " + my_data[index].fields.last_name.substring(0,1) + ".");
+              index = index + 1;
+            }
           }
         }
-        $('#calendar').fullCalendar('rerenderEvents');
+      }
+    });
+
+        // in each loop, we add another event to the list of events for this user
+    for (var i = 0; i < dlength; i++) {
+      var single = new Object();
+      single.owners = list_of_owners[i];
+      single.color = color;
+
+      single.start = data[i].fields.start_time;
+      single.end = data[i].fields.end_time;
+      single.allDay = false;
+      if (is_event) {
+        single.id = data[i].pk;
+      }
+      else {
+        single.id = -data[i].pk;
+      }
+
+
+      single.is_event = is_event; // true for events, false for downtimes
+      
 
       
+      time_delta = data[i].fields.repeating_time_delta;
+      single.repeating_time_delta = time_delta;
+      if (is_event) {
+        // If event has no activity
+        if (! data[i].fields.activity) {
+          if (! data[i].fields.location) {
+            single.title = "Busy";
+          }
+          else{
+            single.title = "Busy in " + data[i].fields.location;
+          }
+        }
+        // If event has an activity
+        else {
+          if (! data[i].fields.location) {
+            single.title = data[i].fields.activity;
+          }
+          else{
+            single.title = data[i].fields.activity + " in " + data[i].fields.location;
+          }
+        }
+
+        single.next_repeated_event = data[i].fields.next_repeated_event;
+        single.prev_repeated_event = data[i].fields.prev_repeated_event;
+        // create an empty invite list
+        single.invitelist = [];
+
       }
+      else { // for downtimes
+
+        if (!data[i].fields.preferred_activity)
+          single.title = name_list[i] + " is free";
+        else {
+
+          single.title = name_list[i] + "'s preferred activity: \n" + data[i].fields.preferred_activity;
+        }
+
+        // the number of repeating events is -1 for downtimes
+        single.num_repeating_events = -1;
+      }
+
+      if (is_event) {
+        single.editable = true;
+      }
+      else if (able_list[i]) {
+        single.editable = true;
+      }
+      else if (hover) {
+        single.owners = [];
+        single.owners.push("hover");
+      }
+
+      multiple.push(single);
     }
-    $( "#friend_" + friend.pk).hoverIntent(hover_functions);
   }
+  return multiple;
+}
 
-  {% if user.is_authenticated %}
-  var x = get_friends('{{ user }}');
-  {% endif %}
-  $(function() {
-    $(".suggest-submit").click(function() {
-      var name = $("#suggest-search").val();
-
-      if (name == '')
-      {
-        $(".suggest-output").html('');
+    // a list of users usernames and a single event id
+function is_invited(event, users) {
+  if (users.length > 0 && users) {
+    var mydata;
+    $.ajax({
+      type: "GET",
+      url: "/calendar/is_invited",
+      async: false,
+      data: {
+        "event": event,
+        "users": JSON.stringify(users),
+      },
+      success: function(data) {
+        mydata = JSON.parse(data);
       }
-      else
-      {
 
-        $.ajax({
-          type: "GET",
-          url: "/calendar/suggest_search/",
-          data: {
-            'search': name,
-          },
-          success: function (data) {
-            var mydata = JSON.parse(data);
-            console.log("snapple apple: ");
-            console.log(mydata);
+    });
+    return mydata;
+  }
+  else {
+    return [false];
+  }
+}
 
-            var dlength = mydata.length;
-            var userhtml = "";
+
+function who_is_invited(event_id) {
+  var mydata;
+  $.ajax({
+    type: "GET",
+    url: "/calendar/who_is_invited/",
+    async: false,
+    data: {
+      "event": event_id,
+    },
+    success: function(data) {
+      mydata = JSON.parse(data);
+    }
+  });
+  return mydata;
+}
+  // given a list of users usernames and a single event id, returns booolean 
+  // list of true/false for whether user is attending said event
+function is_attending(event, users) {
+  if (users.length > 0 && users) {
+    var is_attending = []
+    var event_obj = $('#calendar').fullCalendar('clientEvents', event)[0];
+
+    for (var i = 0; i < users.length; i++) {
+      is_attending.push(event_obj.owners.indexOf(users[i]) != -1);
+    }
+    return is_attending;
+  }
+  else {
+    return [false];
+  }
+}
+
+</script>
+
+<script>
+
+function get_friends(user) {
+  $.ajax({
+    type: "GET",
+    url: "/calendar/get_friends/",
+    data: {'user': user},
+    success: function(data) {
+
+      real_data = JSON.parse(data);
+      fl = real_data.length;
+      userhtml = '';
+      if (fl != 0) {
+
+        for (var i = 0; i < fl; i++) {
+          userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].pk+ '\', \'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].pk + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
+        };
+      } else {
+        userhtml = '<strong>No friends.</strong>';
+      };
+
+      $(".frandz").html(userhtml);
+      for (var i = 0; i < fl; i++) {
+        hover_stuff(real_data[i]);
+      };
+    } 
+  });
+}
+
+function hover_stuff(friend) {
+  hover_functions = {
+    sensitivity: 7,
+    interval: 100,
+    timeout: 0,
+    over: function on_hover() {
+      var obj = friend.fields.username;
+      $.ajax({
+        type: "POST",
+        url: "/calendar/get_friends_downtimes/",
+        data: {'friend': obj, 'display_date': $('#calendar').fullCalendar('getDate').toUTCString(),},
+        success: function(data) {
+
+          var our_data = JSON.parse(data);
+          var get_some_events = make_events(our_data, orange, obj, true, false);
+
+
+          if (get_some_events) {
+            existing_events = $("#calendar").fullCalendar('clientEvents');
+
+            for (var i = 0; i < get_some_events.length; i++) {
+              var is_unique = true;
+              for (var j = 0; j < existing_events.length; j++) {
+                if (get_some_events[i].id == existing_events[j].id) {
+                  is_unique = false;
+                }
+              }
+              if (is_unique) {
+                $("#calendar").fullCalendar('renderEvent', get_some_events[i], stick=true);
+              }
+            }
+
+          }
+        },
+      });
+
+    },
+    out: function off_hover() {
+      var obj = friend;
+      existing_events = $("#calendar").fullCalendar('clientEvents');
+      for (var i = 0; i < existing_events.length; i++) {
+        if (existing_events[i].owners[0] === "hover") {
+          $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+        }
+      }
+      $('#calendar').fullCalendar('rerenderEvents');
+
+      
+    }
+  }
+  $( "#friend_" + friend.pk).hoverIntent(hover_functions);
+}
+
+{% if user.is_authenticated %}
+var x = get_friends('{{ user }}');
+{% endif %}
+
+$(function() {
+  $(".suggest-submit").click(function() {
+    var name = $("#suggest-search").val();
+
+    if (name == '')
+    {
+      $(".suggest-output").html('');
+    }
+    else
+    {
+
+      $.ajax({
+        type: "GET",
+        url: "/calendar/suggest_search/",
+        data: {
+          'search': name,
+        },
+        success: function (data) {
+          var mydata = JSON.parse(data);
+
+          var dlength = mydata.length;
+          var userhtml = "";
 
               // go get me!
               if (window.suggest_list != undefined) {
-            console.log("suggest_list" + window.suggest_list[0]);
 
-                console.log("initialize");
                 users = [];
                 for (var i = 0; i < dlength; i++) {
                   if ($.inArray(mydata[i].fields.username, window.suggest_list) == -1) {
@@ -782,7 +792,6 @@ function make_events(data, color, owner, hover, is_event) {
               }
               else {
 
-                console.log("suggest list is undef");
                 window.suggest_list = [];
                 users = mydata;
               }
@@ -791,7 +800,6 @@ function make_events(data, color, owner, hover, is_event) {
                 for (var i = 0; i < users.length; i++) {
                   userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
                 }
-                console.log(userhtml);
               }
               else {
                 userhtml = "No results.";
@@ -807,270 +815,201 @@ return false;
 });
 
 function add_suggest(user_pk, user_firstname, user_lastname, username) {
-    // delete sonia from above in search
-    console.log("here i am");
-    console.log(user_pk);
-    console.log(window.suggest_list)
-    console.log($("#sug_" + user_pk))
-    $("#sug_" + user_pk).remove();
-
-    console.log($("#sug_" + user_pk))
-
-    $("#suggest-search").val("");
-    // add sonia below
-    addedhtml = "";    
-    addedhtml = addedhtml + '<div id="sugged_' + user_pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + username + '-social.jpg" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="anotherundesirablebutton_' + user_pk + '"><button type="button" onclick="remove_suggest(\'' + user_pk + '\', \'' + user_firstname + '\', \'' + user_lastname+  '\', \'' + username + '\' )">Remove</button></div></a></div>';
+  // delete sonia from above in search
+  $("#sug_" + user_pk).remove();
 
 
-    $(".Suggest-list").append(addedhtml);
+  $("#suggest-search").val("");
+  // add sonia below
+  addedhtml = "";    
+  addedhtml = addedhtml + '<div id="sugged_' + user_pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + username + '-social.jpg" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="anotherundesirablebutton_' + user_pk + '"><button type="button" onclick="remove_suggest(\'' + user_pk + '\', \'' + user_firstname + '\', \'' + user_lastname+  '\', \'' + username + '\' )">Remove</button></div></a></div>';
 
-    // retrieve the event (on the front end) that we're editing
 
-    window.suggest_list.push(username);
+  $(".Suggest-list").append(addedhtml);
 
+  // retrieve the event (on the front end) that we're editing
+
+  window.suggest_list.push(username);
+
+}
+
+function remove_suggest(user_pk, user_firstname, user_lastname, username) {
+
+  $("#sugged_" + user_pk).remove();
+  index = window.suggest_list.indexOf(username);
+  if (index > -1) {
+    window.suggest_list.splice(index, 1);
   }
+}
 
-  function remove_suggest(user_pk, user_firstname, user_lastname, username) {
+jQuery.expr[':'].regex = function(elem, index, match) {
+  var matchParams = match[3].split(','),
+  validLabels = /^(data|css):/,
+  attr = {
+    method: matchParams[0].match(validLabels) ? 
+    matchParams[0].split(':')[0] : 'attr',
+    property: matchParams.shift().replace(validLabels,'')
+  },
+  regexFlags = 'ig',
+  regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
+  return regex.test(jQuery(elem)[attr.method](attr.property));
+}
 
-    $("#sugged_" + user_pk).remove();
-    index = window.suggest_list.indexOf(username);
-    if (index > -1) {
-      window.suggest_list.splice(index, 1);
-    }
-  }
-
-  jQuery.expr[':'].regex = function(elem, index, match) {
-    var matchParams = match[3].split(','),
-    validLabels = /^(data|css):/,
-    attr = {
-      method: matchParams[0].match(validLabels) ? 
-      matchParams[0].split(':')[0] : 'attr',
-      property: matchParams.shift().replace(validLabels,'')
-    },
-    regexFlags = 'ig',
-    regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
-    return regex.test(jQuery(elem)[attr.method](attr.property));
-  }
-
-  function cancel_suggest() {
-    $("div:regex(id, .*sugged_.*)").remove();
-    $("div:regex(id, .*sug_.*)").remove();
-    $("#suggest-search").val("");
-    $("#suggest-hour").val("");
-    $("#suggest-minute").val("");
-    window.suggest_list = [];
-  }
+function cancel_suggest() {
+  $("div:regex(id, .*sugged_.*)").remove();
+  $("div:regex(id, .*sug_.*)").remove();
+  $("#suggest-search").val("");
+  $("#suggest-hour").val("");
+  $("#suggest-minute").val("");
+  window.suggest_list = [];
+}
 
   // cleans up the exclude list and the suggest list for certain cases when suggesting.  Variable_length is 0 or 1 because for Invite, we need to iterate from i = 0 to window.exclude_list.length - 1
-  function clean_up_suggest(variable_length) {
-    if (window.exclude_list == undefined) {
-      window.exclude_list = [];
-    }
-    if (window.exclude_friend_list == undefined) {
-      window.exclude_friend_list = [];
-    }
-
-    for (var i = 0; i < (window.exclude_list.length - variable_length); i++) {
-      $.ajax({
-        type: "POST",
-        url: "/calendar/remove_event/",
-        data: {"pk": window.exclude_list[i]},
-      });
-    }
+function clean_up_suggest(variable_length) {
+  if (window.exclude_list == undefined) {
     window.exclude_list = [];
+  }
+  if (window.exclude_friend_list == undefined) {
     window.exclude_friend_list = [];
-    window.suggest_list = [];
   }
 
+  for (var i = 0; i < (window.exclude_list.length - variable_length); i++) {
+    $.ajax({
+      type: "POST",
+      url: "/calendar/remove_event/",
+      data: {"pk": window.exclude_list[i]},
+    });
+  }
+  window.exclude_list = [];
+  window.exclude_friend_list = [];
+  window.suggest_list = [];
+}
 
-  function suggest_function(data, hour, minute, fixed_pk) {
-    // Make the unconfirmed event show up in your calendar
-    if (data === "None") {
-      bootbox.alert("You have no upcoming downtimes.")
+
+function suggest_function(data, hour, minute, fixed_pk) {
+  // Make the unconfirmed event show up in your calendar
+  if (data === "None") {
+    bootbox.alert("You have no upcoming downtimes.")
+    clean_up_suggest(0);
+  }
+  else {
+    if (data == "NoFriends") {
+      bootbox.alert("You have no friends.")
       clean_up_suggest(0);
     }
     else {
-      if (data == "NoFriends") {
-        bootbox.alert("You have no friends.")
+      if (data == "NoMatch") {
+        bootbox.alert("No free times align")
         clean_up_suggest(0);
       }
       else {
-        if (data == "NoMatch") {
-          bootbox.alert("No free times align")
-          clean_up_suggest(0);
+        // alldata[0] is the suggested event and the rest of the elements in alldata are the friends
+        var alldata = JSON.parse(data);
+        mydata = [];
+        var index;
+        var friends = [];
+        for (var i = 0; i < alldata.length; i++) {
+          if (alldata[i].model == "auth.user") {
+            friends.push(alldata[i].fields.username);
+            index = i;
+          }
+
+          else {
+            mydata.push(alldata[i]);
+          }
         }
-        else {
-          // alldata[0] is the suggested event and the rest of the elements in alldata are the friends
-          var alldata = JSON.parse(data);
-          mydata = [];
-          var index;
-          var friends = [];
-          for (var i = 0; i < alldata.length; i++) {
-            if (alldata[i].model == "auth.user") {
-              friends.push(alldata[i].fields.username);
-              index = i;
-            }
 
-            else {
-              mydata.push(alldata[i]);
-            }
-          }
+        if (window.exclude_list == undefined) {
+          window.exclude_list = [];
+        }
+        window.exclude_list.push(mydata[0].pk);
+        var start_d = new Date(mydata[0].fields.start_time);
+        var end_d = new Date(mydata[0].fields.end_time)
+        var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
+        var date_string = start_d.toDateString();
 
-          if (window.exclude_list == undefined) {
-            window.exclude_list = [];
-          }
-          window.exclude_list.push(mydata[0].pk);
-          var start_d = new Date(mydata[0].fields.start_time);
-          var end_d = new Date(mydata[0].fields.end_time)
-          var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
-          var date_string = start_d.toDateString();
+        if (window.exclude_friend_list == undefined) {
+          window.exclude_friend_list = [];
+        }
+        window.exclude_friend_list.push(alldata[index].pk);
 
-          if (window.exclude_friend_list == undefined) {
-            window.exclude_friend_list = [];
-          }
-          window.exclude_friend_list.push(alldata[index].pk);
+        bootbox.dialog({
+          message: "Invite " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " to hangout on " + date_string + " from " + time_string + "?", 
+          title: "Send Invite?",
+             //bootbox.confirm("Hangout with " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " on " + date_string + " from " + time_string + "?", function (request) {
+                ///////if (request) {
+                  onEscape: function () {
+                    clean_up_suggest(0);
+                  },
+                  buttons: {
+                    ReSuggest: {
+                      label: "Re-suggest",
+                      callback: function() {
+                        $.ajax({
+                          type: "GET",
+                          url: "/calendar/suggest/",
+                          data: {
+                            'suggest_list': JSON.stringify(window.suggest_list),
+                            'hours': parseInt(hour), 'minutes': parseInt(minute),
+                            'exclude': JSON.stringify(window.exclude_list),
+                            'exclude_friends': JSON.stringify(window.exclude_friend_list),
+                            'pk': fixed_pk,
+                          },
+                          success: function(data) {
+                            suggest_function(data, hour, minute, fixed_pk);
+                          }
+                        });
 
-          bootbox.dialog({
-            message: "Invite " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " to hangout on " + date_string + " from " + time_string + "?", 
-            title: "Send Invite?",
-               //bootbox.confirm("Hangout with " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " on " + date_string + " from " + time_string + "?", function (request) {
-                  ///////if (request) {
-                    onEscape: function () {
-                      clean_up_suggest(0);
+                      }
                     },
-                    buttons: {
-                      ReSuggest: {
-                        label: "Re-suggest",
-                        callback: function() {
-                          $.ajax({
-                            type: "GET",
-                            url: "/calendar/suggest/",
-                            data: {
-                              'suggest_list': JSON.stringify(window.suggest_list),
-                              'hours': parseInt(hour), 'minutes': parseInt(minute),
-                              'exclude': JSON.stringify(window.exclude_list),
-                              'exclude_friends': JSON.stringify(window.exclude_friend_list),
-                              'pk': fixed_pk,
-                            },
-                            success: function(data) {
-                              suggest_function(data, hour, minute, fixed_pk);
-                            }
-                          });
+                    Cancel: {
+                      label: "Cancel",
+                      callback: function() {
+                        clean_up_suggest(0);
+                      }
 
-                        }
-                      },
-                      Cancel: {
-                        label: "Cancel",
-                        callback: function() {
-                          clean_up_suggest(0);
-                        }
+                    },
+                    Invite: {
+                      label: "Invite!",
+                      callback: function() {
+                        $.ajax({
+                          type: "POST",
+                          url: "/calendar/send_event_notifications/",
+                          data: {
+                            "event": mydata[0].pk,
+                            "to_users": JSON.stringify(friends),
+                            "data_type": "username",
+                          },
+                          success: function(data) {
+                            console.log(data);
+                          }
+                        });
 
-                      },
-                      Invite: {
-                        label: "Invite!",
-                        callback: function() {
-                          $.ajax({
-                            type: "POST",
-                            url: "/calendar/send_event_notifications/",
-                            data: {
-                              "event": mydata[0].pk,
-                              "to_users": JSON.stringify(friends),
-                              "data_type": "username",
-                            },
-                            success: function(data) {
-                              console.log(data);
-                            }
-                          });
+                        var unconf = make_events(mydata, blue, '{{ username }}', false, true);
+                        $.ajax({
+                          type: "POST",
+                          url: "/calendar/change_event/",
+                          data: {"pk": unconf[0].id, "day_delta": 0, "minute_delta": 0, "resize": false,},
+                          success: function(data) {
+                            var parsed = JSON.parse(data);
+                            resolve_event_downtime_conflicts(parsed);
+                          }
 
-                          var unconf = make_events(mydata, blue, '{{ username }}', false, true);
-                          $.ajax({
-                            type: "POST",
-                            url: "/calendar/change_event/",
-                            data: {"pk": unconf[0].id, "day_delta": 0, "minute_delta": 0, "resize": false,},
-                            success: function(data) {
-                              var parsed = JSON.parse(data);
-                              resolve_event_downtime_conflicts(parsed);
-                            }
+                        });
 
-                          });
+                        clean_up_suggest(1);
+                        $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+                      }
 
-                          clean_up_suggest(1);
-                          $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
-                        }
-
-                      },
-                    }
-
-
-        /*            }
+                    },
                   }
-                });*/
-
-// if user clicked Okay:
-
-
-                  // send the other user a request:
-                  //************** SEND EVENT NOTIFICATION *******************//
-
-                 /* $.ajax({
-                    type: "POST",
-                    url: "/calendar/send_event_notifications/",
-                    data: {
-                      "event": mydata[0].pk,
-                      "to_users": JSON.stringify(friends),
-                      "data_type": "username",
-                    },
-                    success: function(data) {
-                      console.log(data);
-                    }
-                  });
-
-                  //************** SEND EVENT NOTIFICATION //
-
-                  // display the unconfirmed event on the initiator's calendar
-
-                  var unconf = make_events(mydata, blue, '{{ username }}', false, true);
-
-                  $.ajax({
-                    type: "POST",
-                    url: "/calendar/change_event/",
-                    data: {"pk": unconf[0].id, "day_delta": 0, "minute_delta": 0, "resize": false,},
-                    success: function(data) {
-                      var parsed = JSON.parse(data);
-                      resolve_event_downtime_conflicts(parsed);
-                    }
-                  });
-
-
-                  $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
-
-                }
-                else {
-// remove the unconfirmed event from the back end
-$.ajax({
-  type: "POST",
-  url: "/calendar/remove_event/",
-  data: {"pk": JSON.parse(data)[0].pk},
-});
-
-}*/
-
-
-
-
-
-
-                }); // end confirm
-
-
-
-
-}
-}
-}
+                }); 
+       }
+     }
+  }
 }
 
-  function multi_suggest_function(data, hour, minute) {
+function multi_suggest_function(data, hour, minute) {
           // Make the unconfirmed event show up in your calendar
           if (data === "None") {
             bootbox.alert("You have no upcoming downtimes.")
@@ -1135,7 +1074,6 @@ $.ajax({
                     ReSuggest: {
                       label: "Re-suggest",
                       callback: function() {
-                        console.log(window.suggest_list);
                         $.ajax({
                           type: "GET",
                           url: "/calendar/multi_suggest/",
@@ -1205,64 +1143,64 @@ $.ajax({
 }
 }
 
+}
+function send_suggest() {
+  var hour = $("#suggest-hour").val();
+  var minute = $("#suggest-minute").val();
+
+
+
+  if (!(hour.match(/^([0-9])([0-9]?)$/)) && (hour != "")) {
+    bootbox.alert("Input hour must be an integer.");
+  } else if (!(minute.match(/^([0-9])([0-9]?)$/)) && (minute != "")) {
+    bootbox.alert("Input minute must be an integer.");
   }
-  function send_suggest() {
-    var hour = $("#suggest-hour").val();
-    var minute = $("#suggest-minute").val();
-
-
-
-    if (!(hour.match(/^([0-9])([0-9]?)$/)) && (hour != "")) {
-      bootbox.alert("Input hour must be an integer.");
-    } else if (!(minute.match(/^([0-9])([0-9]?)$/)) && (minute != "")) {
-      bootbox.alert("Input minute must be an integer.");
-    }
-    else {
+  else {
 
     if (window.suggest_list === undefined || window.suggest_list.length === 0) {
 
 
-          $.ajax({
-              type: "GET",
-              url: "/calendar/suggest/",
-              data: {'hours': parseInt(hour), 'minutes': parseInt(minute),
-              'pk': "no_pk"},
-              success: function(data) {
-            
-              suggest_function(data, hour, minute, "no_pk");
-          }
-        });
+      $.ajax({
+        type: "GET",
+        url: "/calendar/suggest/",
+        data: {'hours': parseInt(hour), 'minutes': parseInt(minute),
+        'pk': "no_pk"},
+        success: function(data) {
+
+          suggest_function(data, hour, minute, "no_pk");
+        }
+      });
 
     }
     else {
 
-    $.ajax({
-      type: "GET",
-      url: "/calendar/multi_suggest/",
-      data: {
-        'suggest_list': JSON.stringify(window.suggest_list),
-        'hours': parseInt(hour), 'minutes': parseInt(minute),
-      },
-      success: function(data) {
-        
-        
-        multi_suggest_function(data, hour, minute);
+      $.ajax({
+        type: "GET",
+        url: "/calendar/multi_suggest/",
+        data: {
+          'suggest_list': JSON.stringify(window.suggest_list),
+          'hours': parseInt(hour), 'minutes': parseInt(minute),
+        },
+        success: function(data) {
+
+
+          multi_suggest_function(data, hour, minute);
 
         }
       });
 
-}
-}
-$("div:regex(id, .*sugged_.*)").remove();
-$("div:regex(id, .*sug_.*)").remove();
-$("#suggest-search").val("");
-$("#suggest-hour").val("");
-$("#suggest-minute").val("");
+    }
+  }
+  $("div:regex(id, .*sugged_.*)").remove();
+  $("div:regex(id, .*sug_.*)").remove();
+  $("#suggest-search").val("");
+  $("#suggest-hour").val("");
+  $("#suggest-minute").val("");
 
 
 
 }
-                
+
 
 
 
@@ -1277,56 +1215,61 @@ body .modal-footer {
   max-width: 450px;
 }
 
-  div#scroll-able-3 {
-    height: 60px;
-  }
-</style>
+div#scroll-able-3 {
+  height: 60px;
+}
 
-<div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header modal-sm">
-       <h4 class="modal-title">Suggest An Event</h4>
-     </div>
+ /* .dropdown-menu {
 
-     <div class="modal-body">
+    white-space: normal;
+    }*/
+    </style>
+
+    <div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header modal-sm">
+           <h4 class="modal-title">Suggest An Event</h4>
+         </div>
+
+         <div class="modal-body">
 
 
 
-      <div id="scroll-able-2">
-        <div class="list-group col-xs-6 col-sm-9">
-          <form class="list-group-item list-group-item-info" method="post" name="form">
-            Select friends: <input id="suggest-search" size="17" name="search" type="text" />
-            <input type="submit" value="Search" class="suggest-submit"/>
-            <span class="error" style="display:none"> Please Enter Valid Data</span>
-            <span class="success" style="display:none"></span></a>
-          </form>
-          <div class="suggest-output"></div>
-        </div><!--/span-->
-      </div>
+          <div id="scroll-able-2">
+            <div class="list-group col-xs-6 col-sm-9">
+              <form class="list-group-item list-group-item-info" method="post" name="form">
+                Select friends: <input id="suggest-search" size="17" name="search" type="text" />
+                <input type="submit" value="Search" class="suggest-submit"/>
+                <span class="error" style="display:none"> Please Enter Valid Data</span>
+                <span class="success" style="display:none"></span></a>
+              </form>
+              <div class="suggest-output"></div>
+            </div><!--/span-->
+          </div>
 
-      <div id="scroll-able-2">
-        <div class="list-group col-xs-6 col-sm-9">
-          <a class="list-group-item list-group-item-info">Invite List</a>
-          <div class="Suggest-list"></div>
+          <div id="scroll-able-2">
+            <div class="list-group col-xs-6 col-sm-9">
+              <a class="list-group-item list-group-item-info">Invite List</a>
+              <div class="Suggest-list"></div>
+            </div>
+          </div>
+
+          <div id="scroll-able-3">
+            <div class="list-group col-xs-6 col-sm-9">
+              <form class="list-group-item list-group-item-info" method="post" name="form">Input an Event Length: <input id="suggest-hour" size="2" maxlength="2" type="text" /> hour(s) <input id="suggest-minute" size="2" maxlength="2" type="text" /> minute(s)
+              </form>
+            </div>
+          </div>
+
         </div>
-      </div>
-
-      <div id="scroll-able-3">
-      <div class="list-group col-xs-6 col-sm-9">
-          <form class="list-group-item list-group-item-info" method="post" name="form">Input an Event Length: <input id="suggest-hour" size="2" maxlength="2" type="text" /> hour(s) <input id="suggest-minute" size="2" maxlength="2" type="text" /> minute(s)
-          </form>
-      </div>
-    </div>
-
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-default" data-dismiss="modal" onclick="cancel_suggest()">Cancel</button>
-      <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="send_suggest()">Suggest!</button>
-    </div>
-  </div><!-- /.modal-content -->
-</div><!-- /.modal-dialog -->
-</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal" onclick="cancel_suggest()">Cancel</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="send_suggest()">Suggest!</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div>
 
 </body>  
 <hr>

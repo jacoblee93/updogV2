@@ -54,21 +54,6 @@ def calendar(request):
     for ship in ordered_ships_list:
         friends_list.append(ship.to_user.user)
 
-    garbage = """user = UpDogUser.objects.order_by('-user')[1]
-    print user
-    print datetime.datetime(2014, 5, 9, 12, 45, 0, tzinfo=utc)
-    #Downtime.objects.get_or_create(owner=user, start_time=startTime, end_time=endTime)[0]
-    dt = Downtime.objects.get_or_create(owner=user, start_time=datetime.datetime(2014, 5, 9, 12, 45, 0, tzinfo=utc), end_time=datetime.datetime(2014, 5, 9, 13, 30, 0, tzinfo=utc))[0]
-
-    adddts = dt1 = add_downtime(ud1, datetime(2014, 4, 8, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 8, 8, 30, 0, tzinfo=utc))
-    dt2 = add_downtime(ud2, datetime(2014, 5, 9, 10, 45, 0, tzinfo=utc), datetime(2014, 5, 9, 21, 30, 0, tzinfo=utc))
-
-    dt3 = add_downtime(ud3, datetime(2014, 5, 9, 12, 45, 0, tzinfo=utc), datetime(2014, 5, 9, 13, 30, 0, tzinfo=utc))
-    dt4 = add_downtime(ud4, datetime(2014, 4, 21, 5, 45, 0, tzinfo=utc), datetime(2014, 4, 21, 8, 30, 0, tzinfo=utc))
-    dt5 = add_downtime(ud5, datetime(2014, 5, 9, 10, 45, 0, tzinfo=utc), datetime(2014, 5, 9, 20, 30, 0, tzinfo=utc))
-
-    """
-
     # Alex - for local use when rediesigning friends tab 
     #json_friends = serializers.serialize("json", friends_list)
 
@@ -1025,10 +1010,10 @@ def reject_friend_request(request):
                 to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
                 from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
 
-                to_friendship.is_new = False
-                from_friendship.is_new = False
-                to_friendship.save()
-                from_friendship.save()
+                to_friendship.delete()
+                from_friendship.delete()
+
+
 
                 return HttpResponse("Success!")
 
@@ -1688,7 +1673,7 @@ def display_friend_requests(request):
                 return HttpResponse("No new notifications")
 
             else:
-                requests = Friendship.objects.filter(to_user=current_uduser, is_mutual = False)
+                requests = Friendship.objects.filter(to_user=current_uduser, is_new = True)
                 rl = len(requests)
                 request_list = []
                 
@@ -1740,6 +1725,13 @@ def get_notifications(request):
                         if event_notifications[i].is_seen == False:
                             event_notifications[i].is_seen = True
                             event_notifications[i].save()
+                        else:
+                            expdate = event_notifications[i].date + datetime.timedelta(days=1)
+                            if event_notifications[i].is_reply == True and expdate < datetime.datetime.utcnow().replace(tzinfo=utc):
+                                print expdate
+                                print datetime.datetime.utcnow().replace(tzinfo=utc)
+                                #event_notifications[i].delete()
+
                         from_users.append(event_notifications[i].from_user.user)
                         events.append(event_notifications[i].event)
 
@@ -1748,16 +1740,29 @@ def get_notifications(request):
                     events = serializers.serialize('json', events)
 
                     json_stuff = simplejson.dumps([event_notifications, from_users, events])
+                    return HttpResponse(json_stuff, content_type="application/json")
 
-                else: 
-                    event_notifications = []
-
-                return HttpResponse(json_stuff, content_type="application/json")
+                return HttpResponse("No Notifications")
 
     except Exception as e:
         print e
                     
     return HttpResponse("Failure")
+
+@login_required
+def remove_reply_notification(request):
+    try:
+        if request.is_ajax():
+            if request.method == 'POST':
+                if "notification_pk" in request.POST:
+                    ev_notey = EventNotification.objects.filter(pk=request.POST['notification_pk'])[0]
+                    ev_notey.delete()
+                    return HttpResponse("success")
+
+    except Exception as e:
+        print e
+
+    return HttpResponse("Bob Saget")
 
 @login_required
 def get_num_new_notifications(request):
