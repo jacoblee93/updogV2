@@ -1,47 +1,438 @@
-{% extends 'updog/base.html' %}
-
-{% block above_calendar_block %}
+<!DOCTYPE html>
 {% load static %}
-<br /><br /><br /><br /><br />
-<div id = "globalContainer" class="uiContextualLayerParent">
+<html lang="en">
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
+        <title>UpDog.me - What's up?</title>
+        <meta name="generator" content="Bootply" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet">
+        
+        <!--[if lt IE 9]>
+          <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
-  <div class="row">
-    <div class="col-md-2">
-          <br>
-	       <img src="{% static 'dog.gif' %}" alt="UpDog" /><br />
 
+
+
+
+
+
+
+
+        <!-- CSS code from Bootply.com editor -->
+        
+        <style type="text/css">
+            /* -- custom css for Bootstrap 3.x --*/
+
+/* move special fonts to HTML head for better performance */
+@import url(http://fonts.googleapis.com/css?family=Voltaire);
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  font-family:Arial,sans-serif;
+}
+
+/* fix bs3 horizontal scrollbar bug */
+.row { margin: 0; padding: 0 }
+
+
+/* use special fonts in certain elements */
+h1,h2,h3,h4,.lead,.btn,.navbar a {
+  text-transform:uppercase;
+  font-family:'Voltaire',Arial,sans-serif;
+  letter-spacing:2px;
+}
+
+h1 {
+  font-size:50px;
+}
+
+/* make images gray */
+img.grayscale {
+    filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'grayscale\'><feColorMatrix type=\'matrix\' values=\'0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0\'/></filter></svg>#grayscale"); /* Firefox 10+, Firefox on Android */
+    filter: gray; /* IE6-9 */
+    -webkit-filter: grayscale(100%); /* Chrome 19+, Safari 6+, Safari 6+ iOS */
+}
+
+.icon-bar {
+   background-color:#fff;
+}
+
+.scroll-down a, .scroll-top a {
+   color:#ffffff;
+}
+
+.scroll-down {
+   position:fixed;
+   bottom:20%;
+   right:0%;
+   color:#f9f9f9;
+}
+
+.scroll-top {
+  background-color:#dbdbdb;
+}
+
+.vert {
+  vertical-align: middle;
+  width:100%;
+  padding-top:4%;
+  text-align:center;
+}
+
+.header .btn-lg {
+   font-size:28px;
+   padding:15px;
+   background-image: url("{% static 'img/fb-login-button_600@2x.png' %}");
+   background-size:100% 100%;
+   color: rgba(0, 0, 0, 0.0);
+}
+
+.header .btn-lg:hover {
+   background-image: url("{% static 'img/fb-login-button-pressed_600@2x.png' %}");
+   background-size: 100% 100%
+   color: rgba(0, 0, 0, 0.0);
+}
+
+.navbar a {
+  color:#fff;
+  font-size:14px;
+}
+
+.navbar-bold.affix {
+  background-color:#d46054;
+}
+
+.navbar-bold {
+  background-color:#f68076;
+  font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
+}
+
+.navbar-bold li a:hover, .navbar-bold li.active {
+  background-color:#d46054;
+}
+
+    
+.header h1 {
+  font-size:80px;
+  -webkit-text-stroke: 1px rgba(f,f,f,0.1);
+  color:#431a6d;
+  color:#fff;
+  margin-left:-5px;
+  margin-bottom:5px;
+  text-transform:uppercase;
+}
+
+.header .lead {
+  color:#d46054;
+  font-size:25px;
+  font-family: 'Helvetica', Arial, sans-serif;
+}
+
+.header {
+  height: 80%;
+  background: repeat center center fixed;
+  color:#ffffff;
+  vertical-align: middle;
+}
+
+/* use alt in navbar and header for different color */
+
+.alt {
+  background-color: #222334;
+
+}
+
+.alt h1 {
+
+    font-family: 'Helvetica', Arial, sans-serif;
+      margin-top: 90px
+}
+
+.alt .lead {
+  color: #ffffff;
+}
+
+.alt.affix {
+  background-color:#222334;
+}
+
+.alt li a:hover, .alt li.active {
+  background-color:hsla(213, 96%, 55%, 1.0);
+}
+
+
+
+.blurb {
+  padding: 120px 0;
+  background-color:#fefefe;
+}
+
+.blurb .panel {
+  background-color:transparent;
+}
+
+.bright {
+  background: #dbdbdb url('http://www.bootply.com/assets/example/pt_topo.png') repeat center center fixed; 
+  color:#777;
+}
+
+.featurette {
+  background: #222334;
+  padding: 100px 0;
+  color: #ffffff;
+}
+
+.featurette-item {
+  margin-bottom: 15px;
+}
+
+.featurette-item > i {
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  display: inline-block;
+  font-size: 56px;
+  width: 140px;
+  height: 140px;
+  line-height: 136px;
+  vertical-align: middle; 
+  text-align: center;
+}
+
+.featurette-item > i:hover {
+  font-size: 68px;
+}
+
+.callout {
+  color: #ffffff;
+  padding-top:7%;
+  height: 100%;
+  width: 100%;
+  background: url('http://www.bootply.com/assets/example/bg_suburb.jpg') no-repeat center center fixed; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+.gallery {
+  padding: 50px 0;
+}
+
+.call-to-action {
+  background: #eeeeee;
+  padding: 50px 0;
+}
+
+.call-to-action .btn {
+  margin: 10px;
+}
+
+.navbar-right {
+
+  float:right;
+}
+
+footer {
+  padding: 100px 0;
+}
+/* -- end custom css for Bootstrap 3.x --*/
+
+        </style>
+    </head>
+    
+    <!-- HTML code from Bootply.com editor -->
+    
+    <body  >
+        
+        
+<div class="navbar navbar-fixed-top alt" data-spy="affix" data-offset-top="1000">
+  <div class="container">
+    <div class="navbar-header">
+      <a href="#" class="navbar-brand">Top</a>
+      <a class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
     </div>
-    <div class="col-md-4">
-      <div class="jumbotron masthead" style="background: white;">
-         <div class="container" style="text-align: center; background: white;">
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav">
+        <li><a href="#sec1">Schedule</a></li>
+        <li><a href="#sec2">Friends</a></li>
+        <li><a href="#sec3">Reconnect</a></li>
+        <li><a href="#sec4">Manage</a></li>
+      </ul>
 
-          <h1>UpDog</h1>
-          <br>
-        <p>
-          <a class="btn btn-primary btn-large" href="{% url 'socialauth_begin' 'facebook' %}">Connect with Facebook!</a>
-        </p>
-        </div>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="{% url 'socialauth_begin' 'facebook' %}">Login</a></li>
+      </ul>
+    </div>
+   </div>
+</div>
+
+<div class="header alt vert">
+  <div class="container">
+
+    <h1>UpDog</h1>
+      <p class="lead">Making Meetings Easy</p>
+      <div>&nbsp;</div>
+      <a href="{% url 'socialauth_begin' 'facebook' %}" class="btn btn-default btn-lg">aweifefsesfjoawefjoiewajfpwhui</a>
+      <div>&nbsp;</div>
+      We will never post on your behalf.
+  </div>
+</div>
+
+<hr>
+
+<div id="sec1" class="blurb">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6 col-sm-4">
+        <h1>Schedule Team Meetings</h1>
+        <p class="lead">Find mutual free times in a flash! <br/>Just point and click.</p>
       </div>
-    </div>
-
-
-    <div class="col-md-6">
-      <div class="jumbotron masthead" style="background: white;">
-	<div class="container" style="background: white;">
-          <h2>Manage Your Time.</h2>
-        	  <div>
-        	    <p><span class="glyphicon glyphicon-calendar"></span> Schedule team meetings.</p>
-        	  </div>
-        	  <div>
-                <p><span class="glyphicon glyphicon-user"></span> Fill free time with friends.</p>
-            </div>
-            <div>
-                <p><span class="glyphicon glyphicon-phone"></span> Keep in touch.</p>
-            </div>
-        </div>
+      <div class="col-md-6 col-sm-8">
+        <h1 class="pull-right"><img src="{% static 'img/hover-markup.png' %}" height="280" width="475" alt="Hover Demo" class="img-rounded"></h1>
       </div>
     </div>
   </div>
 </div>
-{% endblock %}
 
+<div class="featurette" id="sec2">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 text-center">
+        <h1>Fill Free Time With Friends</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-2 col-md-offset-2 col-sm-3 text-center">
+        <div class="featurette-item">
+          <i class="fa fa-cutlery"></i>
+          <h4>Dine</h4>
+        </div>
+      </div>
+      <div class="col-md-2 col-sm-3 text-center">
+        <div class="featurette-item">
+          <i class="fa fa-gamepad"></i>
+          <h4>Play</h4>
+        </div>
+      </div>
+      <div class="col-md-2 col-sm-3 text-center">
+        <div class="featurette-item">
+          <i class="fa fa-ticket"></i>
+          <h4>Watch</h4>
+        </div>
+      </div>
+      <div class="col-md-2 col-sm-3 text-center">
+        <div class="featurette-item">
+          <i class="fa fa-sun-o"></i>
+          <h4>Relax</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+  <h4 class="col-md-12 text-center">Want to grab lunch? Sneak in a game of Mario Kart? Catch a movie? Find a couple hours for the beach? <br/>The possibilities are endless.</h4>
+</div>
+
+<div class="callout" id="sec3">
+  <div class="vert">
+    <div class="col-md-7 text-center"><h1>Keep in Touch</h1></div>
+    <div class="col-md-5">&nbsp;</div>
+    <div class="col-md-12 text-center">&nbsp;</div>
+    <div class="col-md-7 col-sm-6">
+      <div class="row hidden-xs">
+       <div class="col-sm-6 pull-right"><img class="img-circle grayscale" src="{% static 'img/jacoblee.jpg' %}" height="100" width="100"></div>
+       
+       <div class="col-sm-6"><img class="img-circle grayscale" src="{% static 'img/pousch.png' %}" height="100" width="100"></div>
+       <div class="col-sm-12 featurette-item"><i class="fa fa-arrows-alt fa-5x"></i></div>  
+       <div class="col-sm-6"><img class="img-circle grayscale" src="{% static 'img/sskoularikis.jpg' %}" height="100" width="100"></div>
+       <div class="col-sm-6 pull-right"><img class="img-circle grayscale" src="{% static 'img/franklyn.jpg' %}" height="100" width="100"></div>
+     </div>
+    </div>
+    <div class="col-md-5 col-sm-6 pull-right">
+    <div class="col-md-12"><img src="{% static 'img/suggest-markup.png' %}" height="280" width="350" alt="Suggest Demo" class="img-rounded"></div>
+    <div class="col-md-12 text-center"><h2>Catch up with friends on different schedules with the auto-suggest feature</h2></div>
+    </div>
+    </div>
+</div>
+</div>
+
+<div class="blurb" id="sec4">
+  <div class="container">
+      <div class="col-md-6 text-center featurette-item">
+        <i class="fa fa-calendar-o icon-5x"></i>
+        <i class="fa fa-envelope icon-5x"></i>
+        <br/>
+        <i class="fa fa-users icon-5x"></i>
+        <i class="fa fa-facebook-square"></i>
+      </div>
+    <div class="col-md-6 text-center"><img src="{% static 'img/suggest-markup.png' %}" height="280" width="350" alt="Suggest Demo" class="img-rounded">
+    </div>
+      <div class="col-md-6 text-center">
+        <h1>Manage your time</h1>
+        <p class="pull-right"><h4>All the features you expect from a calendar... <br/>plus a whole lot more. <br/><br/>Perfect for both the organized and disorganized person!</h4></p>
+      </div>
+      <div class="col-md-6"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6 col-md-offset-3 text-center">
+        <hr>
+        <p>Built with <i class="icon-heart-empty"></i> at <a href="http://www.bootply.com">Bootply</a>.<br>Company ©2013</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<ul class="nav pull-right scroll-down">
+  <li><a href="#" title="Scroll down"><i class="icon-chevron-down icon-3x"></i></a></li>
+</ul>
+<ul class="nav pull-right scroll-top">
+  <li><a href="#" title="Scroll to top"><i class="icon-chevron-up icon-3x"></i></a></li>
+</ul>
+
+        
+        <script type='text/javascript' src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+
+        <script type='text/javascript' src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+
+
+
+
+        
+        <!-- JavaScript jQuery code from Bootply.com editor -->
+        
+        <script type='text/javascript'>
+        
+        $(document).ready(function() {
+        
+            /* smooth scrolling for scroll to top */
+$('.scroll-top').click(function(){
+  $('body,html').animate({scrollTop:0},800);
+})
+/* smooth scrolling for scroll down */
+$('.scroll-down').click(function(){
+  $('body,html').animate({scrollTop:$(window).scrollTop()+800},1000);
+})
+
+/* highlight the top nav as scrolling occurs */
+$('body').scrollspy({ target: '#navbar' })
+
+        
+        });
+        
+        </script>
+        
+    </body>
+</html>
