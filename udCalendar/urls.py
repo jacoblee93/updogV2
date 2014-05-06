@@ -43,4 +43,5 @@ urlpatterns = patterns('',
         url(r'^get_from_user/$', views.get_from_user, name='get_from_user'),
         url(r'^suggest_search/$', views.suggest_search, name='suggest_search'),
         url(r'^multi_suggest/$', views.multi_suggest, name='multi_suggest'),
+        url(r'^remove_reply_notification/$', views.remove_reply_notification, name='remove_reply_notification'),
 )
