@@ -137,7 +137,7 @@ function resolve_event_downtime_conflicts(downtimes) {
           }
           userhtml = userhtml+"</div></div>";
           $(".friend_requests").html(userhtml);
-          $(".fr_text").html('<span class="glyphicon glyphicon-user"></span><b class="caret"></b>');
+          $(".fr_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-user"></span><b class="caret"></b></div>');
         }
       });
 return ret;
@@ -227,7 +227,7 @@ function display_notifications() {
         }
         userhtml = userhtml+ "</div></div>";
         $(".notifications").html(userhtml);
-        $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b>');
+        $(".notif_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></div>');
         }
       });
 return ret;
@@ -358,8 +358,6 @@ function reject_friend_request(new_friend) {
         <ul class="nav navbar-nav">
               
               {% if user.is_authenticated %}
-                
-                
                 <li><a data-toggle="modal" data-target=".suggest-modal">Suggest</a><li>               
 
               {% endif %}
@@ -398,29 +396,29 @@ function reject_friend_request(new_friend) {
 <script>
 function check_for_notifications() {
   var f = get_num_new_friend_requests();
-  var n = get_num_new_notifications();
 
   if (f > 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></a>');
+    $(".fr_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></div>');
   }
   else if (f == 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></a>');
+    $(".fr_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></div>');
   }
   else {
-    $(".fr_text").html('<span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
+    $(".fr_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-user"></span><b class="caret"></b></div>');
 
   }
 
+  var n = get_num_new_notifications();
 
 
   if (n > 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></a>');
+    $(".notif_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></div>');
   }
   else if (n == 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></a>');
+    $(".notif_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></div>');
   }
   else {
-    $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
+    $(".notif_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></div>');
   }
 
 
@@ -431,6 +429,7 @@ check_for_notifications();
 var myVar = setInterval(function() {check_for_notifications()}, 30000);
 </script>
 <style>
+li { cursor: pointer; }
 .badge {
   display: block;
   position: absolute;
