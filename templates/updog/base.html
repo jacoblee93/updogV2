@@ -108,32 +108,33 @@ function display_friend_requests() {
     async: false,
       //},
       success: function(data) {
-        if (data == "No new notifications") return;
-        users = JSON.parse(data);
-        var dlength = mydata.length;
-        var users = [];
-        userhtml = '';
-
-
-
-        ret = users.length;
-        if (users.length != 0) {
-          for (var i = 0; i < users.length; i++) {
-            fixed_length = 24;
-            var name =users[i].fields.first_name + ' ' + users[i].fields.last_name;
-            namelength = name.length;
-            for (var j = 0; j < (fixed_length - namelength); j++) {
-              name = name + ' ';
-            }
-            userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button type="button" style="float:right" class="btn btn-primary" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">Add</button><button style="float:right" class="btn btn-primary" type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">Not Now</button><div style="margin-left:65px; margin-right:120px"><pre style="background-color:transparent; border:0px solid">' + name + '</pre></div></li><li class="divider"></li>';
+        userhtml = '<div id="scroll-able-nots1><div id="list-group>';
+        if (data == "No new notifications") {
+          userhtml =  userhtml +'<li style="display: inline-block; vertical-align: middle; "><pre style="background-color:transparent; border:0px solid">' + "No New Friend Requests" + '</pre></li><li class="divider"></li>';
           }
-          //userhtml = userhtml + "</div></div>";
-        }
         else {
-          userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><pre style="background-color:transparent; border:0px solid">' + "No New Friend Requests" + '</pre></li><li class="divider"></li>';
+          users = JSON.parse(data);
+          var dlength = mydata.length;
+          var users = [];
+          
+
+          ret = users.length;
+          if (users.length != 0) {
+            for (var i = 0; i < users.length; i++) {
+              fixed_length = 24;
+              var name =users[i].fields.first_name + ' ' + users[i].fields.last_name;
+              namelength = name.length;
+              for (var j = 0; j < (fixed_length - namelength); j++) {
+                name = name + ' ';
+              }
+              userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button type="button" style="float:right" class="btn btn-primary" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">Add</button><button style="float:right" class="btn btn-primary" type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">Not Now</button><div style="margin-left:65px; margin-right:120px"><pre style="background-color:transparent; border:0px solid">' + name + '</pre></div></li><li class="divider"></li>';
+            }
+          }
         }
+
+        userhtml = userhtml + "</div></div>"
         $(".friend_requests").html(userhtml);
-        $(".fr_text").html('<span class="glyphicon glyphicon-user" style = "pointer-events:none"></span><b class="caret"></b>');
+        $(".fr_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-user"></span><b class="caret"></b></div>');
       }
   });
   return ret;
@@ -166,7 +167,7 @@ function display_notifications() {
     success: function(data) {
       userhtml = ''
       if (data == 'No Notifications') {
-        userhtml = '<div id="scroll-able-nots"><div id="list-group">No Notifications</div></div>';
+        userhtml = '<div id="scroll-able-nots"><div id="list-group"><li style="display: inline-block; vertical-align: middle; "><pre style="background-color:transparent; border:0px solid">' + "No New Notifications" + '</pre></li><li class="divider"></li></div></div>';
       }
       else if (!data || !data[0] || !data[1] || !data[2]) {
         return;
@@ -195,8 +196,7 @@ function display_notifications() {
 
 
             var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
-
-            var date_string = start_d.toDateString();
+            var date_string = start_d.toUTCString().substring(0, 16);
 
             var act = "";
             if (items[i].fields.activity) {
@@ -225,7 +225,7 @@ function display_notifications() {
         userhtml = userhtml + "</div></div>";
       }
       $(".notifications").html(userhtml);
-      $(".notif_text").html('<span class="glyphicon glyphicon-envelope" style = "pointer-events:none"></span><b class="caret"></b>');
+      $(".notif_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-envelope" ></span><b class="caret"></b></div>');
     }
   });
   return ret;
@@ -240,7 +240,6 @@ function remove_reply_notification(notification_pk) {
       $("#reply_notey" + notification_pk).remove();
     }
   });
-
 }
 
 function get_num_new_notifications() {
@@ -298,7 +297,6 @@ function respond_yes_to_event_notification(notification_pk) {
 }
 
 function respond_no_to_event_notification(notification_pk) {
-  console.log(notification_pk)
   $.ajax({
     type: "POST",
     url: "/calendar/respond_to_event_notification/",
@@ -307,7 +305,6 @@ function respond_no_to_event_notification(notification_pk) {
   },
   success: function(data) {
     $("#invite_notey" + notification_pk).remove();
-    console.log("Success!")
   }
 })
 }
@@ -331,8 +328,6 @@ function reject_friend_request(new_friend) {
     success: function(data){
 
       get_friends('{{ user }}');
-
-      console.log(data)
     }
   });
 }
@@ -406,26 +401,26 @@ function check_for_notifications() {
   var n = get_num_new_notifications();
 
   if (f > 1) {
-    $(".fr_text").html('<span class="glyphicon glyphicon-user" style = "pointer-events:none"><span class="badge">' + f + '</span></span><b class="caret"></b>');
+    $(".fr_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></div>');
   }
   else if (f == 1) {
-    $(".fr_text").html('<span class="glyphicon glyphicon-user" style = "pointer-events:none"><span class="badge">' + f + '</span></span><b class="caret"></b>');
+    $(".fr_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></div>');
   }
   else {
-    $(".fr_text").html('<span class="glyphicon glyphicon-user" style = "pointer-events:none"></span><b class="caret"></b>');
+    $(".fr_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-user"></span><b class="caret"></b></div>');
 
   }
 
 
 
   if (n > 1) {
-    $(".notif_text").html('<span class="glyphicon glyphicon-envelope" style = "pointer-events:none"><span class="badge">' + n + '</span></span><b class="caret"></b>');
+    $(".notif_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></div>');
   }
   else if (n == 1) {
-    $(".notif_text").html('<span class="glyphicon glyphicon-envelope" style = "pointer-events:none"><span class="badge">' + n + '</span></span><b class="caret"></b>');
+    $(".notif_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></div>');
   }
   else {
-    $(".notif_text").html('<span class="glyphicon glyphicon-envelope" style = "pointer-events:none"></span><b class="caret"></b>');
+    $(".notif_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></div>');
   }
 
 
@@ -727,7 +722,7 @@ function get_friends(user) {
       userhtml = '';
       if (fl != 0) {
         for (var i = 0; i < fl; i++) {
-          userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].pk+ '\', \'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].pk + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
+          userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].pk+ '\', \'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].pk + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand"> ' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
         };
       } else {
         userhtml = '<strong>No friends.</strong>';
@@ -791,7 +786,8 @@ function hover_stuff(friend) {
       
     }
   }
-  $( "#friend_" + friend.pk).hoverIntent(hover_functions);
+  // RIP Hover...
+  //$( "#friend_" + friend.pk).hoverIntent(hover_functions);
 }
 
 {% if user.is_authenticated %}
@@ -966,7 +962,7 @@ function suggest_function(data, hour, minute, fixed_pk) {
         var start_d = new Date(mydata[0].fields.start_time);
         var end_d = new Date(mydata[0].fields.end_time)
         var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
-        var date_string = start_d.toDateString();
+        var date_string = start_d.toUTCString().substring(0, 16);;
 
         if (window.exclude_friend_list == undefined) {
           window.exclude_friend_list = [];
@@ -1021,7 +1017,6 @@ function suggest_function(data, hour, minute, fixed_pk) {
                             "data_type": "username",
                           },
                           success: function(data) {
-                            console.log(data);
                           }
                         });
 
@@ -1090,7 +1085,8 @@ function multi_suggest_function(data, hour, minute) {
                 var start_d = new Date(mydata[0].fields.start_time);
                 var end_d = new Date(mydata[0].fields.end_time)
                 var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
-                var date_string = start_d.toDateString();
+                var date_string = start_d.toUTCString().substring(0, 16);
+                //var date_string = start_d.toDateString();
                 
                 friend_string = "";
                 and = ""
@@ -1152,7 +1148,6 @@ function multi_suggest_function(data, hour, minute) {
                             "data_type": "username",
                           },
                           success: function(data) {
-                            console.log(data);
                           }
                         });
 
@@ -1242,11 +1237,13 @@ function send_suggest() {
 </script>
 <style>
 body .modal.fade.suggest-modal {
-  width: 100%;
-  /*margin-left: 30%;*/
+  max-width: 100%;
+  /*max-width: 450px;
+  margin-left: 30%;*/
 }
 body .modal-footer {
-  width: 100%;
+  max-width: 100%;
+  /*width: 100%;*/
 }
 
   div#scroll-able-3 {
@@ -1260,17 +1257,17 @@ body .modal-footer {
 <div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header modal-sm">
+      <div class="modal-header modal-lg">
        <h4 class="modal-title">Suggest An Event</h4>
      </div>
 
-     <div class="modal-body">
+     <div class="modal-body" style="max-height:200px">
       
         <div class="list-group col-xs-12 col-sm-12">
           <form class="list-group-item list-group-item-info" method="post" name="form" autocomplete=off>
           <input id="suggest-search" class="list-group-item" value="Search for friends to meet up with..." size="74" name="search" type="text" onfocus="inputFocus(this)" onblur="inputBlur(this)" />
 
-      <div id="scroll-able-2">
+          <div id="scroll-able-2">
 
 
             <span class="error" style="display:none"> Please Enter Valid Data</span>
@@ -1353,7 +1350,6 @@ suggest_search_function = function() {
                 for (var i = 0; i < users.length; i++) {
                   userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button class="btn btn-default" type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
                 }
-                console.log(userhtml);
               }
               else {
                 userhtml = "No results.";

@@ -199,8 +199,9 @@ def add_downtime(request):
                 end_time__lte=endDate) | me.downtime_set.filter(start_time__lte=startDate,
                 end_time__gte=endDate)
 
-            existing_dt = existing_dt.exclude(start_time=endDate)
-            existing_dt = existing_dt.exclude(end_time=startDate)
+            ### comment these two back out
+            #existing_dt = existing_dt.exclude(start_time=endDate)
+            #existing_dt = existing_dt.exclude(end_time=startDate)
             merged = False
             if len(existing_dt) == 0:
                 new_downtime = Downtime.objects.get_or_create(owner=me, start_time=startDate, end_time=endDate)[0]
@@ -502,8 +503,8 @@ def edit_downtime(request):
                 start_time__lte=downtime.end_time) | me.downtime_set.filter(end_time__gte=downtime.start_time,
                 end_time__lte=downtime.end_time) | me.downtime_set.filter(start_time__lte=downtime.start_time,
                 end_time__gte=downtime.end_time)
-            existing_dt = existing_dt.exclude(start_time=downtime.end_time)
-            existing_dt = existing_dt.exclude(end_time=downtime.start_time)
+            #existing_dt = existing_dt.exclude(start_time=downtime.end_time)
+            #existing_dt = existing_dt.exclude(end_time=downtime.start_time)
             existing_dt = existing_dt.exclude(pk=downtime.pk)
             existing_dt = existing_dt.filter(preferred_activity=downtime.preferred_activity)
             merged = False
@@ -674,8 +675,10 @@ def change_downtime(request):
                 end_time__lte=endDate) | me.downtime_set.filter(start_time__lte=startDate,
                 end_time__gte=endDate)
 
-            existing_dt = existing_dt.exclude(start_time=endDate)
-            existing_dt = existing_dt.exclude(end_time=startDate)
+
+            #############comment back out
+            #existing_dt = existing_dt.exclude(start_time=endDate)
+            #existing_dt = existing_dt.exclude(end_time=startDate)
             existing_dt = existing_dt.exclude(pk=downtime.pk)
 
             merged = False
@@ -831,7 +834,6 @@ def find_friends(request):
     try:
         if request.is_ajax():
             if request.method == 'GET':
-
                 friendships_list = Friendship.objects.filter(to_user = request.user.updoguser)
                 friendships_list = friendships_list.order_by('-is_mutual')
 
@@ -873,7 +875,6 @@ def find_friends(request):
                     return HttpResponse(json_stuff, content_type ="application/json")
 
                 else:
-                    console.log
                     return HttpResponse("no friends")
 
     except Exception as e:
@@ -1057,9 +1058,9 @@ def multi_suggest(request):
                     users = json.loads(request.GET['suggest_list'])
                     #print users
                     current_user = request.user.updoguser
-                    start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
-                    after_today = current_user.downtime_set.filter(start_time__gte=start_date)
-
+                    ## fix this if we have time!
+                    start_date = datetime.datetime.utcnow().replace(tzinfo=utc) - timedelta(hours=4)
+                    after_today = current_user.downtime_set.filter(end_time__gte=start_date)
 
                     ordered = after_today.order_by('start_time')
                     if len(ordered) == 0:
@@ -1114,7 +1115,10 @@ def multi_get_overlap(mine, yalls, delta, is_specified, exclude_list):
     try:
         ## walls overlap is a list of overlaps (each overlap consists of a start and end time)
         ## that work for all users that have been checked so far
-        walls_overlap = [[mine.start_time, mine.end_time]]
+        ## fix this if we have time!
+        start_date = datetime.datetime.utcnow().replace(tzinfo=utc) - timedelta(hours=4)
+        real_time = max(mine.start_time, start_date)
+        walls_overlap = [[real_time, mine.end_time]]
         ## for each friend in the suggests list, update the overlaps list to reflect thier freetimes
         for yall in yalls: # yalls is a list of a list of downtimes      
             ## for each overlap possibility that has worked for everyone else so far...
@@ -1135,20 +1139,10 @@ def multi_get_overlap(mine, yalls, delta, is_specified, exclude_list):
                         # split walls overlap by the excluded event
                         walls_overlap.remove(overlap)
 
-                        if overlap[1] > excluded_event.start_time:
-                            if overlap[0] < excluded_event.start_time:
-                                if overlap[0] != excluded_event.start_time:
-                                    walls_overlap.append([overlap[0], excluded_event.start_time])
-                            else:
-                                if excluded_event.end_time != overlap[1]:
-                                    walls_overlap.append([excluded_event.end_time, overlap[1]])
-                        else:
-                            if overlap[1] > excluded_event.end_time:
-                                if overlap[0] != excluded_event.start_time:
-                                    walls_overlap.append([overlap[0], excluded_event.start_time])
-                                if excluded_event.end_time != overlap[1]:
-                                    walls_overlap.append([excluded_event.end_time, overlap[1]])
-
+                        exclusions = get_exclusions(overlap, [excluded_event.start_time, excluded_event.end_time])
+                        if exclusions:
+                            for exclusion in exclusions:
+                                walls_overlap.append(exclusion)
 
         # return the first thing in the overlaps list
         if len(walls_overlap) == 0:
@@ -1215,6 +1209,13 @@ def get_overlap(one, two):
             overlap = [one_start_time, two_end_time]
         else:
             overlap = [one_start_time, one_end_time]
+
+    start_date = datetime.datetime.utcnow().replace(tzinfo=utc) - timedelta(hours=4)
+
+    if overlap[1] < start_date:
+        return None
+    if overlap[0] < start_date:
+        return [start_date, overlap[1]]
     return overlap
 
 @login_required
@@ -1276,8 +1277,9 @@ def suggest(request):
                             return HttpResponse("Failure")
                         return HttpResponse(json_output)
                     else:
-                        start_date = datetime.datetime.utcnow().replace(tzinfo=utc)
-                        after_today = current_user.downtime_set.filter(start_time__gte=start_date)
+                        ### fix later if patience found
+                        start_date = datetime.datetime.utcnow().replace(tzinfo=utc) - timedelta(hours=4)
+                        after_today = current_user.downtime_set.filter(end_time__gte=start_date)
                         ordered = after_today.order_by('start_time')
                         if len(ordered) == 0:
                             return HttpResponse(None)
@@ -1298,6 +1300,7 @@ def suggest(request):
                                 while len(my_friends_ord) > 0:
                                     maxscore = len(my_friends_ord)
                                     amigo = my_friends_ord[int(minscore+(maxscore-minscore)*random.random()**2)].to_user
+
                                     options = amigo.downtime_set.filter(start_time__gte=my_dt.start_time, 
                                         start_time__lte=my_dt.end_time) | amigo.downtime_set.filter(end_time__gte=my_dt.start_time,
                                          end_time__lte=my_dt.end_time) | amigo.downtime_set.filter(start_time__lte=my_dt.start_time,
@@ -1306,18 +1309,51 @@ def suggest(request):
                                     options = options.exclude(start_time=my_dt.end_time)
                                     options = options.exclude(end_time=my_dt.start_time)
 
-                                    indices = [i for i, x in enumerate(exclude_friends_list) if x == amigo]
-                                    for index in indices:
-                                        options = options.exclude(start_time=exclude_list[index].start_time) 
-
+                                    ### what was originall below
                                     my_friends_ord = my_friends_ord.exclude(to_user = amigo)
                                     if len(my_friends_ord) == 0 and len(options) == 0:
                                         if len(ordered) == 0:
                                             return HttpResponse("NoMatch")
                                         break
+                                    #for index in indices: #### FIX FIX FIX BSBSBSBSB
+                                    #    options = options.exclude(start_time=exclude_list[index].start_time) 
+                                    all_options = []
+
                                     if len(options) > 0:
-                                        option = options.order_by('start_time')[0]
-                                        overlap = get_overlap(my_dt, option)
+                                        ## these are the indices where the amigo is in the exclude friends list
+                                        indices = [i for i, x in enumerate(exclude_friends_list) if x == amigo]
+
+                                        for option in options:
+                                            real_time = max(option.start_time, start_date)
+                                            all_options.append([real_time, option.end_time])
+                                        for index in indices:
+                                            for option in all_options:
+                                                if (option[0]>=exclude_list[index].start_time and option[0] <=exclude_list[index].end_time) or (option[1]>=exclude_list[index].start_time and option[1]<=exclude_list[index].end_time) or (option[0]<=exclude_list[index].start_time and option[1]>=exclude_list[index].end_time):
+                                                    if not option[0] == exclude_list[index].end_time and not option[1] == exclude_list[index].start_time:
+                                                        all_options.remove(option)
+                                            
+                                                        exclusions = get_exclusions(option, [exclude_list[index].start_time, exclude_list[index].end_time])
+                                                        if exclusions:
+                                                            for exclusion in exclusions:
+                                                                all_options.append(exclusion)
+
+                                        #for option in options.order_by('start_time'):
+                                        all_options.sort()
+                                    
+                                    if len(all_options) > 0:
+                                        #option = all_options.order_by('start_time')[0]
+                                        overlap = None
+                                        i = 0
+                                        while overlap == None:
+                                            option = all_options[i]
+                                            overlap = get_overlap(my_dt, option)
+                                            i = i + 1
+                                            if i >= len(all_options):
+                                                break
+
+                                        if overlap == None:
+                                            break
+
                                         newb = Event.objects.get_or_create(start_time=overlap[0],end_time=overlap[1])[0]
                                         newb.add_user(my_dt.owner)
                                         single.append(newb)
@@ -1382,29 +1418,18 @@ def suggest(request):
 
                                         all_options = []
                                         for option in options:
-                                            all_options.append([option.start_time, option.end_time])
-
+                                            real_time = max(option.start_time, start_date)
+                                            all_options.append([real_time, option.end_time])
                                         for index in indices:
                                             for option in all_options:
                                                 if (option[0]>=exclude_list[index].start_time and option[0] <=exclude_list[index].end_time) or (option[1]>=exclude_list[index].start_time and option[1]<=exclude_list[index].end_time) or (option[0]<=exclude_list[index].start_time and option[1]>=exclude_list[index].end_time):
                                                     if not option[0] == exclude_list[index].end_time and not option[1] == exclude_list[index].start_time:
                                                         all_options.remove(option)
 
-
-                                            
-                                                        if option[1] > exclude_list[index].start_time:
-                                                            if option[0] < exclude_list[index].start_time:
-                                                                if option[0] != exclude_list[index].start_time:
-                                                                    all_options.append([option[0], exclude_list[index].start_time])
-                                                            else:
-                                                                if exclude_list[index].end_time != option[1]:
-                                                                    all_options.append([exclude_list[index].end_time, option[1]])
-                                                        else:
-                                                            if option[1] > exclude_list[index].end_time:
-                                                                if option[0] != exclude_list[index].start_time:
-                                                                    all_options.append([option[0], exclude_list[index].start_time])
-                                                                if exclude_list[index].end_time != option[1]:
-                                                                    all_options.append([exclude_list[index].end_time, option[1]])
+                                                        exclusions = get_exclusions(option, [exclude_list[index].start_time, exclude_list[index].end_time])
+                                                        if exclusions:
+                                                            for exclusion in exclusions:
+                                                                all_options.append(exclusion)
 
                                         #for option in options.order_by('start_time'):
                                         all_options.sort()
@@ -1433,21 +1458,6 @@ def suggest(request):
 
                                                     return HttpResponse(json_output)
 
-                                comment = """ if earliest_unacceptable == None:
-                                    return HttpResponse("NoMatch")
-                                else:
-                                    overlap = earliest_unacceptable
-                                    amigo = earliest_amigo
-                                    newb = Event.objects.get_or_create(start_time=overlap[0],end_time=overlap[1])[0]
-                                    newb.add_user(my_dt.owner)
-
-                                    single.append(newb)
-                                    single.append(amigo.user)
-                                    json_output = serializers.serialize('json',single)
-                                    if json_output == None:
-                                        return HttpResponse("Failure")
-                                    return HttpResponse(json_output)"""
-
                             if earliest_unacceptable == None:
                                 return HttpResponse("NoMatch")
                             else:
@@ -1466,6 +1476,26 @@ def suggest(request):
             return HttpResponse("You messup!!?!?!?")
     except Exception as e:
         print e
+
+## one is the thing you are cutting up, two is the time chunk you want to exclude
+def get_exclusions(one, two):
+
+    exclusions = []
+    if one[0] > two[0]: # cases 1 and 4
+        if one[1] > two[1]: # case 1
+            exclusions.append([two[1],one[1]])
+        ## case 4 - do nothing (whole thing gets excluded)
+    elif one[0] == two[0]:
+        if one[1] > two[1]:
+            exclusions.append([two[1], one[1]])
+    else: # case 2 and 3
+        if one[1] <= two[1]: # case 2
+            exclusions.append([one[0], two[0]])
+        else: # case 3
+            exclusions.append([one[0], two[0]])
+            exclusions.append([two[1], one[1]])
+
+    return exclusions
 
 def create_event_from_friends_overlapping_downtimes(options, my_dt, amigo):
 
@@ -1715,6 +1745,7 @@ def get_notifications(request):
 
                 current_uduser = request.user.updoguser
                 event_notifications = EventNotification.objects.filter(to_user=current_uduser)
+                event_notifications = event_notifications.order_by('-date')
                 from_users = []
                 events = []
 
@@ -1739,11 +1770,15 @@ def get_notifications(request):
                     event_notifications = serializers.serialize('json', event_notifications)
                     from_users = serializers.serialize('json', from_users)
                     events = serializers.serialize('json', events)
-
                     json_stuff = simplejson.dumps([event_notifications, from_users, events])
                     return HttpResponse(json_stuff, content_type="application/json")
 
                 return HttpResponse("No Notifications")
+
+                #### questionable
+                    #return HttpResponse(json_stuff, content_type="application/json")
+                #else:
+                    #return HttpResponse("No Notifications")
 
     except Exception as e:
         print e

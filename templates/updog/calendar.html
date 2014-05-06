@@ -241,39 +241,41 @@ function inputBlur(i){
       data: {"search": name,
     },
     success: function(data) {
-      if (data != "no friends") {
-        users_returned = JSON.parse(data[0]);
-        friend_status = data[1];
-        userhtml = "";
-        real_friends = [];
-        if (users_returned.length > 0) {
-          var l = users_returned.length;
+      if (data != "Uh-oh") {
+        if (data != "no friends") {
+          users_returned = JSON.parse(data[0]);
+          friend_status = data[1];
+          userhtml = "";
+          real_friends = [];
+          if (users_returned.length > 0) {
+            var l = users_returned.length;
 
-          for (var i = 0; i < l; i++) {
-            if (friend_status[i] == 1) {
-              userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' +users_returned[i].pk+ '\', \'' + users_returned[i].fields.username + '\')" id="friend_' + users_returned[i].pk + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">  ' + users_returned[i].fields.first_name + ' ' + users_returned[i].fields.last_name + '</span></div></a>';
+            for (var i = 0; i < l; i++) {
+              if (friend_status[i] == 1) {
+                userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' +users_returned[i].pk+ '\', \'' + users_returned[i].fields.username + '\')" id="friend_' + users_returned[i].pk + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">  ' + users_returned[i].fields.first_name + ' ' + users_returned[i].fields.last_name + '</span></div></a>';
 
-              real_friends.push(i);
-            }
-            else {
-              userhtml = userhtml + '<div><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].pk + '"><button type="button" class="btn btn-default" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i + '\', \'' + users_returned[i].pk +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
-            }
-          };
-          $(".frandz").html(userhtml);
-          rfl = real_friends.length;
-          for (var i =  0; i < rfl; i++) {
-            hover_stuff(users_returned[real_friends[i]]);
-          };
-        }
-        else {
-          $(".frandz").html('No friends found');
+                real_friends.push(i);
+              }
+              else {
+                userhtml = userhtml + '<div><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].pk + '"><button type="button" class="btn btn-default" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i + '\', \'' + users_returned[i].pk +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
+              }
+            };
+            $(".frandz").html(userhtml);
+            rfl = real_friends.length;
+            for (var i =  0; i < rfl; i++) {
+              hover_stuff(users_returned[real_friends[i]]);
+            };
+          }
+          else {
+            $(".frandz").html('No friends found');
+          }
         }
       }
     }
-  });
+    });
   }
   return false;
-  }
+}
 
     function addTextAreaCallback(textArea, callback, delay) {
       var timer = null;
@@ -296,7 +298,6 @@ function inputBlur(i){
   });
 
   function send_friend_request(new_friend, i, new_friend_pk) {
-    console.log("sending friend request")
     $.ajax({
       type: "POST",
       url: "/calendar/send_friend_request/",
@@ -335,7 +336,6 @@ function reject_friend_request(new_friend) {
     url: "/calendar/reject_friend_request/",
     data: {'new_friend': new_friend},
     success: function(data){
-      console.log(data)
     }
   });
 }
@@ -385,11 +385,18 @@ function getevents(user_pk, username) {
 function erase_events(user_pk, username) {
   existing_events = $("#calendar").fullCalendar('clientEvents');
 
-  for (var i = 0; i < existing_events.length; i++) {
+  /*for (var i = 0; i < existing_events.length; i++) {
     if (existing_events[i].owners.indexOf(username) != -1) {
       $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
     }
+  }*/
+  for (var i = 0; i < existing_events.length; i++) {
+  if (existing_events[i].owners[0] != '{{username}}') {
+    if (existing_events[i].owners != '{{username}}') {
+    $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
+    }
   }
+}
   $('#calendar').fullCalendar('rerenderEvents');
 
   var test = document.getElementById('friend_'+user_pk);
@@ -575,7 +582,7 @@ selecthelper: true,
       // Use below if you want something to happen after
       // clicking on an existing event in the calendar
       eventClick: function(event, jsEvent, view) {
-        console.log("event.id = " + event.id + ", event.prev = " + event.prev_repeated_event + ", and event.next = " + event.next_repeated_event);
+        //console.log("event.id = " + event.id + ", event.prev = " + event.prev_repeated_event + ", and event.next = " + event.next_repeated_event);
 
 
         if (view.name != 'month') {
@@ -1123,6 +1130,25 @@ $dialog.append(del);
 
 
                           for (var i = 0; i < data.length; i++) {
+
+                            $.ajax({
+                                  type: "POST",
+                                  url: "/calendar/resolve_repeating_conflicts/",
+                                  data: {"pk": data[i].pk,
+                                  //"notification_pk": notification_pk,
+                                  // day_delta and minute_delta are 0 because we are not actually changing the added event
+                                  "day_delta": 0,
+                                  "minute_delta": 0,
+                                  "resize": "false",
+                                },
+                                success: function(data) {
+
+                                  var parsed = JSON.parse(data);
+
+
+                                  resolve_event_downtime_conflicts(parsed);
+                              }
+                            });
                             var added_event = make_events(data, blue, ['{{username}}'], false, true)[i];
                             $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
                           }
@@ -1434,7 +1460,7 @@ $dialog.dialog('open');
           // THE COMMENTED LINE BELOW ASKS IF YOU ARE SURE YOU WANT TO DELETE
           // THE EVENT
     //////      if( confirm( "Are you sure you want to delete event " + event.title + " ?")) {
-      console.log("Delete Function123");
+      console.log("Delete Function159");
 
       if (event.repeating_time_delta == -1) {
         $.ajax({
