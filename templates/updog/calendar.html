@@ -735,6 +735,8 @@ selecthelper: true,
             startHour = startHour - 12;
           }
           var startMinute = event.start.getMinutes();
+          if (startMinute == "0")
+            startMinute = "00";
           // set the initial start time to be the time that was clicked to make the event
           startTime.setAttribute('value', startHour + ':' + startMinute + ' ' + start_am_pm);
 
@@ -2174,6 +2176,8 @@ dayClick:function( date, allDay, jsEvent, view ) {
                   startHour = startHour - 12;
                 }
                 var startMinute = date.getMinutes();
+                if (startMinute == "0")
+                  startMinute = "00";
                 // set the initial start time to be the time that was clicked to make the event
                 startTime.setAttribute('value', startHour + ':' + startMinute + ' ' + start_am_pm);
 
