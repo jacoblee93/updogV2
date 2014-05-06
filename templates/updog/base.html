@@ -112,7 +112,9 @@ function display_friend_requests() {
         users = JSON.parse(data);
         var dlength = mydata.length;
         var users = [];
-        userhtml = '<div id="scroll-able-nots1"><div id="list-group">';
+        userhtml = '';
+
+
 
         ret = users.length;
         if (users.length != 0) {
@@ -125,13 +127,13 @@ function display_friend_requests() {
             }
             userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button type="button" style="float:right" class="btn btn-primary" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">Add</button><button style="float:right" class="btn btn-primary" type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">Not Now</button><div style="margin-left:65px; margin-right:120px"><pre style="background-color:transparent; border:0px solid">' + name + '</pre></div></li><li class="divider"></li>';
           }
+          //userhtml = userhtml + "</div></div>";
         }
         else {
           userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><pre style="background-color:transparent; border:0px solid">' + "No New Friend Requests" + '</pre></li><li class="divider"></li>';
         }
-        userhtml = userhtml+"</div></div>";
         $(".friend_requests").html(userhtml);
-        $(".fr_text").html('<span class="glyphicon glyphicon-user"></span><b class="caret"></b>');
+        $(".fr_text").html('<span class="glyphicon glyphicon-user" style = "pointer-events:none"></span><b class="caret"></b>');
       }
   });
   return ret;
@@ -163,8 +165,8 @@ function display_notifications() {
     async: false,
     success: function(data) {
       userhtml = ''
-      if (data == "No Notifications") {
-        userhtml = "No Notifications";
+      if (data == 'No Notifications') {
+        userhtml = '<div id="scroll-able-nots"><div id="list-group">No Notifications</div></div>';
       }
       else if (!data || !data[0] || !data[1] || !data[2]) {
         return;
@@ -174,7 +176,7 @@ function display_notifications() {
         el = event_noteys.length;
         from_users = JSON.parse(data[1]);
         fl = from_users.length;
-        items = JSON.parse(data[2])
+        items = JSON.parse(data[2]);
         il = items.length;
 
         userhtml = '<div id="scroll-able-nots"><div id="list-group">';
@@ -223,7 +225,7 @@ function display_notifications() {
         userhtml = userhtml + "</div></div>";
       }
       $(".notifications").html(userhtml);
-      $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b>');
+      $(".notif_text").html('<span class="glyphicon glyphicon-envelope" style = "pointer-events:none"></span><b class="caret"></b>');
     }
   });
   return ret;
@@ -404,26 +406,26 @@ function check_for_notifications() {
   var n = get_num_new_notifications();
 
   if (f > 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></a>');
+    $(".fr_text").html('<span class="glyphicon glyphicon-user" style = "pointer-events:none"><span class="badge">' + f + '</span></span><b class="caret"></b>');
   }
   else if (f == 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></a>');
+    $(".fr_text").html('<span class="glyphicon glyphicon-user" style = "pointer-events:none"><span class="badge">' + f + '</span></span><b class="caret"></b>');
   }
   else {
-    $(".fr_text").html('<span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
+    $(".fr_text").html('<span class="glyphicon glyphicon-user" style = "pointer-events:none"></span><b class="caret"></b>');
 
   }
 
 
 
   if (n > 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></a>');
+    $(".notif_text").html('<span class="glyphicon glyphicon-envelope" style = "pointer-events:none"><span class="badge">' + n + '</span></span><b class="caret"></b>');
   }
   else if (n == 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></a>');
+    $(".notif_text").html('<span class="glyphicon glyphicon-envelope" style = "pointer-events:none"><span class="badge">' + n + '</span></span><b class="caret"></b>');
   }
   else {
-    $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
+    $(".notif_text").html('<span class="glyphicon glyphicon-envelope" style = "pointer-events:none"></span><b class="caret"></b>');
   }
 
 
