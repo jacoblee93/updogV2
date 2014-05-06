@@ -168,6 +168,8 @@ function display_notifications() {
     data: {"username": '{{ user.username }}'},
     async: false,
     success: function(data) {
+      console.log("hisonia!");
+      console.log(data);
       if (!data || !data[0] || !data[1] || !data[2]) return;
       event_noteys = JSON.parse(data[0]);
       el = event_noteys.length;
@@ -189,12 +191,14 @@ function display_notifications() {
             var info_string = from_users[i].fields.first_name + ' ' + from_users[i].fields.last_name + ' accepted your invite to ';
           }
           var start_d = new Date(items[i].fields.start_time);
+          console.log("start date");
+          console.log(start_d);
           var end_d = new Date(items[i].fields.end_time);
 
 
           var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
-
-          var date_string = start_d.toDateString();
+          var date_string = start_d.toUTCString().substring(0, 16);
+          //var date_string = start_d.toDateString();
 
           var act = "";
           if (items[i].fields.activity) {
@@ -790,7 +794,7 @@ function make_events(data, color, owner, hover, is_event) {
       
       }
     }
-    $( "#friend_" + friend.pk).hoverIntent(hover_functions);
+    //$( "#friend_" + friend.pk).hoverIntent(hover_functions);
   }
 
   {% if user.is_authenticated %}
@@ -907,9 +911,14 @@ function add_suggest(user_pk, user_firstname, user_lastname, username) {
           }
           window.exclude_list.push(mydata[0].pk);
           var start_d = new Date(mydata[0].fields.start_time);
+
+
+
           var end_d = new Date(mydata[0].fields.end_time)
           var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
-          var date_string = start_d.toDateString();
+
+          var date_string = start_d.toUTCString().substring(0, 16);
+          //var date_string = start_d.toDateString(); 
 
           if (window.exclude_friend_list == undefined) {
             window.exclude_friend_list = [];
@@ -1033,7 +1042,8 @@ function add_suggest(user_pk, user_firstname, user_lastname, username) {
                 var start_d = new Date(mydata[0].fields.start_time);
                 var end_d = new Date(mydata[0].fields.end_time)
                 var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
-                var date_string = start_d.toDateString();
+                var date_string = start_d.toUTCString().substring(0, 16);
+                //var date_string = start_d.toDateString();
                 
                 friend_string = "";
                 and = ""
@@ -1185,11 +1195,13 @@ $("#suggest-minute").val("");
 </script>
 <style>
 body .modal.fade.suggest-modal {
-  width: 100%;
-  /*margin-left: 30%;*/
+  max-width: 100%;
+  /*max-width: 450px;
+  margin-left: 30%;*/
 }
 body .modal-footer {
-  width: 100%;
+  max-width: 100%;
+  /*width: 100%;*/
 }
 
   div#scroll-able-3 {
@@ -1203,17 +1215,17 @@ body .modal-footer {
 <div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header modal-sm">
+      <div class="modal-header modal-lg">
        <h4 class="modal-title">Suggest An Event</h4>
      </div>
 
-     <div class="modal-body">
+     <div class="modal-body" style="max-height:200px">
       
         <div class="list-group col-xs-12 col-sm-12">
           <form class="list-group-item list-group-item-info" method="post" name="form" autocomplete=off>
           <input id="suggest-search" class="list-group-item" value="Search for friends to meet up with..." size="74" name="search" type="text" onfocus="inputFocus(this)" onblur="inputBlur(this)" />
 
-      <div id="scroll-able-2">
+          <div id="scroll-able-2">
 
 
             <span class="error" style="display:none"> Please Enter Valid Data</span>

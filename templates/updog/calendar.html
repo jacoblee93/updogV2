@@ -1123,6 +1123,25 @@ $dialog.append(del);
 
 
                           for (var i = 0; i < data.length; i++) {
+
+                            $.ajax({
+                                  type: "POST",
+                                  url: "/calendar/resolve_repeating_conflicts/",
+                                  data: {"pk": data[i].pk,
+                                  //"notification_pk": notification_pk,
+                                  // day_delta and minute_delta are 0 because we are not actually changing the added event
+                                  "day_delta": 0,
+                                  "minute_delta": 0,
+                                  "resize": "false",
+                                },
+                                success: function(data) {
+
+                                  var parsed = JSON.parse(data);
+
+
+                                  resolve_event_downtime_conflicts(parsed);
+                              }
+                            });
                             var added_event = make_events(data, blue, ['{{username}}'], false, true)[i];
                             $('#calendar').fullCalendar('renderEvent', added_event, stick = true);
                           }
@@ -1434,7 +1453,7 @@ $dialog.dialog('open');
           // THE COMMENTED LINE BELOW ASKS IF YOU ARE SURE YOU WANT TO DELETE
           // THE EVENT
     //////      if( confirm( "Are you sure you want to delete event " + event.title + " ?")) {
-      console.log("Delete Function123");
+      console.log("Delete Function159");
 
       if (event.repeating_time_delta == -1) {
         $.ajax({
