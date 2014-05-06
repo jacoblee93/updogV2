@@ -199,8 +199,8 @@ def add_downtime(request):
                 end_time__lte=endDate) | me.downtime_set.filter(start_time__lte=startDate,
                 end_time__gte=endDate)
 
-            existing_dt = existing_dt.exclude(start_time=endDate)
-            existing_dt = existing_dt.exclude(end_time=startDate)
+            #existing_dt = existing_dt.exclude(start_time=endDate)
+            #existing_dt = existing_dt.exclude(end_time=startDate)
             merged = False
             if len(existing_dt) == 0:
                 new_downtime = Downtime.objects.get_or_create(owner=me, start_time=startDate, end_time=endDate)[0]
@@ -502,8 +502,8 @@ def edit_downtime(request):
                 start_time__lte=downtime.end_time) | me.downtime_set.filter(end_time__gte=downtime.start_time,
                 end_time__lte=downtime.end_time) | me.downtime_set.filter(start_time__lte=downtime.start_time,
                 end_time__gte=downtime.end_time)
-            existing_dt = existing_dt.exclude(start_time=downtime.end_time)
-            existing_dt = existing_dt.exclude(end_time=downtime.start_time)
+            #existing_dt = existing_dt.exclude(start_time=downtime.end_time)
+            #existing_dt = existing_dt.exclude(end_time=downtime.start_time)
             existing_dt = existing_dt.exclude(pk=downtime.pk)
             existing_dt = existing_dt.filter(preferred_activity=downtime.preferred_activity)
             merged = False
@@ -674,8 +674,8 @@ def change_downtime(request):
                 end_time__lte=endDate) | me.downtime_set.filter(start_time__lte=startDate,
                 end_time__gte=endDate)
 
-            existing_dt = existing_dt.exclude(start_time=endDate)
-            existing_dt = existing_dt.exclude(end_time=startDate)
+            #existing_dt = existing_dt.exclude(start_time=endDate)
+            #existing_dt = existing_dt.exclude(end_time=startDate)
             existing_dt = existing_dt.exclude(pk=downtime.pk)
 
             merged = False
