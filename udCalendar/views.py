@@ -947,31 +947,38 @@ def suggest_search(request):
 @login_required
 @csrf_exempt
 def send_friend_request(request):
-    if request.is_ajax():
-        if request.method == 'POST':
 
-            if 'new_friend' in request.POST and 'i' in request.POST:
-                i = request.POST['i']
-                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
-                current_user = request.user.updoguser
+    try: 
+        if request.is_ajax():
+            if request.method == 'POST':
 
-                if to_friendship:
-                    return HttpResponse("Request Pending," + i)
+                if 'new_friend' in request.POST and 'i' in request.POST:
+                    i = request.POST['i']
+                    new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                    current_user = request.user.updoguser
 
-                current_user.add_friend(new_friend)
+                    to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
 
-                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
-                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
+                    if to_friendship:
+                        return HttpResponse("Request Pending," + i)
 
-                to_friendship.is_new = True
-                new_friend.new_friend_requests = True
+                    current_user.add_friend(new_friend)
 
-                to_friendship.save()
-                new_friend.save()
+                    to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
+                    from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
 
-                return HttpResponse("Success," + i)
+                    to_friendship.is_new = True
+                    new_friend.new_friend_requests = True
 
-    return HttpResponse("Failure!")
+                    to_friendship.save()
+                    new_friend.save()
+
+                    return HttpResponse("Success," + i)
+
+        return HttpResponse("Failure!")
+
+    except Exception as e:
+        print e
 
 @login_required
 @csrf_exempt
