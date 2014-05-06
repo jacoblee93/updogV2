@@ -350,10 +350,8 @@ function erase_events(user_pk, username) {
     }
   }*/
   for (var i = 0; i < existing_events.length; i++) {
-  if (existing_events[i].owners[0] != '{{username}}') {
-    if (existing_events[i].owners != '{{username}}') {
+  if (existing_events[i].owners[0] == username || existing_events[i].owners == username) {
     $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
-    }
   }
 }
   $('#calendar').fullCalendar('rerenderEvents');
