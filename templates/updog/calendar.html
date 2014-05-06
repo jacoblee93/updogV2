@@ -1007,9 +1007,20 @@ $dialog.append(del);
             $(startDate).datepicker(datePickerOptions);
             $(endDate).datepicker(datePickerOptions);
 
-            startDate.onclick = function() {
+/*          startDate.onclick = function() {
+
              $(startDate).datepicker('hide');
           }
+*/
+            $(startDate).datepicker().on('changeDate', function(ev){
+              $(this).datepicker('hide');
+            });
+            $(endDate).datepicker().on('changeDate', function(ev){
+              $(this).datepicker('hide');
+            });
+
+
+
 
             var cancel = document.createElement("button");
           // this makes the Cancel button look nice
@@ -2321,6 +2332,13 @@ dayClick:function( date, allDay, jsEvent, view ) {
 
                   $(startDate).datepicker(datePickerOptions);
                   $(endDate).datepicker(datePickerOptions);
+
+                  $(startDate).datepicker().on('changeDate', function(ev){
+                    $(this).datepicker('hide');
+                  });
+                  $(endDate).datepicker().on('changeDate', function(ev){
+                    $(this).datepicker('hide');
+                  });
                 }
 
                 repeatNone.onclick = function() {
@@ -2475,6 +2493,13 @@ dayClick:function( date, allDay, jsEvent, view ) {
 
                 $(startDate).datepicker(datePickerOptions);
                 $(endDate).datepicker(datePickerOptions);
+
+                $(startDate).datepicker().on('changeDate', function(ev){
+                  $(this).datepicker('hide');
+                });
+                $(endDate).datepicker().on('changeDate', function(ev){
+                  $(this).datepicker('hide');
+                });
 
                 var cancel = document.createElement("button");
                 // this makes the Cancel button look nice
