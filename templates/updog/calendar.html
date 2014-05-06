@@ -755,6 +755,8 @@ selecthelper: true,
             endHour = endHour - 12;
           }
           var endMinute = endDateObject.getMinutes();
+          if (endMinute == "0")
+            endMinute = "00";
           // set the initial start time to be the time that was clicked to make the event
           endTime.setAttribute('value', endHour + ':' + endMinute + ' ' + end_am_pm);
 
@@ -2176,8 +2178,10 @@ dayClick:function( date, allDay, jsEvent, view ) {
                   startHour = startHour - 12;
                 }
                 var startMinute = date.getMinutes();
+                console.log("startMinute = " + startMinute);
                 if (startMinute == "0")
                   startMinute = "00";
+                console.log("startMinute = " + startMinute);
                 // set the initial start time to be the time that was clicked to make the event
                 startTime.setAttribute('value', startHour + ':' + startMinute + ' ' + start_am_pm);
 
@@ -2204,6 +2208,8 @@ dayClick:function( date, allDay, jsEvent, view ) {
                   endHour = endHour - 12;
                 }
                 var endMinute = endDateObject.getMinutes();
+                if (endMinute == "0")
+                  endMinute = "00";
                 // set the initial start time to be the time that was clicked to make the event
                 endTime.setAttribute('value', endHour + ':' + endMinute + ' ' + end_am_pm);
 
