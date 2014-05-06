@@ -51,6 +51,20 @@ $(document).ready(function() {
    });
  }
 });
+
+function addTextAreaCallback(textArea, callback, delay) {
+  var timer = null;
+  textArea.onkeyup = function() {
+      if (timer) {
+          window.clearTimeout(timer);
+      }
+      timer = window.setTimeout( function() {
+          timer = null;
+          callback();
+      }, delay );
+  };
+  textArea = null;
+}
 </script>
 
 {% block above_calendar_block %}
@@ -108,9 +122,9 @@ function display_friend_requests() {
     async: false,
       //},
       success: function(data) {
-        userhtml = '<div id="scroll-able-nots1><div id="list-group>';
+        userhtml = '<div id="scroll-able-nots1"><div id="list-group">';
         if (data == "No new notifications") {
-          userhtml =  userhtml +'<li style="display: inline-block; vertical-align: middle; "><pre style="background-color:transparent; border:0px solid">' + "No New Friend Requests" + '</pre></li><li class="divider"></li>';
+          userhtml =  userhtml +'<li style="display:inline-block; vertical-align:middle;"><pre style="background-color:transparent; border:0px solid">' + "No New Friend Requests" + '</pre></li><li class="divider"></li>';
           }
         else {
           mydata = JSON.parse(data);
@@ -131,7 +145,7 @@ function display_friend_requests() {
           }
         }
 
-        userhtml = userhtml + "</div></div>"
+        userhtml = userhtml + "</div></div>";
         $(".friend_requests").html(userhtml);
         $(".fr_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-user"></span><b class="caret"></b></div>');
       }
@@ -330,7 +344,6 @@ function reject_friend_request(new_friend) {
     }
   });
 }
-
 
 </script>
 
@@ -1361,6 +1374,7 @@ suggest_search_function = function() {
 }
 return false;
 }
+
 
 addTextAreaCallback( document.getElementById("suggest-search"), suggest_search_function, 200 );
 

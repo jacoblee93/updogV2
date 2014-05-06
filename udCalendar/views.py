@@ -955,8 +955,6 @@ def send_friend_request(request):
                 new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
                 current_user = request.user.updoguser
 
-                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
-
                 if to_friendship:
                     return HttpResponse("Request Pending," + i)
 
@@ -1015,7 +1013,6 @@ def reject_friend_request(request):
 
                     to_friendship.delete()
                     from_friendship.delete()
-
 
 
                     return HttpResponse("Success!")
@@ -1703,23 +1700,21 @@ def display_friend_requests(request):
         if request.method == 'GET':
 
             current_uduser = request.user.updoguser
+            current_uduser.new_friend_requests = False
+            requests = Friendship.objects.filter(to_user=current_uduser, is_new=True)
+            rl = len(requests)
+            request_list = []
             
-            if not current_uduser.new_friend_requests:
+            if rl == 0:
                 return HttpResponse("No new notifications")
 
-            else:
-                requests = Friendship.objects.filter(to_user=current_uduser, is_mutual=False)
-                rl = len(requests)
-                request_list = []
-                
+            for i in xrange(0,rl):
+                request_list.append(requests[i].from_user.user)
+                requests[i].save()
 
-                for i in xrange(0,rl):
-                    request_list.append(requests[i].from_user.user)
-                    requests[i].is_new = False
-                    requests[i].save()
-                requests_out = serializers.serialize('json', request_list)
+            requests_out = serializers.serialize('json', request_list)
 
-                return HttpResponse(requests_out)
+            return HttpResponse(requests_out)
 
     return HttpResponse("Failure")
 
@@ -1737,7 +1732,7 @@ def get_num_new_friend_requests(request):
                 requests = Friendship.objects.filter(to_user=current_uduser, is_new = True)
                 rl = len(requests)
 
-            return HttpResponse(rl)     
+                return HttpResponse(rl)     
 
     return HttpResponse("Failure")
 

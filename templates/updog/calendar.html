@@ -277,26 +277,6 @@ function inputBlur(i){
   return false;
 }
 
-    function addTextAreaCallback(textArea, callback, delay) {
-      var timer = null;
-      textArea.onkeyup = function() {
-          if (timer) {
-              window.clearTimeout(timer);
-          }
-          timer = window.setTimeout( function() {
-              timer = null;
-              callback();
-          }, delay );
-      };
-      textArea = null;
-  }
-
-  addTextAreaCallback( document.getElementById("search-friends"), get_friends_function, 200 );
-
-  $('#search-friends').keypress(function(e){
-    if ( e.which == 13 ) return false;
-  });
-
   function send_friend_request(new_friend, i, new_friend_pk) {
     $.ajax({
       type: "POST",
@@ -2104,9 +2084,6 @@ select: function(startDate, endDate, allDay, jsEvent, view) {
       success: function(data) {
         var parsed = JSON.parse(data);
 
-        console.log("parsed:");
-        console.log(parsed);
-
         resolve_event_downtime_conflicts(parsed);
       },
     });
@@ -3082,8 +3059,13 @@ function showTimePicker11() {
   $('#timepicker11').timepicker('showWidget');
 
   //$('#timepicker10').timepicker('modal');
-
 }
+
+addTextAreaCallback( document.getElementById("search-friends"), get_friends_function, 200 );
+
+  $('#search-friends').keypress(function(e){
+    if ( e.which == 13 ) return false;
+  });
 </script>
 
 
