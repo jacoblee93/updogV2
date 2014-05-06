@@ -113,11 +113,10 @@ function display_friend_requests() {
           userhtml =  userhtml +'<li style="display: inline-block; vertical-align: middle; "><pre style="background-color:transparent; border:0px solid">' + "No New Friend Requests" + '</pre></li><li class="divider"></li>';
           }
         else {
-          users = JSON.parse(data);
+          mydata = JSON.parse(data);
           var dlength = mydata.length;
-          var users = [];
+          users = mydata;
           
-
           ret = users.length;
           if (users.length != 0) {
             for (var i = 0; i < users.length; i++) {
@@ -316,6 +315,7 @@ function accept_friend_request(new_friend) {
     data: {'new_friend': new_friend},
     success: function(data){
       get_friends('{{ user }}');
+      display_friend_requests();
     }
   });
 }
@@ -326,8 +326,7 @@ function reject_friend_request(new_friend) {
     url: "/calendar/reject_friend_request/",
     data: {'new_friend': new_friend},
     success: function(data){
-
-      get_friends('{{ user }}');
+      display_friend_requests();
     }
   });
 }

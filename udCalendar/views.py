@@ -834,7 +834,7 @@ def find_friends(request):
     try:
         if request.is_ajax():
             if request.method == 'GET':
-                friendships_list = Friendship.objects.filter(to_user = request.user.updoguser)
+                friendships_list = Friendship.objects.filter(to_user = request.user.updoguser, is_new = False)
                 friendships_list = friendships_list.order_by('-is_mutual')
 
                 friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"]))
@@ -1003,21 +1003,25 @@ def accept_friend_request(request):
 @login_required
 @csrf_exempt
 def reject_friend_request(request):
-    if request.is_ajax():
-        if request.method == 'POST':
-            if 'new_friend' in request.POST:
-                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
-                current_user = request.user.updoguser
+    try:
+        if request.is_ajax():
+            if request.method == 'POST':
+                if 'new_friend' in request.POST:
+                    new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                    current_user = request.user.updoguser
 
-                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
-                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
+                    to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
+                    from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
 
-                to_friendship.delete()
-                from_friendship.delete()
+                    to_friendship.delete()
+                    from_friendship.delete()
 
 
 
-                return HttpResponse("Success!")
+                    return HttpResponse("Success!")
+
+    except Exception as e:
+        print e                
 
     return HttpResponse("Failure!")
 
@@ -1704,7 +1708,7 @@ def display_friend_requests(request):
                 return HttpResponse("No new notifications")
 
             else:
-                requests = Friendship.objects.filter(to_user=current_uduser, is_new = True)
+                requests = Friendship.objects.filter(to_user=current_uduser, is_mutual=False)
                 rl = len(requests)
                 request_list = []
                 

@@ -319,27 +319,6 @@ function inputBlur(i){
     });
   }
 
-function accept_friend_request(new_friend) {
-  $.ajax({
-    type: "POST",
-    url: "/calendar/accept_friend_request/",
-    data: {'new_friend': new_friend},
-    success: function(data){
-      get_friends('{{ user }}');
-    }
-  });
-}
-
-function reject_friend_request(new_friend) {
-  $.ajax({
-    type: "POST",
-    url: "/calendar/reject_friend_request/",
-    data: {'new_friend': new_friend},
-    success: function(data){
-    }
-  });
-}
-
 function getevents(user_pk, username) {
 
   $.ajax({
