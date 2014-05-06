@@ -31,6 +31,14 @@
   <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
   <script src="{% static 'js/bootbox.js' %}"></script>
   <title>{% block title %}What's Up With You?{% endblock %}</title>
+
+  <script type="text/javascript">
+    if (window.location.hash == '#_=_'){
+    history.replaceState 
+        ? history.replaceState(null, null, window.location.href.split('#')[0])
+        : window.location.hash = '';
+}
+  </script>
 </head>
 <body>
 
@@ -101,14 +109,11 @@ function display_friend_requests() {
       //},
       success: function(data) {
         if (data == "No new notifications") return;
-        mydata = JSON.parse(data);
+        users = JSON.parse(data);
         var dlength = mydata.length;
         var users = [];
         userhtml = '<div id="scroll-able-nots1"><div id="list-group">';
 
-        for (var i = 0; i < dlength; i++) {
-          users.push(mydata[i]);
-        }
         ret = users.length;
         if (users.length != 0) {
           for (var i = 0; i < users.length; i++) {
@@ -118,11 +123,11 @@ function display_friend_requests() {
             for (var j = 0; j < (fixed_length - namelength); j++) {
               name = name + ' ';
             }
-
-            name = name;
-
             userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button type="button" style="float:right" class="btn btn-primary" onclick="accept_friend_request(\''+ users[i].fields.username +'\')">Add</button><button style="float:right" class="btn btn-primary" type="button" onclick="reject_friend_request(\''+ users[i].fields.username + '\')">Not Now</button><div style="margin-left:65px; margin-right:120px"><pre style="background-color:transparent; border:0px solid">' + name + '</pre></div></li><li class="divider"></li>';
           }
+        }
+        else {
+          userhtml = userhtml + '<li style="display: inline-block; vertical-align: middle; "><pre style="background-color:transparent; border:0px solid">' + "No New Friend Requests" + '</pre></li><li class="divider"></li>';
         }
         userhtml = userhtml+"</div></div>";
         $(".friend_requests").html(userhtml);
@@ -210,10 +215,11 @@ function display_notifications() {
             }
             else {
               info_string = info_string + " for " + date_string + " from " + time_string;
-              userhtml = userhtml + '<div id=reply_notey' + event_noteys[i].pk + '><li style="display: inline-block"><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button style="float:right" class="btn btn-primary" type="button"onclick="remove_reply_notification(' + event_noteys[i].pk + ')">Remove</button><div style="margin-left:65px; margin-right:160px"> ' + info_string + '</div></li><li class="divider"></li></div>';
+              userhtml = userhtml + '<div id=reply_notey' + event_noteys[i].pk + '><li style="display: inline-block"><img style="float:left" class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + from_users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"><button style="float:right" class="btn btn-xs btn-danger" type="button"onclick="remove_reply_notification(' + event_noteys[i].pk + ')">x</button><div style="margin-left:65px; margin-right:160px"> ' + info_string + '</div></li><li class="divider"></li></div>';
             }
           }
-        }
+        }         
+
         userhtml = userhtml + "</div></div>";
       }
       $(".notifications").html(userhtml);
@@ -395,36 +401,70 @@ function reject_friend_request(new_friend) {
 <script>
 function check_for_notifications() {
   var f = get_num_new_friend_requests();
+  var n = get_num_new_notifications();
 
   if (f > 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
+    $(".fr_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></a>');
   }
   else if (f == 1) {
-    $(".fr_text").html('<a style = "pointer-events:none"><span class="label label-success">' + f + '</span><span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
+    $(".fr_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-user"><span class="badge">' + f + '</span></span><b class="caret"></b></a>');
   }
   else {
     $(".fr_text").html('<span class="glyphicon glyphicon-user"></span><b class="caret"></b></a>');
 
   }
 
-  var n = get_num_new_notifications();
+
 
   if (n > 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
+    $(".notif_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></a>');
   }
   else if (n == 1) {
-    $(".notif_text").html('<a style = "pointer-events:none"><span class="label label-success">' + n + '</span><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
+    $(".notif_text").html('<a style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></a>');
   }
   else {
     $(".notif_text").html('<span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></a>');
   }
+
+
 }
 
 check_for_notifications();
 
 var myVar = setInterval(function() {check_for_notifications()}, 30000);
 </script>
+<style>
+.badge {
+  display: block;
+  position: absolute;
+  top: -12px;
+  right: 8px;
+  line-height: 16px;
+  height: 16px;
+  padding: 0 3px;
+  color: white;
+  text-shadow: 0 1px rgba(0, 0, 0, 0.25);
+  
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 5px;
+  border-color: hsla(146, 96%, 38%, 1.0);
+  background-color: hsla(146, 96%, 38%, 1.0);
+}
 
+.glyphicon {
+  .badge {
+    position: absolute;
+    top: -12px;
+  }
+}
+
+.btn-mini {
+  .badge {
+    top: -12px;
+  }
+}
+</style>
 
 
 <script>
@@ -684,7 +724,6 @@ function get_friends(user) {
       fl = real_data.length;
       userhtml = '';
       if (fl != 0) {
-
         for (var i = 0; i < fl; i++) {
           userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].pk+ '\', \'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].pk + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
         };
@@ -818,11 +857,10 @@ function add_suggest(user_pk, user_firstname, user_lastname, username) {
   // delete sonia from above in search
   $("#sug_" + user_pk).remove();
 
-
-  $("#suggest-search").val("");
-  // add sonia below
-  addedhtml = "";    
-  addedhtml = addedhtml + '<div id="sugged_' + user_pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + username + '-social.jpg" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="anotherundesirablebutton_' + user_pk + '"><button type="button" onclick="remove_suggest(\'' + user_pk + '\', \'' + user_firstname + '\', \'' + user_lastname+  '\', \'' + username + '\' )">Remove</button></div></a></div>';
+    $("#suggest-search").val("");
+    // add sonia below
+    addedhtml = "";    
+    addedhtml = addedhtml + '<div id="sugged_' + user_pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + username + '-social.jpg" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="anotherundesirablebutton_' + user_pk + '"><button class="btn btn-default" type="button" onclick="remove_suggest(\'' + user_pk + '\', \'' + user_firstname + '\', \'' + user_lastname+  '\', \'' + username + '\' )">Remove</button></div></a></div>';
 
 
   $(".Suggest-list").append(addedhtml);
@@ -1197,79 +1235,142 @@ function send_suggest() {
   $("#suggest-hour").val("");
   $("#suggest-minute").val("");
 
-
-
 }
-
-
-
-
 
 </script>
 <style>
-body .modal.fade.schedule-modal {
-  max-width: 450px;
-  margin-left: 30%;
+body .modal.fade.suggest-modal {
+  width: 100%;
+  /*margin-left: 30%;*/
 }
 body .modal-footer {
-  max-width: 450px;
+  width: 100%;
 }
 
-div#scroll-able-3 {
-  height: 60px;
+  div#scroll-able-3 {
+    height: 60px;
+    /*overflow: scroll;*/
+
+  }
+
+</style>
+
+<div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header modal-sm">
+       <h4 class="modal-title">Suggest An Event</h4>
+     </div>
+
+     <div class="modal-body">
+      
+        <div class="list-group col-xs-12 col-sm-12">
+          <form class="list-group-item list-group-item-info" method="post" name="form" autocomplete=off>
+          <input id="suggest-search" class="list-group-item" value="Search for friends to meet up with..." size="74" name="search" type="text" onfocus="inputFocus(this)" onblur="inputBlur(this)" />
+
+      <div id="scroll-able-2">
+
+
+            <span class="error" style="display:none"> Please Enter Valid Data</span>
+            <span class="success" style="display:none"></span></a>
+            </div>
+          </form>
+          <div class="suggest-output"></div>
+        </div><!--/span-->
+
+
+      
+        <div class="list-group col-xs-12 col-sm-12">
+          <div class="list-group-item list-group-item-info">Invite List</div>
+          <div id="scroll-able-2">
+          <div class="Suggest-list"></div>
+        </div>
+      </div>
+
+      <div id="scroll-able-3">
+      <div class="list-group col-xs-12 col-sm-12">
+          <form class="list-group-item list-group-item-info" method="post" name="form">Input an Event Length: <input id="suggest-hour" size="2" maxlength="2" type="text" /> hour(s) <input id="suggest-minute" size="2" maxlength="2" type="text" /> minute(s)
+          </form>
+      </div>
+    </div>
+
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" data-dismiss="modal" onclick="cancel_suggest()">Cancel</button>
+      <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="send_suggest()">Suggest!</button>
+    </div>
+  </div><!-- /.modal-content -->
+</div><!-- /.modal-dialog -->
+</div>
+
+<script>
+suggest_search_function = function() {
+      var name = $("#suggest-search").val();
+
+      if (name == '')
+      {
+        $(".suggest-output").html('');
+      }
+      else
+      {
+
+        $.ajax({
+          type: "GET",
+          url: "/calendar/suggest_search/",
+          data: {
+            'search': name,
+          },
+          success: function (data) {
+            var mydata = JSON.parse(data);
+            console.log("snapple apple: ");
+            console.log(mydata);
+
+            var dlength = mydata.length;
+            var userhtml = "";
+
+              // go get me!
+              if (window.suggest_list != undefined) {
+            console.log("suggest_list" + window.suggest_list[0]);
+
+                console.log("initialize");
+                users = [];
+                for (var i = 0; i < dlength; i++) {
+                  if ($.inArray(mydata[i].fields.username, window.suggest_list) == -1) {
+                    users.push(mydata[i]);
+                  }
+                }
+              }
+              else {
+
+                console.log("suggest list is undef");
+                window.suggest_list = [];
+                users = mydata;
+              }
+
+              if (users.length != 0) {
+                for (var i = 0; i < users.length; i++) {
+                  userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button class="btn btn-default" type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
+                }
+                console.log(userhtml);
+              }
+              else {
+                userhtml = "No results.";
+
+              }
+              $(".suggest-output").html(userhtml);
+
+            }
+          });
+}
+return false;
 }
 
- /* .dropdown-menu {
+addTextAreaCallback( document.getElementById("suggest-search"), suggest_search_function, 200 );
 
-    white-space: normal;
-    }*/
-    </style>
-
-    <div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header modal-sm">
-           <h4 class="modal-title">Suggest An Event</h4>
-         </div>
-
-         <div class="modal-body">
-
-
-
-          <div id="scroll-able-2">
-            <div class="list-group col-xs-6 col-sm-9">
-              <form class="list-group-item list-group-item-info" method="post" name="form">
-                Select friends: <input id="suggest-search" size="17" name="search" type="text" />
-                <input type="submit" value="Search" class="suggest-submit"/>
-                <span class="error" style="display:none"> Please Enter Valid Data</span>
-                <span class="success" style="display:none"></span></a>
-              </form>
-              <div class="suggest-output"></div>
-            </div><!--/span-->
-          </div>
-
-          <div id="scroll-able-2">
-            <div class="list-group col-xs-6 col-sm-9">
-              <a class="list-group-item list-group-item-info">Invite List</a>
-              <div class="Suggest-list"></div>
-            </div>
-          </div>
-
-          <div id="scroll-able-3">
-            <div class="list-group col-xs-6 col-sm-9">
-              <form class="list-group-item list-group-item-info" method="post" name="form">Input an Event Length: <input id="suggest-hour" size="2" maxlength="2" type="text" /> hour(s) <input id="suggest-minute" size="2" maxlength="2" type="text" /> minute(s)
-              </form>
-            </div>
-          </div>
-
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal" onclick="cancel_suggest()">Cancel</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="send_suggest()">Suggest!</button>
-        </div>
-      </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-  </div>
+$('#suggest-search').keypress(function(e){
+    if ( e.which == 13 ) return false;
+  });
+</script>
 
 </body>  
 <hr>
