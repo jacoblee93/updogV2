@@ -1388,13 +1388,12 @@ $('#suggest-search').keypress(function(e){
 
 <footer>
   <div class="container">
-   <p>&copy; UpDog 2014: What's Up With You?</p>
-      <!--<a data-toggle="tooltip" title="This is what the tooltip displays!">Hover over me!</a>
-      <script>
-      $(document).ready(function() {
-        $('[data-toggle=tooltip]').tooltip();
-      });
-    </script>-->
+
+    {% if user.is_authenticated %}
+
+    <p>Drag to create blocks of free time, double-click to create an event. Click on a friend or click suggest to schedule meetings and events.</p>
+
+    {% endif %}
 
 
   </div>
