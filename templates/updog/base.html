@@ -15,6 +15,8 @@
   <link href="{% static 'css/jquery-ui-1.10.4.custom.css' %}" rel="stylesheet">
   <link href="{% static 'css/bootstrap-timepicker.css' %}" rel="stylesheet">
   <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+  <!--<link href="{% static 'css/foundation.css' %}" rel="stylesheet">
+  <link href="{% static 'css/normalize.css' %}" rel="stylesheet">-->
 
   <script src="{% static 'js/jquery.js' %}"></script>
   <script src="{% static 'js/jquery.min.js' %}"></script>
@@ -30,6 +32,12 @@
   <script src="{% static 'js/csrftoken.js' %}"></script>
   <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
   <script src="{% static 'js/bootbox.js' %}"></script>
+  <!--<script src="{% static 'js/foundation.js' %}"></script>
+  <script src="{% static 'js/foundation.dropdown.js' %}"></script>
+  <script src="{% static 'js/fastclick.js' %}"></script>
+  <script src="{% static 'js/jquery.cookie.js' %}"></script>
+  <script src="{% static 'js/modernizr.js' %}"></script>
+  <script src="{% static 'js/placeholder.js' %}"></script>-->
   <title>{% block title %}What's Up With You?{% endblock %}</title>
 
   <script type="text/javascript">
@@ -51,6 +59,20 @@ $(document).ready(function() {
    });
  }
 });
+
+function addTextAreaCallback(textArea, callback, delay) {
+  var timer = null;
+  textArea.onkeyup = function() {
+      if (timer) {
+          window.clearTimeout(timer);
+      }
+      timer = window.setTimeout( function() {
+          timer = null;
+          callback();
+      }, delay );
+  };
+  textArea = null;
+}
 </script>
 
 {% block above_calendar_block %}
@@ -75,6 +97,7 @@ div#scroll-able-nots1 {
 </style>
 
 <script>
+
 function resolve_event_downtime_conflicts(downtimes) {
   if (downtimes.length > 0) {
     // downtimes is a list of downtimes and moved_event_or_downtime is an event
@@ -108,15 +131,15 @@ function display_friend_requests() {
     async: false,
       //},
       success: function(data) {
-        userhtml = '<div id="scroll-able-nots1><div id="list-group>';
+        userhtml = '<div id="scroll-able-nots1"><div id="list-group">';
         if (data == "No new notifications") {
+          console.log("got here - i has no new friend requests");
           userhtml =  userhtml +'<li style="display: inline-block; vertical-align: middle; "><pre style="background-color:transparent; border:0px solid">' + "No New Friend Requests" + '</pre></li><li class="divider"></li>';
           }
         else {
-          users = JSON.parse(data);
+          mydata = JSON.parse(data);
           var dlength = mydata.length;
-          var users = [];
-          
+          users = mydata;
 
           ret = users.length;
           if (users.length != 0) {
@@ -1237,12 +1260,12 @@ function send_suggest() {
 </script>
 <style>
 body .modal.fade.suggest-modal {
-  max-width: 100%;
+  width: 100%;
   /*max-width: 450px;
   margin-left: 30%;*/
 }
 body .modal-footer {
-  max-width: 100%;
+  width: 100%;
   /*width: 100%;*/
 }
 
@@ -1254,7 +1277,7 @@ body .modal-footer {
 
 </style>
 
-<div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
+<div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="mySuggestModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header modal-lg">
@@ -1321,8 +1344,6 @@ suggest_search_function = function() {
           },
           success: function (data) {
             var mydata = JSON.parse(data);
-            console.log("snapple apple: ");
-            console.log(mydata);
 
             var dlength = mydata.length;
             var userhtml = "";

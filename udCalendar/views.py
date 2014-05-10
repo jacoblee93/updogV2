@@ -993,6 +993,8 @@ def accept_friend_request(request):
                 to_friendship.is_new = False
                 from_friendship.is_new = False
 
+                #### 
+
                 to_friendship.save()
                 from_friendship.save()
 
@@ -1699,8 +1701,8 @@ def display_friend_requests(request):
         if request.method == 'GET':
 
             current_uduser = request.user.updoguser
-            
             if not current_uduser.new_friend_requests:
+
                 return HttpResponse("No new notifications")
 
             else:
@@ -1714,7 +1716,6 @@ def display_friend_requests(request):
                     requests[i].is_new = False
                     requests[i].save()
                 requests_out = serializers.serialize('json', request_list)
-
                 return HttpResponse(requests_out)
 
     return HttpResponse("Failure")

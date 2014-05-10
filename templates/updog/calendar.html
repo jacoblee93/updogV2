@@ -277,19 +277,7 @@ function inputBlur(i){
   return false;
 }
 
-    function addTextAreaCallback(textArea, callback, delay) {
-      var timer = null;
-      textArea.onkeyup = function() {
-          if (timer) {
-              window.clearTimeout(timer);
-          }
-          timer = window.setTimeout( function() {
-              timer = null;
-              callback();
-          }, delay );
-      };
-      textArea = null;
-  }
+
 
   addTextAreaCallback( document.getElementById("search-friends"), get_friends_function, 200 );
 
@@ -1589,106 +1577,8 @@ cancel_delete_repeating_events.onclick = function() {
 
 
                 suggest_function(data, 0, 0, event.id);
-            // Make the unconfirmed event show up in your calendar
-            /*if (data === "None") {
-            bootbox.alert("You have no upcoming downtimes.")
+
           }
-          else {
-            if (data == "NoFriends") {
-              bootbox.alert("You have no friends.")
-            }
-            else {
-              if (data == "NoMatch") {
-                bootbox.alert("No free times align")
-              }
-              else {
-                var alldata = JSON.parse(data);
-                
-                  mydata = [];
-                  var index;
-                  var friends = [];
-                  for (var i = 0; i < alldata.length; i++) {
-                    if (alldata[i].model == "auth.user") {
-                      friends.push(alldata[i].fields.username);
-                      index = i;
-                    }
-
-                    else {
-                      mydata.push(alldata[i]);
-                    }
-                }
-                var start_d = new Date(mydata[0].fields.start_time);
-                var end_d = new Date(mydata[0].fields.end_time)
-                var time_string =get_UTC_time(start_d) + '-' + get_UTC_time(end_d);
-                var date_string = start_d.toDateString();
-
-
-                bootbox.confirm("Hangout with " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " on " + date_string + " from " + time_string + "?", function (request) {
-                  if (request) {                                 
-
-                  // send the other user a request:
-       
-                  $.ajax({
-                    type: "POST",
-                    url: "/calendar/send_event_notifications/",
-                    data: {
-                      "event": mydata[0].pk,
-                      "to_users": JSON.stringify(friends),
-                      "data_type": "username",
-                    },
-                    success: function(data) {
-                      console.log(data);
-                    }
-                  });
-
-
-
-
-                  console.log("mydata end time:");
-                  console.log(mydata[0].fields.end_time);
-                  // the event will be titled this string that specifies the two people who are hanging out as a result of the suggestion
-                  hanging_out_with_friend_string = "Hanging out ({{username}} and " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name.substring(0, 1) + ".";
-                  mydata[0].fields.activity = hanging_out_with_friend_string;
-                
-
-                  // display the unconfirmed event on the initiator's calendar
-
-                  var unconf = make_events(mydata, blue, '{{ username }}', false, true);
-
-                  $.ajax({
-                    type: "POST",
-                    url: "/calendar/change_event/",
-                    data: {
-                      "pk": unconf[0].id,
-                      "day_delta": 0,
-                      "minute_delta": 0,
-                      "resize": false,
-                      "activity": hanging_out_with_friend_string,
-                    },
-                    success: function(data) {
-                      var parsed = JSON.parse(data);
-                      resolve_event_downtime_conflicts(parsed);
-                    }
-                  });
-
-
-                  $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
-
-                  }
-                  else {
-                  // remove the unconfirmed event from the back end
-                  $.ajax({
-                      type: "POST",
-                      url: "/calendar/remove_event/",
-                      data: {"pk": JSON.parse(data)[0].pk},
-                    });
-
-                  }
-                });
-                }
-              }
-            }*/
-          }//end of success function
         });
             
 $dialog.dialog('close');
@@ -2144,25 +2034,89 @@ dayClick:function( date, allDay, jsEvent, view ) {
               console.log('Double-click!');
               doubleClick = null;
 
-              $dialog.dialog(
-              {
-                title:'Add Event',
-                width: 500,
-                height: 240
-              }
-              );
-
-                // dialog box's activity text
+                              // dialog box's activity text
                 var activity_text = document.createElement("span");
-                activity_text.innerHTML = 'Activity (opt): &nbsp';
+                activity_text.innerHTML = 'What: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
                 // dialog box's activity input field
                 var activity = document.createElement("input");
                 activity.setAttribute('type', "text");
                 activity.setAttribute('name', "activity");
                 activity.setAttribute('id', 'activity_field'); 
+
+
+
+              /*TAKEOUTTAKEOUTTAKEOUTTAKEOUT*/
+              /*bootbox.dialog({
+                message: "First name:<input type='text' name='first_name'></input>",
+                title: "Add Event",
+                
+                buttons: {
+
+
+                  cancel: {
+                    label: "Cancel",
+                    className: "btn-default",
+                  },
+                  repeating_events: {
+                    label: "Repeating Event <span class='caret'></span>",
+                    className: "btn-default dropdown-toggle dropup",
+                    callback: function() {
+                      
+
+
+                    }
+                  },
+                  submit: {
+                    label: "Submit",
+                    className: "btn-primary",
+                    callback: function() {
+                      
+
+
+
+
+                    }
+                  }
+                }
+              });
+              $(".bootbox").prepend('<div>Hello Frnaklyn!</div>');
+*/
+              $(".dropdown-toggle").attr("data-toggle", "dropdown");
+
+              $(".dropdown-toggle").attr('data-dropdown', "repeating-events-dropdown");
+
+              $dialog.dialog(
+              {
+                autoOpen: false,
+                title:'Add Event',
+                width: 500,
+                height: 240,
+                modal: true,
+                show: { effect: "slideDown", duration: 500},
+                open: function() {
+                  $('.ui-widget-overlay').addClass('custom-overlay');
+                },
+                close: function() {
+                  $('.ui-widget-overlay').removeClass('custom-overlay');
+                },
+                resizable: false,
+                
+              }
+              );
+
+
+              //$dialog.dialog({show: { effect: "slideDown", duration: 500}});
+
+                //bootbox.alert($("#activity_field"));
+
+
+
+
+
+
                 // dialog box's location input field
                 var location_text = document.createElement("span");
-                location_text.innerHTML = '<br/>Location (opt): ';
+                location_text.innerHTML = '<br/>Where: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
                 var location = document.createElement("input");
                 location.setAttribute('type', "text");
                 location.setAttribute('name', "location");
@@ -2251,7 +2205,7 @@ dayClick:function( date, allDay, jsEvent, view ) {
                 // include the newline
                 date_text = document.createElement("span");
                 // &nbsp is a non-breaking whitespace character
-                date_text.innerHTML = '<br/>Event Dates: ';
+                date_text.innerHTML = '<br/><br>From When:&nbsp';
 
 
 
@@ -2274,7 +2228,7 @@ dayClick:function( date, allDay, jsEvent, view ) {
 
                 to_text = document.createElement("span");
                 // &nbsp is a non-breaking whitespace character
-                to_text.innerHTML = '&nbsp to &nbsp';
+                to_text.innerHTML = '</br>To When: &nbsp&nbsp&nbsp&nbsp';
 
                 var endDate = document.createElement("input");
                 endDate.id = "txtEndDate";
@@ -2349,9 +2303,10 @@ dayClick:function( date, allDay, jsEvent, view ) {
                   $dialog.append(repeating_text);
 
                   $dialog.dialog('open');
+                  
 
-                  $(startTime).timepicker();
-                  $(endTime).timepicker();
+                  /*$(startTime).timepicker();
+                  $(endTime).timepicker();*/
 
                   $(startDate).datepicker(datePickerOptions);
                   $(endDate).datepicker(datePickerOptions);
@@ -2504,8 +2459,8 @@ dayClick:function( date, allDay, jsEvent, view ) {
                   todayHighlight: true
                 };
 
-                $(startTime).timepicker();
-                $(endTime).timepicker();
+                /*$(startTime).timepicker();
+                $(endTime).timepicker();*/
 
                 $(startDate).datepicker(datePickerOptions);
                 $(endDate).datepicker(datePickerOptions);
@@ -2713,6 +2668,7 @@ $dialog.append(cancel);
 $dialog.append(submit);
 $dialog.append(repeating_text);
 $dialog.dialog('open');
+
 }
             // single click
             else{
@@ -2743,6 +2699,28 @@ $dialog.dialog('open');
 <!-- Adjust the style of the modal Repeating Events box.  margin-left of the
  modal should be -(widthOfModal / 2) -->
  <style>
+  body .ui-widget-overlay.custom-overlay
+  {
+    background-color: black;
+    background-image: none;
+    opacity: 0.5;
+    /*z-index: 1040;  */  
+  }
+  body .ui-corner-all {
+background:white
+
+  }
+  /*body .ui-dialog {
+    background: blue;
+  }*/
+
+  /*body .ui-widget,.ui-dialog, .ui-dialog,.ui-dialog,.ui-widget, .ui-widget-content, .ui-corner-all, .foo, .ui-draggable, .ui-resizable 
+  {
+    background:white !important
+  }*/
+  body .ui-dialog-titlebar-close {
+  visibility: hidden;
+  }
   body .modal.fade.bs-example-modal-sm {
     max-width: 212px;
     margin-left: 40%;
@@ -2795,20 +2773,21 @@ $dialog.dialog('open');
   body .modal-footer {
     width: 100%;
   }
+
 </style>
 
 <div class="modal fade schedule-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header modal-sm">
+      <div class="modal-header modal-lg">
        <h4 class="modal-title">Schedule An Event</h4>
      </div>
      <div class="modal-body">
 
       <div id="scroll-able-2">
-        <div class="list-group col-xs-6 col-sm-9">
+        <div class="list-group col-xs-12 col-sm-12">
           <form class="list-group-item list-group-item-info" method="post" name="form" autocomplete=off>
-            <input id="schedule-search" class="list-group-item" size="55" name="search" type="text" value="Search for people to invite..." onfocus="inputFocus(this)" onblur="inputBlur(this)"/>
+            <input id="schedule-search" class="list-group-item" size="52" name="search" type="text" value="Search for people to invite..." onfocus="inputFocus(this)" onblur="inputBlur(this)"/>
             <span class="error" style="display:none"> Please Enter Valid Data</span>
             <span class="success" style="display:none"></span></a>
           </form>
@@ -2817,7 +2796,7 @@ $dialog.dialog('open');
       </div>
 
       <div id="scroll-able">
-        <div class="list-group col-xs-6 col-sm-9">
+        <div class="list-group col-xs-12 col-sm-12">
           <a class="list-group-item list-group-item-info">Invite List</a>
           <div class="Invite-list"></div>
         </div>
@@ -3088,7 +3067,7 @@ function invite(username, user_firstname, user_lastname, event_id, user_pk) {
   <div class="bootstrap-timepicker"/><input id="timepicker11" type="text" class="input-small" onclick="showTimePicker11()"/></div>-->
 
 <script type="text/javascript">
-$('#timepicker10').timepicker();
+/*$('#timepicker10').timepicker();
 $('#timepicker11').timepicker();
 
 function showTimePicker() {
@@ -3104,7 +3083,7 @@ function showTimePicker11() {
 
   //$('#timepicker10').timepicker('modal');
 
-}
+}*/
 </script>
 
 
@@ -3115,4 +3094,27 @@ function showTimePicker11() {
   }
 </style>
 
+
+<!--<div class="btn-group dropup">
+  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+    Repeating Event <span class="caret"></span>
+  </button>-->
+
+
+  <ul class="dropdown-menu" role="menu" id="repeating-events-dropdown">
+    <li role="presentation" onclick="window.repeating_event_length=changeRepeatingText('None')"><a href="#">None</a></li>
+    <li role="presentation" onclick="window.repeating_event_length=changeRepeatingText('day')"><a href="#">Every Day</a></li>
+    <li role="presentation" onclick="window.repeating_event_length=changeRepeatingText('week')"><a href="#">Every Week</a></li>
+    <li role="presentation" onclick="window.repeating_event_length=changeRepeatingText('two weeks')"><a href="#">Every 2 Weeks</a></li>
+    <li role="presentation" onclick="window.repeating_event_length=changeRepeatingText('four weeks')"><a href="#">Every 4 Weeks</a></li>
+
+    <li class="divider"></li>
+    <li role="presentation"><a href="#">Cancel</a></li>
+  </ul>
+
+<!--</div>
+<a href="#" data-dropdown="repeating-events-dropdown" class="button dropdown">Dropdown Button</a><br>-->
+
 {% endblock %}
+
+
