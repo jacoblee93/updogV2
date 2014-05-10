@@ -837,7 +837,7 @@ def find_friends(request):
                 friendships_list = Friendship.objects.filter(to_user = request.user.updoguser, is_new = False)
                 friendships_list = friendships_list.order_by('-is_mutual')
 
-                friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"]))
+                friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]))
                 friends_list = friends_list.exclude(user__username = request.user.username)
 
                 users = []
@@ -888,7 +888,7 @@ def search_friends(request):
         if request.method == 'GET':
             l = len(request.GET["search"])
 
-            friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"])) 
+            friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"])) 
             fl = len(friends_list)
             user_list = []
 
@@ -910,7 +910,7 @@ def invite_search(request):
                 if 'event' in request.GET:
                     event = Event.objects.filter(pk=request.GET['event'])[0]
                     l = len(request.GET["search"])
-                    friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"]))
+                    friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]))
                     friends_list = friends_list.exclude(user__username = request.user.username);
                     fl = len(friends_list)
                     user_list = []
@@ -931,7 +931,7 @@ def suggest_search(request):
         if request.method == 'GET':
             if 'search' in request.GET:
                 l = len(request.GET["search"])
-                friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"]))
+                friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]))
                 friends_list = friends_list.exclude(user__username = request.user.username);
                 fl = len(friends_list)
                 user_list = []

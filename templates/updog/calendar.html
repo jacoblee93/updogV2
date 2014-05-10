@@ -71,89 +71,12 @@
 <!-- rolling both searchbars into one -->
 <div>
   <script type="text/javascript">
-/*
-    $(function() {
-      $(".submit-friends").click(function() {
-        var name = $("#search-friends").val();
-
-        if (name == '')
-        {
-          $.ajax({
-            type: "GET",
-            url: "/calendar/get_friends/",
-            data: {'user': '{{ user }}'},
-            success: function(data) {
-
-              real_data = JSON.parse(data);
-              fl = real_data.length;
-              userhtml = '';
-              if (fl != 0) {
-
-                for (var i = 0; i < fl; i++) {
-                  userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + real_data[i].fields.username + '\')" id="friend_' + real_data[i].fields.username + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + real_data[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">  ' + real_data[i].fields.first_name + ' ' + real_data[i].fields.last_name + '</span></div></a>';
-                };
-              } else {
-                userhtml = '<strong>No friends.</strong>';
-              };
-
-              $(".frandz").html(userhtml);
-              for (var i = 0; i < fl; i++) {
-                hover_stuff(real_data[i]);
-              };
-            } 
-          });
-}
-else
-{
-  $.ajax({
-    type: "GET",
-    url: "/calendar/find_friends/",
-    data: {"search": name,
-  },
-  success: function(data) {
-    if (data != "no friends") {
-      users_returned = JSON.parse(data[0]);
-      friend_status = data[1];
-      userhtml = "";
-      real_friends = [];
-      if (users_returned.length > 0) {
-        var l = users_returned.length;
-
-        for (var i = 0; i < l; i++) {
-          if (friend_status[i] == 1) {
-            userhtml = userhtml + '<a class="list-group-item" onclick="getevents(\'' + users_returned[i].fields.username + '\')" id="friend_' + users_returned[i].fields.username + '"><div><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"><span class="frand">  ' + users_returned[i].fields.first_name + ' ' + users_returned[i].fields.last_name + '</span></div></a>';
-
-            real_friends.push(i);
-          }
-          else {
-            userhtml = userhtml + '<div><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].fields.username + '"><button type="button" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
-          }
-        };
-
-        $(".frandz").html(userhtml);
-        rfl = real_friends.length;
-        for (var i =  0; i < rfl; i++) {
-          hover_stuff(users_returned[real_friends[i]]);
-        };
-      }
-      else {
-        $(".frandz").html('No friends found');
-      }
+    function inputFocus(i){
+        if(i.value==i.defaultValue){ i.value=""; i.style.color="#000"; }
     }
-  }
-});
-}
-return false;
-});
-});*/
-
-function inputFocus(i){
-    if(i.value==i.defaultValue){ i.value=""; i.style.color="#000"; }
-}
-function inputBlur(i){
-    if(i.value==""){ i.value=i.defaultValue; i.style.color="#888"; }
-}
-
+    function inputBlur(i){
+        if(i.value==""){ i.value=i.defaultValue; i.style.color="#888"; }
+    }
 </script>
 </div>
 
@@ -178,22 +101,8 @@ function inputBlur(i){
           <span class="error" style="display:none"> Please Enter Valid Data</span>
           <span class="success" style="display:none"></span></a>
         </form>
-
         <div id="scroll-able"><div class="frandz"></div></div>
-
       </div>
-      <!-- this is the searchbar -->
-      <!--<div id="scroll-able">-->
-      <!--<div class="list-group">
-        <form class="list-group-item list-group-item-info" method="post" name="form">
-          Find friends to add:<input id="search" size="17" name="search" type="text" />
-          <input type="submit" value="Search" class="submit"/>
-          <span class="error" style="display:none"> Please Enter Valid Data</span>
-          <span class="success" style="display:none"></span></a>
-        </form>
-        <div id="scroll-able"><div class="output"></div></div>
-      </div>--><!--/span-->
-      <!--</div>-->
     </div>
     {% endif %}
     <br>
@@ -257,7 +166,7 @@ function inputBlur(i){
                 real_friends.push(i);
               }
               else {
-                userhtml = userhtml + '<div><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + users_returned[i].fields.first_name + ' ' +  users_returned[i].fields.last_name + '<div style="float:right"><div id="add-button' + users_returned[i].pk + '"><button type="button" class="btn btn-default" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i + '\', \'' + users_returned[i].pk +'\')"> add </button></div></div><div id="div' + i + '"></div></a></div>';
+                userhtml = userhtml + '<a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users_returned[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50"  style="float:left"><div style="float:right"><div id="add-button' + users_returned[i].pk + '"><button type="button" class="btn btn-default" onclick="send_friend_request(\'' + users_returned[i].fields.username + '\', \'' + i + '\', \'' + users_returned[i].pk +'\')"> add </button></div></div><div id="div' + i + '"></div><div style="height:50px">&nbsp' + users_returned[i].fields.first_name + '<br>&nbsp' +  users_returned[i].fields.last_name + '</div></a>';
               }
             };
             $(".frandz").html(userhtml);
@@ -300,7 +209,6 @@ function inputBlur(i){
   }
 
 function getevents(user_pk, username) {
-
   $.ajax({
     type: "POST",
     url: "/calendar/get_friends_downtimes/",
@@ -344,11 +252,6 @@ function getevents(user_pk, username) {
 function erase_events(user_pk, username) {
   existing_events = $("#calendar").fullCalendar('clientEvents');
 
-  /*for (var i = 0; i < existing_events.length; i++) {
-    if (existing_events[i].owners.indexOf(username) != -1) {
-      $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
-    }
-  }*/
   for (var i = 0; i < existing_events.length; i++) {
   if (existing_events[i].owners[0] != '{{username}}') {
     if (existing_events[i].owners != '{{username}}') {
@@ -408,13 +311,6 @@ function erase_events(user_pk, username) {
 
   <div>
     <script>
-    // This function converts a Date object, date, into a time of the form: 2:00 PM or 11:00 AM
-    /*function getTime(date) {
-      var local_time = date.toLocaleTimeString()
-      var lt_length = local_time.length;
-
-      return local_time.substring(0, lt_length - 6) + local_time.substring(lt_length - 3, lt_length)
-    } */
     $(document).ready(function() {
 
       $("#search-friends").width($("#friend-form").width() - 31);
@@ -735,8 +631,6 @@ selecthelper: true,
           var endMinute = endDateObject.getMinutes();
           // set the initial start time to be the time that was clicked to make the event
           endTime.setAttribute('value', endHour + ':' + endMinute + ' ' + end_am_pm);
-
-
 
 //  <div class="bootstrap-timepicker"/><input id="timepicker10" type="text" class="input-small" onclick="showTimePicker()"/></div>
 
@@ -1247,9 +1141,6 @@ edit_repeating_events.onclick = function() {
                         }
                         else {
 
-
-
-
                           // if there is a repeated event before this event, update it so that it no longer has a next_repeated_event
                           prev_event = $('#calendar').fullCalendar('clientEvents', event.prev_repeated_event);
 
@@ -1263,16 +1154,9 @@ edit_repeating_events.onclick = function() {
                             temp_event = $('#calendar').fullCalendar('clientEvents', prev_event.next_repeated_event)[0];
                             $('#calendar').fullCalendar('removeEvents', prev_event.id);
                             $('#calendar').fullCalendar('rerenderEvents');
-
-
-
                           }
                           $('#calendar').fullCalendar('removeEvents', temp_event.id);
                           $('#calendar').fullCalendar('rerenderEvents');
-
-
-
-
 
                           console.log("SHOULDGETHERE!!!");
 
@@ -1282,9 +1166,6 @@ edit_repeating_events.onclick = function() {
                             $('#calendar').fullCalendar('renderEvent', editted_event, stick = true);
                           }
                           $dialog.dialog('close');
-
-
-
                         }
 
                       },
@@ -1862,10 +1743,6 @@ eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
 
           var parsed = JSON.parse(data);
           resolve_event_downtime_conflicts(parsed);
-
-          //console.log("event.id = " + event.id);
-
-
         }
       });
       }
@@ -1921,41 +1798,10 @@ eventDrop: function(event,dayDelta,minuteDelta,revertFunc) {
                $('#calendar').fullCalendar('rerenderEvents');*/
              },
            });
-
-
-/*
-
-          $.ajax({
-              type: "POST",
-              url: "/calendar/event_conflicts/",
-              data: {"pk": -event.id, 
-              "resize": "true",
-            },
-            success: function(data) {
-              console.log("HERE!!!!!!!!!!!")
-              var new_downtimes = JSON.parse(data);
-              console.log("new_downtimes = ");
-              console.log(new_downtimes);
-              resolve_event_downtime_conflicts(new_downtimes);
-            },
-          });
-
-*/
-
-
-
-
-
-
-
-
-
-
-}
-
-},
-});
-}
+        }
+      },
+    });
+  }
 },
 eventResize: function(event,dayDelta,minuteDelta,revertFunc) {
   var view = $('#calendar').fullCalendar('getView');
@@ -2158,8 +2004,6 @@ dayClick:function( date, allDay, jsEvent, view ) {
                   endTime.off();
                   console.log("clicked on start time!!!!!!!");
                 };*/
-
-
 
                 // increment the initial end time to be one hour (3.6e6 milliseconds) later than the initial start time
                 var endDateObject = new Date();
@@ -2686,13 +2530,6 @@ $dialog.dialog('open');
       );
 });
 
-
-
-
-
-
-
-
 </script>
 
 
@@ -2791,66 +2628,6 @@ $dialog.dialog('open');
 <!-- the function to find the friends the user searches for -->
 <div>
   <script type="text/javascript">
-
-    /*$(function() {
-      $(".schedule-submit").click(function() {
-
-        var event_id = $('.party-button').attr("event");
-        var name = $("#schedule-search").val();
-
-        if (name == '')
-        {
-          $(".schedule-output").html('');
-          //$('.success').fadeOut(200).hide();
-          //$('.error').fadeOut(200).show();
-        }
-        else
-        {
-
-          $.ajax({
-            type: "GET",
-            url: "/calendar/invite_search/",
-            data: {
-              'search': name,
-              'event': event_id,
-            },
-            success: function (data) {
-              var mydata = JSON.parse(data);
-              var dlength = mydata.length;
-              userhtml = "";
-              
-              var event_obj = $('#calendar').fullCalendar('clientEvents', event_id)[0];
-              if (event_obj.invitelist != undefined) {
-                users = [];
-                for (var i = 0; i < dlength; i++) {
-                  if ($.inArray(mydata[i].fields.username, event_obj.invitelist) == -1) {
-                    users.push(mydata[i]);
-                  }
-                }
-              }
-              else {
-                users = mydata;
-              }
-
-              if (users.length != 0) {
-                for (var i = 0; i < users.length; i++) {
-                  userhtml = userhtml + '<div id="sch_' + users[i].fields.username + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt = "profpic" width = "50" height = "50">  ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="invite(\'' + users[i].fields.username + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + event_id + '\' )">Invite</button></div></a></div>';
-                }
-              }
-              else {
-                userhtml = "No results.";
-
-              }
-              $(".schedule-output").html(userhtml);
-
-            }
-          });
-}
-return false;
-});
-});
-
-*/
 
 invite_friends_function = function() {
 
