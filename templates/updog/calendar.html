@@ -611,6 +611,8 @@ selecthelper: true,
             startHour = startHour - 12;
           }
           var startMinute = event.start.getMinutes();
+          if (startMinute == "0")
+            startMinute = "00";
           // set the initial start time to be the time that was clicked to make the event
           startTime.setAttribute('value', startHour + ':' + startMinute + ' ' + start_am_pm);
 
@@ -629,6 +631,8 @@ selecthelper: true,
             endHour = endHour - 12;
           }
           var endMinute = endDateObject.getMinutes();
+          if (endMinute == "0")
+            endMinute = "00";
           // set the initial start time to be the time that was clicked to make the event
           endTime.setAttribute('value', endHour + ':' + endMinute + ' ' + end_am_pm);
 
@@ -897,9 +901,20 @@ $dialog.append(del);
             $(startDate).datepicker(datePickerOptions);
             $(endDate).datepicker(datePickerOptions);
 
-            startDate.onclick = function() {
+/*          startDate.onclick = function() {
+
              $(startDate).datepicker('hide');
           }
+*/
+            $(startDate).datepicker().on('changeDate', function(ev){
+              $(this).datepicker('hide');
+            });
+            $(endDate).datepicker().on('changeDate', function(ev){
+              $(this).datepicker('hide');
+            });
+
+
+
 
             var cancel = document.createElement("button");
           // this makes the Cancel button look nice
@@ -1997,6 +2012,10 @@ dayClick:function( date, allDay, jsEvent, view ) {
                   startHour = startHour - 12;
                 }
                 var startMinute = date.getMinutes();
+                console.log("startMinute = " + startMinute);
+                if (startMinute == "0")
+                  startMinute = "00";
+                console.log("startMinute = " + startMinute);
                 // set the initial start time to be the time that was clicked to make the event
                 startTime.setAttribute('value', startHour + ':' + startMinute + ' ' + start_am_pm);
 
@@ -2021,6 +2040,8 @@ dayClick:function( date, allDay, jsEvent, view ) {
                   endHour = endHour - 12;
                 }
                 var endMinute = endDateObject.getMinutes();
+                if (endMinute == "0")
+                  endMinute = "00";
                 // set the initial start time to be the time that was clicked to make the event
                 endTime.setAttribute('value', endHour + ':' + endMinute + ' ' + end_am_pm);
 
@@ -2155,6 +2176,13 @@ dayClick:function( date, allDay, jsEvent, view ) {
 
                   $(startDate).datepicker(datePickerOptions);
                   $(endDate).datepicker(datePickerOptions);
+
+                  $(startDate).datepicker().on('changeDate', function(ev){
+                    $(this).datepicker('hide');
+                  });
+                  $(endDate).datepicker().on('changeDate', function(ev){
+                    $(this).datepicker('hide');
+                  });
                 }
 
                 repeatNone.onclick = function() {
@@ -2309,6 +2337,13 @@ dayClick:function( date, allDay, jsEvent, view ) {
 
                 $(startDate).datepicker(datePickerOptions);
                 $(endDate).datepicker(datePickerOptions);
+
+                $(startDate).datepicker().on('changeDate', function(ev){
+                  $(this).datepicker('hide');
+                });
+                $(endDate).datepicker().on('changeDate', function(ev){
+                  $(this).datepicker('hide');
+                });
 
                 var cancel = document.createElement("button");
                 // this makes the Cancel button look nice
@@ -2844,6 +2879,7 @@ addTextAreaCallback( document.getElementById("search-friends"), get_friends_func
     if ( e.which == 13 ) return false;
   });
 </script>
+
 
 
 <style>
