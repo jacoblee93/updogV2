@@ -834,10 +834,10 @@ def find_friends(request):
     try:
         if request.is_ajax():
             if request.method == 'GET':
-                friendships_list = Friendship.objects.filter(to_user = request.user.updoguser)
+                friendships_list = Friendship.objects.filter(to_user = request.user.updoguser, is_new = False)
                 friendships_list = friendships_list.order_by('-is_mutual')
 
-                friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"]))
+                friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]))
                 friends_list = friends_list.exclude(user__username = request.user.username)
 
                 users = []
@@ -888,7 +888,7 @@ def search_friends(request):
         if request.method == 'GET':
             l = len(request.GET["search"])
 
-            friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"])) 
+            friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"])) 
             fl = len(friends_list)
             user_list = []
 
@@ -910,7 +910,7 @@ def invite_search(request):
                 if 'event' in request.GET:
                     event = Event.objects.filter(pk=request.GET['event'])[0]
                     l = len(request.GET["search"])
-                    friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"]))
+                    friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]))
                     friends_list = friends_list.exclude(user__username = request.user.username);
                     fl = len(friends_list)
                     user_list = []
@@ -931,7 +931,7 @@ def suggest_search(request):
         if request.method == 'GET':
             if 'search' in request.GET:
                 l = len(request.GET["search"])
-                friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]) | Q(user__username__istartswith=request.GET["search"]))
+                friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]))
                 friends_list = friends_list.exclude(user__username = request.user.username);
                 fl = len(friends_list)
                 user_list = []
@@ -947,33 +947,38 @@ def suggest_search(request):
 @login_required
 @csrf_exempt
 def send_friend_request(request):
-    if request.is_ajax():
-        if request.method == 'POST':
 
-            if 'new_friend' in request.POST and 'i' in request.POST:
-                i = request.POST['i']
-                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
-                current_user = request.user.updoguser
+    try: 
+        if request.is_ajax():
+            if request.method == 'POST':
 
-                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
+                if 'new_friend' in request.POST and 'i' in request.POST:
+                    i = request.POST['i']
+                    new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                    current_user = request.user.updoguser
 
-                if to_friendship:
-                    return HttpResponse("Request Pending," + i)
+                    to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
 
-                current_user.add_friend(new_friend)
+                    if to_friendship:
+                        return HttpResponse("Request Pending," + i)
 
-                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
-                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
+                    current_user.add_friend(new_friend)
 
-                to_friendship.is_new = True
-                new_friend.new_friend_requests = True
+                    to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
+                    from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
 
-                to_friendship.save()
-                new_friend.save()
+                    to_friendship.is_new = True
+                    new_friend.new_friend_requests = True
 
-                return HttpResponse("Success," + i)
+                    to_friendship.save()
+                    new_friend.save()
 
-    return HttpResponse("Failure!")
+                    return HttpResponse("Success," + i)
+
+        return HttpResponse("Failure!")
+
+    except Exception as e:
+        print e
 
 @login_required
 @csrf_exempt
@@ -1005,21 +1010,24 @@ def accept_friend_request(request):
 @login_required
 @csrf_exempt
 def reject_friend_request(request):
-    if request.is_ajax():
-        if request.method == 'POST':
-            if 'new_friend' in request.POST:
-                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
-                current_user = request.user.updoguser
+    try:
+        if request.is_ajax():
+            if request.method == 'POST':
+                if 'new_friend' in request.POST:
+                    new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                    current_user = request.user.updoguser
 
-                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
-                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
+                    to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
+                    from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
 
-                to_friendship.delete()
-                from_friendship.delete()
+                    to_friendship.delete()
+                    from_friendship.delete()
 
 
+                    return HttpResponse("Success!")
 
-                return HttpResponse("Success!")
+    except Exception as e:
+        print e                
 
     return HttpResponse("Failure!")
 
@@ -1701,22 +1709,35 @@ def display_friend_requests(request):
         if request.method == 'GET':
 
             current_uduser = request.user.updoguser
+one="""<<<<<<< HEAD
             if not current_uduser.new_friend_requests:
 
+======="""
+            current_uduser.new_friend_requests = False
+            requests = Friendship.objects.filter(to_user=current_uduser, is_new=True)
+            rl = len(requests)
+            request_list = []
+            
+            if rl == 0:
+#>>>>>>> 59c8e6b668bb15e373e38b1b4370d76eec955c8c
                 return HttpResponse("No new notifications")
 
-            else:
-                requests = Friendship.objects.filter(to_user=current_uduser, is_new = True)
-                rl = len(requests)
-                request_list = []
-                
+            for i in xrange(0,rl):
+                request_list.append(requests[i].from_user.user)
+                requests[i].save()
 
+two="""<<<<<<< HEAD
                 for i in xrange(0,rl):
                     request_list.append(requests[i].from_user.user)
                     requests[i].is_new = False
                     requests[i].save()
                 requests_out = serializers.serialize('json', request_list)
                 return HttpResponse(requests_out)
+======="""
+            requests_out = serializers.serialize('json', request_list)
+
+            return HttpResponse(requests_out)
+#>>>>>>> 59c8e6b668bb15e373e38b1b4370d76eec955c8c
 
     return HttpResponse("Failure")
 
@@ -1734,7 +1755,7 @@ def get_num_new_friend_requests(request):
                 requests = Friendship.objects.filter(to_user=current_uduser, is_new = True)
                 rl = len(requests)
 
-            return HttpResponse(rl)     
+                return HttpResponse(rl)     
 
     return HttpResponse("Failure")
 

@@ -169,7 +169,7 @@ html .fc,
 	font-size: 2em;
 	font-family: "Courier New", Courier, monospace;
 	vertical-align: baseline; /* for IE7 */
-	color:#0000ff;
+	color: hsla(213, 96%, 55%, 1.0);
 	}
 
 .fc-button-prev .fc-text-arrow,
