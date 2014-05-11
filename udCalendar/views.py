@@ -21,7 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import simplejson
 from django.core import serializers
 import json
-
+import re
 import os
 
 @login_required
@@ -271,12 +271,14 @@ def add_event(request):
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
 
             # create time objects from start_time and end_time
-            start_hour = get_hour(start_time)
-            start_minute = get_minute(start_time)
-            start_time = time(start_hour, start_minute)
-            end_hour = get_hour(end_time)
-            end_minute = get_minute(end_time)
-            end_time = time(end_hour, end_minute)
+            start_times = get_time(start_time)
+            end_times = get_time(end_time)
+
+            if start_times == -1 or end_times == -1:
+                return HttpResponse("invalid time")
+
+            start_time = time(start_times[0], start_times[1])
+            end_time = time(end_times[0], end_times[1])
 
             start_datetime = datetime.datetime.combine(start_date, start_time)
             end_datetime = datetime.datetime.combine(end_date, end_time)
@@ -349,12 +351,14 @@ def edit_event(request):
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
 
             # create time objects from start_time and end_time
-            start_hour = get_hour(start_time)
-            start_minute = get_minute(start_time)
-            start_time = time(start_hour, start_minute)
-            end_hour = get_hour(end_time)
-            end_minute = get_minute(end_time)
-            end_time = time(end_hour, end_minute)
+            start_times = get_time(start_time)
+            end_times = get_time(end_time)
+
+            if start_times == -1 or end_times == -1:
+                return HttpResponse("invalid time")
+
+            start_time = time(start_times[0], start_times[1])
+            end_time = time(end_times[0], end_times[1])
 
             start_datetime = datetime.datetime.combine(start_date, start_time)
             end_datetime = datetime.datetime.combine(end_date, end_time)
@@ -410,20 +414,21 @@ def edit_repeating_events(request):
             event.activity = activity
             event.location = location
 
-            # arguments are datetime.date(year, month, day)
             start_date = datetime.date(int(start_date[6:]), int(start_date[:2]), int(start_date[3:5]))
             end_date = datetime.date(int(end_date[6:]), int(end_date[:2]), int(end_date[3:5]))
 
             # create time objects from start_time and end_time
-            start_hour = get_hour(start_time)
-            start_minute = get_minute(start_time)
-            new_start_time = time(start_hour, start_minute)
-            end_hour = get_hour(end_time)
-            end_minute = get_minute(end_time)
-            new_end_time = time(end_hour, end_minute)
+            start_times = get_time(start_time)
+            end_times = get_time(end_time)
 
-            start_datetime = datetime.datetime.combine(start_date, new_start_time)
-            end_datetime = datetime.datetime.combine(end_date, new_end_time)
+            if start_times == -1 or end_times == -1:
+                return HttpResponse("invalid time")
+
+            start_time = time(start_times[0], start_times[1])
+            end_time = time(end_times[0], end_times[1])
+
+            start_datetime = datetime.datetime.combine(start_date, start_time)
+            end_datetime = datetime.datetime.combine(end_date, end_time)
 
             event.start_time = start_datetime
             event.end_time = end_datetime
@@ -1709,7 +1714,7 @@ def display_friend_requests(request):
         if request.method == 'GET':
 
             current_uduser = request.user.updoguser
-one="""<<<<<<< HEAD
+            one="""<<<<<<< HEAD
             if not current_uduser.new_friend_requests:
 
 ======="""
@@ -1726,7 +1731,7 @@ one="""<<<<<<< HEAD
                 request_list.append(requests[i].from_user.user)
                 requests[i].save()
 
-two="""<<<<<<< HEAD
+            two="""<<<<<<< HEAD
                 for i in xrange(0,rl):
                     request_list.append(requests[i].from_user.user)
                     requests[i].is_new = False
@@ -2116,4 +2121,91 @@ def get_from_user(request):
     else:
         return HttpResponse("Fail!")
 
+# return a list with hour as the first indexed item and minute as
+# the second indexed item.  Return -1 if time is invalid
+def get_time(time):
+    # the index of the colon in time
+    col_index = int(time.find(':'))
+
+    # return -1, meaning the user inputted an incorrect date
+    if col_index != 1 and col_index != 2:
+        return -1
+
+    # check if the first part of time is of an acceptable format
+    time_regex = re.compile("\d(\d)?:\d\d")
+    acceptable_match = time_regex.match(time)
+
+    if (acceptable_match == None):
+        return -1
+
+    # the end index of the string before "am" or "pm"
+    time_regex_end_index = col_index + 3
+    # the length of the string before "am" or "pm"
+    len_hours_and_minutes = len(time[time_regex_end_index:])
+
+    if len_hours_and_minutes > 3 or len_hours_and_minutes == 0:
+        return -1
+    elif len_hours_and_minutes == 1:
+        if time[time_regex_end_index:] == "a" or time[time_regex_end_index:] == "A":
+            am_pm = "AM"
+        elif time[time_regex_end_index] == "p" or time[time_regex_end_index] == "P":
+            am_pm = "PM"
+        else: return -1
+    elif len_hours_and_minutes == 2:
+        if time[time_regex_end_index:] == " a" or time[time_regex_end_index:] == " A":
+            am_pm = "AM"
+        elif time[time_regex_end_index:] == "am" or time[time_regex_end_index:] == "aM":
+            am_pm = "AM"
+        elif time[time_regex_end_index:] == "Am" or time[time_regex_end_index:] == "AM":
+            am_pm = "AM"
+        elif time[time_regex_end_index:] == " p" or time[time_regex_end_index:] == " P":
+            am_pm = "PM"
+        elif time[time_regex_end_index:] == "pm" or time[time_regex_end_index:] == "pM":
+            am_pm = "PM"
+        elif time[time_regex_end_index:] == "Pm" or time[time_regex_end_index:] == "PM":
+            am_pm = "PM"
+        else: return -1
+    elif len_hours_and_minutes == 3:
+        if time[time_regex_end_index:] == " am" or time[time_regex_end_index:] == " AM":
+            am_pm = "AM"
+        elif time[time_regex_end_index:] == " Am" or time[time_regex_end_index:] == " aM":
+            am_pm = "AM"
+        elif time[time_regex_end_index:] == " pm" or time[time_regex_end_index:] == " PM":
+            am_pm = "PM"
+        elif time[time_regex_end_index:] == " Pm" or time[time_regex_end_index:] == " pM":
+            am_pm = "PM"
+        else: return -1
+    # should never get here
+    else: return -1
+
+
+    print "am_pm is:"
+    print am_pm
+
+
+    # the hour of the start date
+    hour = int(time[:col_index])
+    
+    print "hour = "
+    print hour
+
+    if hour > 12:
+        return -1
+
+    if (hour == 12) and (am_pm == "AM"):
+        hour = 0
+    elif am_pm == "PM":
+        # we don't change 12:00 PM to 24:00 for military time
+        if hour != 12:
+            # use military time (add 12 to hours after 12:00PM)
+            hour = hour + 12
+
+    minute = int(time[time_regex_end_index-2:time_regex_end_index])
+    if minute > 59:
+        return -1
+
+    print "minute = "
+    print minute
+
+    return [hour, minute]
 

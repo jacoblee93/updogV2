@@ -15,8 +15,6 @@
   <link href="{% static 'css/jquery-ui-1.10.4.custom.css' %}" rel="stylesheet">
   <link href="{% static 'css/bootstrap-timepicker.css' %}" rel="stylesheet">
   <link href="{% static 'css/custom.css' %}" rel="stylesheet">
-  <!--<link href="{% static 'css/foundation.css' %}" rel="stylesheet">
-  <link href="{% static 'css/normalize.css' %}" rel="stylesheet">-->
 
   <script src="{% static 'js/jquery.js' %}"></script>
   <script src="{% static 'js/jquery.min.js' %}"></script>
@@ -27,17 +25,11 @@
   <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
   <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
   <script src="{% static 'js/jquery.hoverIntent.js' %}"></script>
-  <!--    <script src="{% static 'js/gcal.js' %}"></script>-->
   <script src="{% static 'js/fullcalendar.js' %}"></script>
   <script src="{% static 'js/csrftoken.js' %}"></script>
   <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
   <script src="{% static 'js/bootbox.js' %}"></script>
-  <!--<script src="{% static 'js/foundation.js' %}"></script>
-  <script src="{% static 'js/foundation.dropdown.js' %}"></script>
-  <script src="{% static 'js/fastclick.js' %}"></script>
-  <script src="{% static 'js/jquery.cookie.js' %}"></script>
-  <script src="{% static 'js/modernizr.js' %}"></script>
-  <script src="{% static 'js/placeholder.js' %}"></script>-->
+
   <title>{% block title %}What's Up With You?{% endblock %}</title>
 
   <script type="text/javascript">
@@ -51,6 +43,7 @@
 <body>
 
 <script>
+$.fn.modal.Constructor.prototype.enforceFocus = function () {};
 $(document).ready(function() {
 
   if ($( '.navbar-header' ).is( ':visible' )) {
@@ -878,7 +871,7 @@ function add_suggest(user_pk, user_firstname, user_lastname, username) {
   // delete sonia from above in search
   $("#sug_" + user_pk).remove();
 
-    $("#suggest-search").val("");
+    $("#suggest-search").val("Search for friends to meet up with...");
     // add sonia below
     addedhtml = "";    
     addedhtml = addedhtml + '<div id="sugged_' + user_pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + username + '-social.jpg" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="anotherundesirablebutton_' + user_pk + '"><button class="btn btn-default" type="button" onclick="remove_suggest(\'' + user_pk + '\', \'' + user_firstname + '\', \'' + user_lastname+  '\', \'' + username + '\' )">Remove</button></div></a></div>';
@@ -917,7 +910,7 @@ jQuery.expr[':'].regex = function(elem, index, match) {
 function cancel_suggest() {
   $("div:regex(id, .*sugged_.*)").remove();
   $("div:regex(id, .*sug_.*)").remove();
-  $("#suggest-search").val("");
+  $("#suggest-search").val("Search for friends to meet up with...");
   $("#suggest-hour").val("");
   $("#suggest-minute").val("");
   window.suggest_list = [];
@@ -1057,6 +1050,7 @@ function suggest_function(data, hour, minute, fixed_pk) {
 
                         clean_up_suggest(1);
                         $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+
                       }
 
                     },
@@ -1191,6 +1185,7 @@ function multi_suggest_function(data, hour, minute) {
 
                       }
 
+
                     }
                   },
                 }
@@ -1251,7 +1246,7 @@ function send_suggest() {
   }
   $("div:regex(id, .*sugged_.*)").remove();
   $("div:regex(id, .*sug_.*)").remove();
-  $("#suggest-search").val("");
+  $("#suggest-search").val("Search for friends to meet up with...");
   $("#suggest-hour").val("");
   $("#suggest-minute").val("");
 
@@ -1259,6 +1254,7 @@ function send_suggest() {
 
 </script>
 <style>
+
 body .modal.fade.suggest-modal {
   width: 100%;
   /*max-width: 450px;
@@ -1305,7 +1301,7 @@ body .modal-footer {
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">I'm up for it</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal">I'm up for it</button>
       </div>
     </div>
   </div>
@@ -1314,12 +1310,9 @@ body .modal-footer {
 <div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header modal-lg">
-       <h4 class="modal-title">Suggest An Event</h4>
-     </div>
-
      <div class="modal-body" style="max-height:200px">
-      
+      <h4 class="modal-title">Suggest An Event</h4>
+      <hr>
         <div class="list-group col-xs-12 col-sm-12">
           <form class="list-group-item list-group-item-info" method="post" name="form" autocomplete=off>
           <input id="suggest-search" class="list-group-item" value="Search for friends to meet up with..." size="74" name="search" type="text" onfocus="inputFocus(this)" onblur="inputBlur(this)" />
@@ -1343,17 +1336,19 @@ body .modal-footer {
         </div>
       </div>
 
-      <div id="scroll-able-3">
+    <div id="scroll-able-3">
       <div class="list-group col-xs-12 col-sm-12">
           <form class="list-group-item list-group-item-info" method="post" name="form">Input an Event Length: <input id="suggest-hour" size="2" maxlength="2" type="text" /> hour(s) <input id="suggest-minute" size="2" maxlength="2" type="text" /> minute(s)
           </form>
       </div>
     </div>
-
+    <hr>
+    <button type="button" style="float:right" class="btn btn-primary" data-dismiss="modal" onclick="send_suggest()">Suggest!</button>
+      <button type="button" style="float:right" class="btn btn-default" data-dismiss="modal" onclick="cancel_suggest()">Cancel</button>
+      
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-default" data-dismiss="modal" onclick="cancel_suggest()">Cancel</button>
-      <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="send_suggest()">Suggest!</button>
+
     </div>
   </div><!-- /.modal-content -->
 </div><!-- /.modal-dialog -->
