@@ -25,11 +25,11 @@
   <script src="{% static 'js/jquery-ui-1.10.4.custom.js' %}"></script>
   <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
   <script src="{% static 'js/jquery.hoverIntent.js' %}"></script>
-  <!--    <script src="{% static 'js/gcal.js' %}"></script>-->
   <script src="{% static 'js/fullcalendar.js' %}"></script>
   <script src="{% static 'js/csrftoken.js' %}"></script>
   <script src="{% static 'js/bootstrap-timepicker.js' %}"></script>
   <script src="{% static 'js/bootbox.js' %}"></script>
+
   <title>{% block title %}What's Up With You?{% endblock %}</title>
 
   <script type="text/javascript">
@@ -43,6 +43,7 @@
 <body>
 
 <script>
+$.fn.modal.Constructor.prototype.enforceFocus = function () {};
 $(document).ready(function() {
 
   if ($( '.navbar-header' ).is( ':visible' )) {
@@ -89,6 +90,7 @@ div#scroll-able-nots1 {
 </style>
 
 <script>
+
 function resolve_event_downtime_conflicts(downtimes) {
   if (downtimes.length > 0) {
     // downtimes is a list of downtimes and moved_event_or_downtime is an event
@@ -124,13 +126,14 @@ function display_friend_requests() {
       success: function(data) {
         userhtml = '<div id="scroll-able-nots1"><div id="list-group">';
         if (data == "No new notifications") {
+
           userhtml =  userhtml +'<li style="display:inline-block; vertical-align:middle;"><pre style="background-color:transparent; border:0px solid">' + "No New Friend Requests" + '</pre></li><li class="divider"></li>';
           }
         else {
           mydata = JSON.parse(data);
           var dlength = mydata.length;
           users = mydata;
-          
+
           ret = users.length;
           if (users.length != 0) {
             for (var i = 0; i < users.length; i++) {
@@ -376,7 +379,8 @@ function reject_friend_request(new_friend) {
 
       {% if user.is_authenticated %}
 
-      <li><a data-toggle="modal" data-target=".suggest-modal">Suggest</a></li>               
+      <li><a data-toggle="modal" data-target=".suggest-modal">Suggest</a></li>
+      <li><a data-toggle="modal" data-target=".how-to-modal">How To</a></li>               
 
         {% endif %}
 
@@ -749,7 +753,7 @@ function get_friends(user) {
 }
 
 function hover_stuff(friend) {
-  hover_functions = {
+  /*hover_functions = {
     sensitivity: 7,
     interval: 100,
     timeout: 0,
@@ -797,7 +801,7 @@ function hover_stuff(friend) {
 
       
     }
-  }
+  }*/
   // RIP Hover...
   //$( "#friend_" + friend.pk).hoverIntent(hover_functions);
 }
@@ -847,7 +851,7 @@ $(function() {
 
               if (users.length != 0) {
                 for (var i = 0; i < users.length; i++) {
-                  userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
+                  userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + '<br>' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
                 }
               }
               else {
@@ -867,7 +871,7 @@ function add_suggest(user_pk, user_firstname, user_lastname, username) {
   // delete sonia from above in search
   $("#sug_" + user_pk).remove();
 
-    $("#suggest-search").val("");
+    $("#suggest-search").val("Search for friends to meet up with...");
     // add sonia below
     addedhtml = "";    
     addedhtml = addedhtml + '<div id="sugged_' + user_pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + username + '-social.jpg" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="anotherundesirablebutton_' + user_pk + '"><button class="btn btn-default" type="button" onclick="remove_suggest(\'' + user_pk + '\', \'' + user_firstname + '\', \'' + user_lastname+  '\', \'' + username + '\' )">Remove</button></div></a></div>';
@@ -906,7 +910,7 @@ jQuery.expr[':'].regex = function(elem, index, match) {
 function cancel_suggest() {
   $("div:regex(id, .*sugged_.*)").remove();
   $("div:regex(id, .*sug_.*)").remove();
-  $("#suggest-search").val("");
+  $("#suggest-search").val("Search for friends to meet up with...");
   $("#suggest-hour").val("");
   $("#suggest-minute").val("");
   window.suggest_list = [];
@@ -1046,6 +1050,7 @@ function suggest_function(data, hour, minute, fixed_pk) {
 
                         clean_up_suggest(1);
                         $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+
                       }
 
                     },
@@ -1180,6 +1185,7 @@ function multi_suggest_function(data, hour, minute) {
 
                       }
 
+
                     }
                   },
                 }
@@ -1240,7 +1246,7 @@ function send_suggest() {
   }
   $("div:regex(id, .*sugged_.*)").remove();
   $("div:regex(id, .*sug_.*)").remove();
-  $("#suggest-search").val("");
+  $("#suggest-search").val("Search for friends to meet up with...");
   $("#suggest-hour").val("");
   $("#suggest-minute").val("");
 
@@ -1248,13 +1254,19 @@ function send_suggest() {
 
 </script>
 <style>
+
 body .modal.fade.suggest-modal {
+  width: 100%;
+  /*max-width: 450px;
+  margin-left: 30%;*/
+}
+body .modal.fade.how-to-modal {
   max-width: 100%;
   /*max-width: 450px;
   margin-left: 30%;*/
 }
 body .modal-footer {
-  max-width: 100%;
+  width: 100%;
   /*width: 100%;*/
 }
 
@@ -1264,17 +1276,43 @@ body .modal-footer {
 
   }
 
+  div#scroll-able-help {
+    height: 260px;
+    width: 100%;
+    overflow: scroll;
+
+  }
+
 </style>
+
+
+<div class="modal fade how-to-modal" tabindex="-1" role="dialog" aria-labelledby="helpmodal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">How to use UpDog</h5>
+      </div>
+      <div id="scroll-able-help">
+        <div class="modal-body" style="max-height:200px">
+          Welcome to UpDog. UpDog is really easy and intuitive to use, but here's a quick primer to help get you off the ground:<br><br>
+          <li>Click and drag to create a new downtime, and double click to add a new event. Click on either to edit it or find people for it. Drag the body of either to move it, or the bottom to extend it.</li><br>
+          <li>Search someone's Facebook first or last name in the search bar to find them as a new friend, or in your current friends. Click on a friend to toggle overlaying their downtimes with your calendar.</li><br>
+          <li>Respond to friend requests and notifications with the buttons in the upper right.</li>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">I'm up for it</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="modal fade suggest-modal" tabindex="-1" role="dialog" aria-labelledby="myScheduleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header modal-lg">
-       <h4 class="modal-title">Suggest An Event</h4>
-     </div>
-
      <div class="modal-body" style="max-height:200px">
-      
+      <h4 class="modal-title">Suggest An Event</h4>
+      <hr>
         <div class="list-group col-xs-12 col-sm-12">
           <form class="list-group-item list-group-item-info" method="post" name="form" autocomplete=off>
           <input id="suggest-search" class="list-group-item" value="Search for friends to meet up with..." size="74" name="search" type="text" onfocus="inputFocus(this)" onblur="inputBlur(this)" />
@@ -1298,17 +1336,19 @@ body .modal-footer {
         </div>
       </div>
 
-      <div id="scroll-able-3">
+    <div id="scroll-able-3">
       <div class="list-group col-xs-12 col-sm-12">
           <form class="list-group-item list-group-item-info" method="post" name="form">Input an Event Length: <input id="suggest-hour" size="2" maxlength="2" type="text" /> hour(s) <input id="suggest-minute" size="2" maxlength="2" type="text" /> minute(s)
           </form>
       </div>
     </div>
-
+    <hr>
+    <button type="button" style="float:right" class="btn btn-primary" data-dismiss="modal" onclick="send_suggest()">Suggest!</button>
+      <button type="button" style="float:right" class="btn btn-default" data-dismiss="modal" onclick="cancel_suggest()">Cancel</button>
+      
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-default" data-dismiss="modal" onclick="cancel_suggest()">Cancel</button>
-      <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="send_suggest()">Suggest!</button>
+
     </div>
   </div><!-- /.modal-content -->
 </div><!-- /.modal-dialog -->
@@ -1333,8 +1373,6 @@ suggest_search_function = function() {
           },
           success: function (data) {
             var mydata = JSON.parse(data);
-            console.log("snapple apple: ");
-            console.log(mydata);
 
             var dlength = mydata.length;
             var userhtml = "";
@@ -1394,7 +1432,6 @@ $('#suggest-search').keypress(function(e){
     <p>Drag to create blocks of free time, double-click to create events. Click suggest to schedule meetings. Find your friends using the search box.</p>
 
     {% endif %}
-
 
   </div>
 
