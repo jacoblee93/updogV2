@@ -1132,10 +1132,23 @@ cancel_delete_repeating_events.onclick = function() {
 
         if (event.editable) {
 
-          $dialog.dialog({
+          $dialog.dialog(
+            {
+              autoOpen: false,
               width: 500,
               height: 300,
+              modal: true,
+              show: {effect: "slideDown", duration: 500},
+              open: function() {
+                $('.ui-widget-overlay').addClass('custom-overlay');
+              },
+              close: function() {
+                $('.ui-widget-overlay').removeClass('custom-overlay');
+              },
+              resizable: false,
+              draggable: false,
             });
+
           var suggest = document.createElement("input");
           suggest.className = "btn btn-primary";
           suggest.setAttribute('type', "submit");
