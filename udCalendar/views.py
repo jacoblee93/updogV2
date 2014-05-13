@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
 from datetime import date, time, timedelta
-#from datetime import datetime
 from django.utils.timezone import utc
 
 from django.db.models import Q
@@ -17,7 +16,6 @@ from operator import attrgetter
 import random
 from django.views.decorators.csrf import csrf_exempt
 
-# TESTING JSON STUFF
 from django.utils import simplejson
 from django.core import serializers
 import json
@@ -29,7 +27,6 @@ import os
 # A view in which to test graphics
 def test(request):
     context = RequestContext(request)
-    #user = UpDogUser.objects.order_by('-user')[4]
     user = request.user.updoguser
 
     ships_list = user.get_friends()
@@ -53,13 +50,8 @@ def calendar(request):
     friends_list = []
     for ship in ordered_ships_list:
         friends_list.append(ship.to_user.user)
-
-    # Alex - for local use when rediesigning friends tab 
-    #json_friends = serializers.serialize("json", friends_list)
-
     context_dict = {'friends_list': friends_list}#json_friends}
 
-    #display = parser.parse(request.POST['display_date'].strip("\""))
     display = datetime.datetime.utcnow().replace(tzinfo=utc)
 
     json_events = serializers.serialize("json", gimme_events(current_user, display))
@@ -96,7 +88,7 @@ def gimme_events(current_user, date):
     return events_list
 
 def gimme_downtimes(current_user, date):
-    ## downtimes for 60 days, surrounding today
+    ## downtimes for 60 days, surrounding date
     i = 0
     start_date = date
     dts_list = []
@@ -121,7 +113,6 @@ def gimme_downtimes(current_user, date):
 
     return dts_list
 
-#### TRYING TO have FRONT END REQUEST A FRIENDS EVENTS::::: WE DON:T ACTUALLY NEED THIS *SWITCH TO DOWNTIMES*
 @login_required
 @csrf_exempt
 def get_friends_events(request):
@@ -145,23 +136,20 @@ def get_friends_events(request):
 @login_required
 @csrf_exempt
 def get_friends_downtimes(request):
-    try:
-        if request.is_ajax():
-            if request.method == 'POST':
-                if 'friend' in request.POST:
-                    friend = request.POST['friend']
-                    friend = User.objects.filter(username=friend)[0]
-                    if friend:
-                        display = parser.parse(request.POST['display_date'].strip("\""))
+    if request.is_ajax():
+        if request.method == 'POST':
+            if 'friend' in request.POST:
+                friend = request.POST['friend']
+                friend = User.objects.filter(username=friend)[0]
+                if friend:
+                    display = parser.parse(request.POST['display_date'].strip("\""))
 
-                        friend_downtimes = gimme_downtimes(friend.updoguser, display)
-                        json_downtimes = serializers.serialize("json", friend_downtimes)
+                    friend_downtimes = gimme_downtimes(friend.updoguser, display)
+                    json_downtimes = serializers.serialize("json", friend_downtimes)
 
-                        return HttpResponse(json_downtimes)
-        else: 
-            return HttpResponse("Failure!!!!")
-    except Exception as e:
-        print e
+                    return HttpResponse(json_downtimes)
+    else: 
+        return HttpResponse("Failure!!!!")
 
 def login(request):
     context = RequestContext(request)
@@ -199,9 +187,6 @@ def add_downtime(request):
                 end_time__lte=endDate) | me.downtime_set.filter(start_time__lte=startDate,
                 end_time__gte=endDate)
 
-            ### comment these two back out
-            #existing_dt = existing_dt.exclude(start_time=endDate)
-            #existing_dt = existing_dt.exclude(end_time=startDate)
             merged = False
             if len(existing_dt) == 0:
                 new_downtime = Downtime.objects.get_or_create(owner=me, start_time=startDate, end_time=endDate)[0]
@@ -372,8 +357,6 @@ def edit_event(request):
 
             repeating_events = [event,]
 
-          #############################JUST CHANGED THIS!!!  event.save()
-
             # don't save the edited event if the end_time happens before the start_time
             if (event.start_time < event.end_time):
                 event.save()
@@ -446,8 +429,6 @@ def edit_repeating_events(request):
 
             repeating_events = [event,]
 
-      ################ JUST CHANGED THIS!!!!####### event.save()
-
             # don't save the edited event if the end_time happens before the start_time
             if (event.start_time < event.end_time):
                 event.save()
@@ -508,8 +489,7 @@ def edit_downtime(request):
                 start_time__lte=downtime.end_time) | me.downtime_set.filter(end_time__gte=downtime.start_time,
                 end_time__lte=downtime.end_time) | me.downtime_set.filter(start_time__lte=downtime.start_time,
                 end_time__gte=downtime.end_time)
-            #existing_dt = existing_dt.exclude(start_time=downtime.end_time)
-            #existing_dt = existing_dt.exclude(end_time=downtime.start_time)
+
             existing_dt = existing_dt.exclude(pk=downtime.pk)
             existing_dt = existing_dt.filter(preferred_activity=downtime.preferred_activity)
             merged = False
@@ -553,36 +533,29 @@ def edit_downtime(request):
 def resolve_repeating_conflicts(request):
     if request.is_ajax():
         if request.method == 'POST':
-            try:
-                uduser = request.user.updoguser
+            uduser = request.user.updoguser
 
-                event = Event.objects.filter(pk=request.POST['pk'])[0]
+            event = Event.objects.filter(pk=request.POST['pk'])[0]
 
-                startDate = event.start_time
-                endDate = event.end_time
+            startDate = event.start_time
+            endDate = event.end_time
 
-                # this event's updog user
-                # uduser = request.user.updoguser
+            # get all downtimes overlapping with this event
+            overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
+                start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
+                end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
+                end_time__gte=endDate)
 
-                # get all downtimes overlapping with this event
-                overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
-                    start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
-                    end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
-                    end_time__gte=endDate)
+            list_of_new_downtimes = []
 
-                list_of_new_downtimes = []
+            # store all the downtimes that overlap with the changed event
+            for downtime in overlapping_downtimes:
+                new_downtimes = handle_overlap(event, downtime)
+                if new_downtimes:
+                    for new_downtime in new_downtimes:
+                        list_of_new_downtimes.append(new_downtime)
 
-                # store all the downtimes that overlap with the changed event
-                for downtime in overlapping_downtimes:
-                    new_downtimes = handle_overlap(event, downtime)
-                    if new_downtimes:
-                        for new_downtime in new_downtimes:
-                            list_of_new_downtimes.append(new_downtime)
-
-                json_downtimes = serializers.serialize("json", list_of_new_downtimes)
-
-            except Exception as e:
-                print e
+            json_downtimes = serializers.serialize("json", list_of_new_downtimes)
 
             return HttpResponse(json_downtimes);
         else: return HttpResponse("Didn't sent a POST request to resolve_repeating_conflicts");
@@ -593,60 +566,57 @@ def resolve_repeating_conflicts(request):
 def change_event(request):
     if request.is_ajax():
         if request.method == 'POST':    
-            try:        
-                event = Event.objects.filter(pk=request.POST['pk'])[0]
-                time_changes = timedelta(days = int(request.POST['day_delta']), 
-                    minutes = int(request.POST['minute_delta']))
+       
+            event = Event.objects.filter(pk=request.POST['pk'])[0]
+            time_changes = timedelta(days = int(request.POST['day_delta']), 
+                minutes = int(request.POST['minute_delta']))
 
-                event.end_time = event.end_time + time_changes
+            event.end_time = event.end_time + time_changes
 
-                if request.POST['resize'] == "false":
-                    event.start_time = event.start_time + time_changes
-                # make sure a changed event is no longer part of a linked list
-                # of repeating events
-                if event.prev_repeated_event != -1:
-                    prev_event = Event.objects.filter(pk = event.prev_repeated_event)[0]
-                    prev_event.next_repeated_event = event.next_repeated_event
-                    prev_event.save()
-                if event.next_repeated_event != -1:
-                    next_event = Event.objects.filter(pk = event.next_repeated_event)[0]
-                    next_event.prev_repeated_event = event.prev_repeated_event
-                    next_event.save()
-                event.repeating_time_delta = -1
-                event.next_repeated_event = -1
-                event.prev_repeated_event = -1
+            if request.POST['resize'] == "false":
+                event.start_time = event.start_time + time_changes
+            # make sure a changed event is no longer part of a linked list
+            # of repeating events
+            if event.prev_repeated_event != -1:
+                prev_event = Event.objects.filter(pk = event.prev_repeated_event)[0]
+                prev_event.next_repeated_event = event.next_repeated_event
+                prev_event.save()
+            if event.next_repeated_event != -1:
+                next_event = Event.objects.filter(pk = event.next_repeated_event)[0]
+                next_event.prev_repeated_event = event.prev_repeated_event
+                next_event.save()
+            event.repeating_time_delta = -1
+            event.next_repeated_event = -1
+            event.prev_repeated_event = -1
 
-                if 'activity' in request.POST:
-                    event.activity = request.POST['activity']
+            if 'activity' in request.POST:
+                event.activity = request.POST['activity']
 
-                event.save()
+            event.save()
 
-                startDate = event.start_time
-                endDate = event.end_time
+            startDate = event.start_time
+            endDate = event.end_time
 
-                # this event's updog user
-                uduser = request.user.updoguser
+            # this event's updog user
+            uduser = request.user.updoguser
 
-                # get all downtimes overlapping with this event
-                overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
-                    start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
-                    end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
-                    end_time__gte=endDate)
+            # get all downtimes overlapping with this event
+            overlapping_downtimes = uduser.downtime_set.filter(start_time__gte=startDate, 
+                start_time__lte=endDate) | uduser.downtime_set.filter(end_time__gte=startDate,
+                end_time__lte=endDate) | uduser.downtime_set.filter(start_time__lte=startDate,
+                end_time__gte=endDate)
 
-                list_of_new_downtimes = []
+            list_of_new_downtimes = []
 
-                # store all the downtimes that overlap with the changed event
-                for downtime in overlapping_downtimes:
-                    new_downtimes = handle_overlap(event, downtime)
-                    if new_downtimes:
-                        for new_downtime in new_downtimes:
-                            list_of_new_downtimes.append(new_downtime)
+            # store all the downtimes that overlap with the changed event
+            for downtime in overlapping_downtimes:
+                new_downtimes = handle_overlap(event, downtime)
+                if new_downtimes:
+                    for new_downtime in new_downtimes:
+                        list_of_new_downtimes.append(new_downtime)
 
-                json_downtimes = serializers.serialize("json", list_of_new_downtimes)
+            json_downtimes = serializers.serialize("json", list_of_new_downtimes)
 
-
-            except Exception as e:
-                print e
 
         # return all the downtimes that overlap with the changed event
         return HttpResponse(json_downtimes)
@@ -672,7 +642,6 @@ def change_downtime(request):
             else:
                 startDate = downtime.start_time
 
-            ##=============================
             me = request.user.updoguser
             
             existing_dt = me.downtime_set.filter(start_time__gte=startDate, 
@@ -680,10 +649,6 @@ def change_downtime(request):
                 end_time__lte=endDate) | me.downtime_set.filter(start_time__lte=startDate,
                 end_time__gte=endDate)
 
-
-            #############comment back out
-            #existing_dt = existing_dt.exclude(start_time=endDate)
-            #existing_dt = existing_dt.exclude(end_time=startDate)
             existing_dt = existing_dt.exclude(pk=downtime.pk)
 
             merged = False
@@ -745,8 +710,6 @@ def event_conflicts(request):
             startDate = downtime.start_time
             endDate = downtime.end_time
 
-        
-
             # get all events overlapping with this event
             overlapping_events = uduser.events.filter(start_time__gte=startDate, 
                 start_time__lte=endDate) | uduser.events.filter(end_time__gte=startDate,
@@ -803,6 +766,7 @@ def remove_event(request):
             return HttpResponse("Success here!!!!!")
     else: return HttpResponse("Failure here!!!!")
 
+
 @login_required
 @csrf_exempt
 def remove_downtime(request):
@@ -836,54 +800,52 @@ def get_friends(request):
 @login_required
 @csrf_exempt
 def find_friends(request):
-    try:
-        if request.is_ajax():
-            if request.method == 'GET':
-                friendships_list = Friendship.objects.filter(to_user = request.user.updoguser, is_new = False)
-                friendships_list = friendships_list.order_by('-is_mutual')
+    if request.is_ajax():
+        if request.method == 'GET':
+            friendships_list = Friendship.objects.filter(to_user = request.user.updoguser, is_new = False)
+            friendships_list = friendships_list.order_by('-is_mutual')
 
-                friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]))
-                friends_list = friends_list.exclude(user__username = request.user.username)
+            friends_list = UpDogUser.objects.filter(Q(user__first_name__istartswith=request.GET["search"]) | Q(user__last_name__istartswith=request.GET["search"]))
+            friends_list = friends_list.exclude(user__username = request.user.username)
 
-                users = []
+            users = []
 
-                
-                fl = len(friendships_list)
-                f2 = len(friends_list)
-                user_list = []
-                friend_status = []
+            
+            fl = len(friendships_list)
+            f2 = len(friends_list)
+            user_list = []
+            friend_status = []
 
-                for i in xrange(0,fl):
-                    if friendships_list[i].is_mutual == True:
-                        users.append(friendships_list[i].from_user)
+            for i in xrange(0,fl):
+                if friendships_list[i].is_mutual == True:
+                    users.append(friendships_list[i].from_user)
 
-                ul = len(users)
+            ul = len(users)
 
-                for i in xrange(0,ul):
-                    if (users[i] in friends_list):
-                        if friendships_list[i].is_mutual:
-                            user_list.append(users[i].user)
-                            friend_status.append(1)
+            for i in xrange(0,ul):
+                if (users[i] in friends_list):
+                    if friendships_list[i].is_mutual:
+                        user_list.append(users[i].user)
+                        friend_status.append(1)
 
-                for i in xrange(0,f2):
-                    if (friends_list[i] in users):
-                        i = i
-                    else:
-                        check = Friendship.objects.filter(to_user = request.user.updoguser, from_user = friends_list[i].user, is_mutual = False)
-                        if not check:   
-                            user_list.append(friends_list[i].user)
-                            friend_status.append(0)
-
-                if user_list:
-                    user_list = serializers.serialize('json', user_list)
-                    json_stuff = simplejson.dumps([user_list, friend_status])
-                    return HttpResponse(json_stuff, content_type ="application/json")
-
+            for i in xrange(0,f2):
+                if (friends_list[i] in users):
+                    i = i
                 else:
-                    return HttpResponse("no friends")
+                    check = Friendship.objects.filter(to_user = request.user.updoguser, from_user = friends_list[i].user, is_mutual = False)
+                    if not check:   
+                        user_list.append(friends_list[i].user)
+                        friend_status.append(0)
 
-    except Exception as e:
-        print e
+            if user_list:
+                user_list = serializers.serialize('json', user_list)
+                json_stuff = simplejson.dumps([user_list, friend_status])
+                return HttpResponse(json_stuff, content_type ="application/json")
+
+            else:
+                return HttpResponse("no friends")
+
+
 
     return HttpResponse("Uh-Oh")
 
@@ -953,37 +915,33 @@ def suggest_search(request):
 @csrf_exempt
 def send_friend_request(request):
 
-    try: 
-        if request.is_ajax():
-            if request.method == 'POST':
+    if request.is_ajax():
+        if request.method == 'POST':
 
-                if 'new_friend' in request.POST and 'i' in request.POST:
-                    i = request.POST['i']
-                    new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
-                    current_user = request.user.updoguser
+            if 'new_friend' in request.POST and 'i' in request.POST:
+                i = request.POST['i']
+                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                current_user = request.user.updoguser
 
-                    to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)
 
-                    if to_friendship:
-                        return HttpResponse("Request Pending," + i)
+                if to_friendship:
+                    return HttpResponse("Request Pending," + i)
 
-                    current_user.add_friend(new_friend)
+                current_user.add_friend(new_friend)
 
-                    to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
-                    from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
+                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
 
-                    to_friendship.is_new = True
-                    new_friend.new_friend_requests = True
+                to_friendship.is_new = True
+                new_friend.new_friend_requests = True
 
-                    to_friendship.save()
-                    new_friend.save()
+                to_friendship.save()
+                new_friend.save()
 
-                    return HttpResponse("Success," + i)
+                return HttpResponse("Success," + i)
 
-        return HttpResponse("Failure!")
-
-    except Exception as e:
-        print e
+    return HttpResponse("Failure!")
 
 @login_required
 @csrf_exempt
@@ -1015,184 +973,174 @@ def accept_friend_request(request):
 @login_required
 @csrf_exempt
 def reject_friend_request(request):
-    try:
-        if request.is_ajax():
-            if request.method == 'POST':
-                if 'new_friend' in request.POST:
-                    new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
-                    current_user = request.user.updoguser
 
-                    to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
-                    from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
+    if request.is_ajax():
+        if request.method == 'POST':
+            if 'new_friend' in request.POST:
+                new_friend = UpDogUser.objects.filter(user__username=request.POST['new_friend'])[0]
+                current_user = request.user.updoguser
 
-                    to_friendship.delete()
-                    from_friendship.delete()
+                to_friendship = Friendship.objects.filter(to_user=new_friend, from_user=current_user)[0]
+                from_friendship = Friendship.objects.filter(to_user=current_user, from_user=new_friend)[0]
+
+                to_friendship.delete()
+                from_friendship.delete()
 
 
-                    return HttpResponse("Success!")
-
-    except Exception as e:
-        print e                
+                return HttpResponse("Success!")
 
     return HttpResponse("Failure!")
 
 @login_required
 @csrf_exempt
 def multi_suggest(request):
-    try:
-        if request.is_ajax():
-            if request.method == 'GET':
-                if 'suggest_list' in request.GET:
-                    exclude_list = []
-                    if 'exclude' in request.GET:
-                        exclude = json.loads(request.GET['exclude'])
-                        for exclude_me in exclude:
-                            exclude_list.append(Event.objects.filter(pk=exclude_me)[0])
+    if request.is_ajax():
+        if request.method == 'GET':
+            if 'suggest_list' in request.GET:
+                exclude_list = []
+                if 'exclude' in request.GET:
+                    exclude = json.loads(request.GET['exclude'])
+                    for exclude_me in exclude:
+                        exclude_list.append(Event.objects.filter(pk=exclude_me)[0])
 
-                    if 'hours' in request.GET:
-                        hours = request.GET['hours']
-                        if hours == "NaN":
-                            hours = 0;
-                        else:
-                            hours = int(hours)
-                    else: hours = 0
-                    if 'minutes' in request.GET:
-                        minutes = request.GET['minutes']
-                        if minutes == "NaN":
-                            minutes = 0;
-                        else:
-                            minutes = int(minutes)
-                    else: minutes = 0
-                    if hours == 0 and minutes == 0:
-                        is_specified = False
+                if 'hours' in request.GET:
+                    hours = request.GET['hours']
+                    if hours == "NaN":
+                        hours = 0;
                     else:
-                        is_specified = True
+                        hours = int(hours)
+                else: hours = 0
+                if 'minutes' in request.GET:
+                    minutes = request.GET['minutes']
+                    if minutes == "NaN":
+                        minutes = 0;
+                    else:
+                        minutes = int(minutes)
+                else: minutes = 0
+                if hours == 0 and minutes == 0:
+                    is_specified = False
+                else:
+                    is_specified = True
 
-                    delta = timedelta(hours=hours,minutes=minutes)
-                    single = []
-                    users = json.loads(request.GET['suggest_list'])
-                    #print users
-                    current_user = request.user.updoguser
-                    ## fix this if we have time!
-                    start_date = datetime.datetime.utcnow().replace(tzinfo=utc) - timedelta(hours=4)
-                    after_today = current_user.downtime_set.filter(end_time__gte=start_date)
+                delta = timedelta(hours=hours,minutes=minutes)
+                single = []
+                users = json.loads(request.GET['suggest_list'])
+                current_user = request.user.updoguser
+                ## fix this if we have time!
+                start_date = datetime.datetime.utcnow().replace(tzinfo=utc) - timedelta(hours=4)
+                after_today = current_user.downtime_set.filter(end_time__gte=start_date)
 
-                    ordered = after_today.order_by('start_time')
-                    if len(ordered) == 0:
-                        return HttpResponse(None)
-                    
-                    if len(users) == 0:
-                        return HttpResponse("NoFriends")
+                ordered = after_today.order_by('start_time')
+                if len(ordered) == 0:
+                    return HttpResponse(None)
+                
+                if len(users) == 0:
+                    return HttpResponse("NoFriends")
 
 
-                    for my_dt in ordered: # cycle through logged in users downtimes
+                for my_dt in ordered: # cycle through logged in users downtimes
 
-                        amigo_dts = [] # list of lists of downtimes
-                        for user in users:
+                    amigo_dts = [] # list of lists of downtimes
+                    for user in users:
 
-                            amigo = UpDogUser.objects.filter(user__username=user)[0]
-                            if amigo.user not in single:
-                                single.append(amigo.user)
-                            options = amigo.downtime_set.filter(start_time__gte=my_dt.start_time, 
-                                start_time__lte=my_dt.end_time) | amigo.downtime_set.filter(end_time__gte=my_dt.start_time,
-                                 end_time__lte=my_dt.end_time) | amigo.downtime_set.filter(start_time__lte=my_dt.start_time,
-                                  end_time__gte=my_dt.end_time)
+                        amigo = UpDogUser.objects.filter(user__username=user)[0]
+                        if amigo.user not in single:
+                            single.append(amigo.user)
+                        options = amigo.downtime_set.filter(start_time__gte=my_dt.start_time, 
+                            start_time__lte=my_dt.end_time) | amigo.downtime_set.filter(end_time__gte=my_dt.start_time,
+                             end_time__lte=my_dt.end_time) | amigo.downtime_set.filter(start_time__lte=my_dt.start_time,
+                              end_time__gte=my_dt.end_time)
 
-                            options = options.exclude(start_time=my_dt.end_time)
-                            options = options.exclude(end_time=my_dt.start_time)
+                        options = options.exclude(start_time=my_dt.end_time)
+                        options = options.exclude(end_time=my_dt.start_time)
 
-                            if len(options) == 0:
-                                ordered.exclude(pk=my_dt.pk)
-                                if len(ordered) == 0:
-                                    return HttpResponse("NoMatch")
-                                break
-                                ####continue to next my_dt
-                            else:
-                                amigo_dts.append(options)
+                        if len(options) == 0:
+                            ordered.exclude(pk=my_dt.pk)
+                            if len(ordered) == 0:
+                                return HttpResponse("NoMatch")
+                            break
+                            ####continue to next my_dt
+                        else:
+                            amigo_dts.append(options)
 
-                        if len(amigo_dts) != len(users):
-                            continue
-                        newb = multi_get_overlap(my_dt, amigo_dts, delta, is_specified, exclude_list)
-                        if newb:
-                            added = Event.objects.get_or_create(start_time=newb[0], end_time=newb[1])[0]
-                            added.add_user(my_dt.owner)
-                            single.insert(0, added)
-                            json_me = serializers.serialize('json',single)
-                            return HttpResponse(json_me)
-                    return HttpResponse("NoMatch")
-                    
-        else:
-            return HttpResponse("You messup!!?!?!?")
-    except Exception as e:
-        print e
+                    if len(amigo_dts) != len(users):
+                        continue
+                    newb = multi_get_overlap(my_dt, amigo_dts, delta, is_specified, exclude_list)
+                    if newb:
+                        added = Event.objects.get_or_create(start_time=newb[0], end_time=newb[1])[0]
+                        added.add_user(my_dt.owner)
+                        single.insert(0, added)
+                        json_me = serializers.serialize('json',single)
+                        return HttpResponse(json_me)
+                return HttpResponse("NoMatch")
+                
+    else:
+        return HttpResponse("Failure")
 
 def multi_get_overlap(mine, yalls, delta, is_specified, exclude_list):
-    try:
-        ## walls overlap is a list of overlaps (each overlap consists of a start and end time)
-        ## that work for all users that have been checked so far
-        ## fix this if we have time!
-        start_date = datetime.datetime.utcnow().replace(tzinfo=utc) - timedelta(hours=4)
-        real_time = max(mine.start_time, start_date)
-        walls_overlap = [[real_time, mine.end_time]]
-        ## for each friend in the suggests list, update the overlaps list to reflect thier freetimes
-        for yall in yalls: # yalls is a list of a list of downtimes      
-            ## for each overlap possibility that has worked for everyone else so far...
+    ## walls overlap is a list of overlaps (each overlap consists of a start and end time)
+    ## that work for all users that have been checked so far
+    start_date = datetime.datetime.utcnow().replace(tzinfo=utc) - timedelta(hours=4)
+    real_time = max(mine.start_time, start_date)
+    walls_overlap = [[real_time, mine.end_time]]
+    ## for each friend in the suggests list, update the overlaps list to reflect thier freetimes
+    for yall in yalls: # yalls is a list of a list of downtimes      
+        ## for each overlap possibility that has worked for everyone else so far...
+        for overlap in walls_overlap:
+            walls_overlap.remove(overlap)
+            for yall_dt in yall: # yall is a list of a single friends downtimes
+                burlap = get_overlap(yall_dt, overlap)
+
+                if burlap:
+                    walls_overlap.append(burlap)
+
+    if len(exclude_list) > 0:
+        for excluded_event in exclude_list:
             for overlap in walls_overlap:
-                walls_overlap.remove(overlap)
-                for yall_dt in yall: # yall is a list of a single friends downtimes
-                    burlap = get_overlap(yall_dt, overlap)
+                if (overlap[0]>=excluded_event.start_time and overlap[0] <=excluded_event.end_time) or (overlap[1]>=excluded_event.start_time and overlap[1]<=excluded_event.end_time) or (overlap[0]<=excluded_event.start_time and overlap[1]>=excluded_event.end_time):
+                  if not overlap[0] == excluded_event.end_time and not overlap[1] == excluded_event.start_time:
+                    # they overlap~
+                    # split walls overlap by the excluded event
+                    walls_overlap.remove(overlap)
 
-                    if burlap:
-                        walls_overlap.append(burlap)
+                    exclusions = get_exclusions(overlap, [excluded_event.start_time, excluded_event.end_time])
+                    if exclusions:
+                        for exclusion in exclusions:
+                            walls_overlap.append(exclusion)
 
-        if len(exclude_list) > 0:
-            for excluded_event in exclude_list:
-                for overlap in walls_overlap:
-                    if (overlap[0]>=excluded_event.start_time and overlap[0] <=excluded_event.end_time) or (overlap[1]>=excluded_event.start_time and overlap[1]<=excluded_event.end_time) or (overlap[0]<=excluded_event.start_time and overlap[1]>=excluded_event.end_time):
-                      if not overlap[0] == excluded_event.end_time and not overlap[1] == excluded_event.start_time:
-                        # they overlap~
-                        # split walls overlap by the excluded event
-                        walls_overlap.remove(overlap)
+    # return the first thing in the overlaps list
+    if len(walls_overlap) == 0:
+        return None
+    else:
+        if is_specified:
 
-                        exclusions = get_exclusions(overlap, [excluded_event.start_time, excluded_event.end_time])
-                        if exclusions:
-                            for exclusion in exclusions:
-                                walls_overlap.append(exclusion)
-
-        # return the first thing in the overlaps list
-        if len(walls_overlap) == 0:
-            return None
-        else:
-            if is_specified:
-
-                acceptable_overlaps = []
-                unacceptable_overlaps = []
-                for wall in walls_overlap:
-                    if wall[1]-wall[0] > delta:
-                        acceptable_overlaps.append(wall)
-                    else:
-                        unacceptable_overlaps.append(wall)
-                if len(acceptable_overlaps) == 0:
-                    longest_overlap = unacceptable_overlaps[0]
-                    for overlap in unacceptable_overlaps:
-                        if overlap[1]-overlap[0] > longest_overlap[1]-longest_overlap[0]:
-                            longest_overlap = overlap
-                    return longest_overlap
-
+            acceptable_overlaps = []
+            unacceptable_overlaps = []
+            for wall in walls_overlap:
+                if wall[1]-wall[0] > delta:
+                    acceptable_overlaps.append(wall)
                 else:
-                    earliest_overlap = acceptable_overlaps[0] # initialize
-                    for overlap in acceptable_overlaps:
-                        if overlap[0] < earliest_overlap[0]:
-                            earliest_overlap = overlap
-                    return [earliest_overlap[0], earliest_overlap[0] + delta]
+                    unacceptable_overlaps.append(wall)
+            if len(acceptable_overlaps) == 0:
+                longest_overlap = unacceptable_overlaps[0]
+                for overlap in unacceptable_overlaps:
+                    if overlap[1]-overlap[0] > longest_overlap[1]-longest_overlap[0]:
+                        longest_overlap = overlap
+                return longest_overlap
+
             else:
-                earliest_overlap = walls_overlap[0]
-                for overlap in walls_overlap:
+                earliest_overlap = acceptable_overlaps[0] # initialize
+                for overlap in acceptable_overlaps:
                     if overlap[0] < earliest_overlap[0]:
                         earliest_overlap = overlap
-                return earliest_overlap
-    except Exception as e:
-        print e
+                return [earliest_overlap[0], earliest_overlap[0] + delta]
+        else:
+            earliest_overlap = walls_overlap[0]
+            for overlap in walls_overlap:
+                if overlap[0] < earliest_overlap[0]:
+                    earliest_overlap = overlap
+            return earliest_overlap
+
     return "failure"
 
 # this function returns the overlapped time between one and two as
@@ -1236,261 +1184,254 @@ def get_overlap(one, two):
 @login_required
 @csrf_exempt
 def suggest(request):
-    try:
-        if request.is_ajax():
-            if request.method == 'GET':
-                exclude_list = []
 
-                if 'exclude' in request.GET:
-                    exclude = json.loads(request.GET['exclude'])
-                    for exclude_me in exclude:
-                        exclude_list.append(Event.objects.filter(pk=exclude_me)[0])
+    if request.is_ajax():
+        if request.method == 'GET':
+            exclude_list = []
 
-                # each friend in this list corresponds to an event in exclude_list
-                # so that we don't suggest the same event with the same person
-                exclude_friends_list = []
-                if 'exclude_friends' in request.GET:
-                    exclude_friends = json.loads(request.GET['exclude_friends'])
-                    for excluded_friend in exclude_friends:
-                        exclude_friends_list.append(UpDogUser.objects.filter(pk=excluded_friend)[0])
+            if 'exclude' in request.GET:
+                exclude = json.loads(request.GET['exclude'])
+                for exclude_me in exclude:
+                    exclude_list.append(Event.objects.filter(pk=exclude_me)[0])
 
-                single = []
-                current_user = request.user.updoguser
+            # each friend in this list corresponds to an event in exclude_list
+            # so that we don't suggest the same event with the same person
+            exclude_friends_list = []
+            if 'exclude_friends' in request.GET:
+                exclude_friends = json.loads(request.GET['exclude_friends'])
+                for excluded_friend in exclude_friends:
+                    exclude_friends_list.append(UpDogUser.objects.filter(pk=excluded_friend)[0])
 
-                if 'hours' in request.GET:
-                    hours = request.GET['hours']
-                    if hours == "NaN":
-                        hours = 0;
-                    else:
-                        hours = int(hours)
-                else: hours = 0
-                if 'minutes' in request.GET:
-                    minutes = request.GET['minutes']
-                    if minutes == "NaN":
-                        minutes = 0;
-                    else:
-                        minutes = int(minutes)
-                else: minutes = 0
+            single = []
+            current_user = request.user.updoguser
 
-                if hours == 0 and minutes == 0:
-                    is_specified = False
+            if 'hours' in request.GET:
+                hours = request.GET['hours']
+                if hours == "NaN":
+                    hours = 0;
                 else:
-                    is_specified = True
+                    hours = int(hours)
+            else: hours = 0
+            if 'minutes' in request.GET:
+                minutes = request.GET['minutes']
+                if minutes == "NaN":
+                    minutes = 0;
+                else:
+                    minutes = int(minutes)
+            else: minutes = 0
 
-                delta = timedelta(hours=hours,minutes=minutes)
+            if hours == 0 and minutes == 0:
+                is_specified = False
+            else:
+                is_specified = True
 
-                if 'pk' in request.GET:
-                    if request.GET['pk'] != "no_pk":
-                        my_dt = Downtime.objects.filter(pk=parse_downtime_id(request.GET['pk']))[0]
-                        output = get_friends_overlapping_downtimes(current_user, my_dt, exclude_friends_list)
-                        if output == "NoMatch":
-                            return HttpResponse("NoMatch")
-                        elif output == "NoFriends":
-                            return HttpResponse("NoFriends")
-                        json_output = create_event_from_friends_overlapping_downtimes(output[0], my_dt, output[1])
-                        if json_output == None:
-                            return HttpResponse("Failure")
-                        return HttpResponse(json_output)
-                    else:
-                        ### fix later if patience found
-                        start_date = datetime.datetime.utcnow().replace(tzinfo=utc) - timedelta(hours=4)
-                        after_today = current_user.downtime_set.filter(end_time__gte=start_date)
-                        ordered = after_today.order_by('start_time')
-                        if len(ordered) == 0:
-                            return HttpResponse(None)
-                        
-                        # time was not specified
-                        if not is_specified:
-                            # do what we did before
-                            while len(ordered) > 0:
-                                my_dt = ordered[0]
-                                ordered = ordered.exclude(pk=my_dt.pk)
-                                my_friends = current_user.get_friends()
-                                if len(my_friends) == 0:
-                                    return HttpResponse("NoFriends")
-                                my_friends_ord = my_friends.order_by('-date_last_seen')
-                                minscore = 0
+            delta = timedelta(hours=hours,minutes=minutes)
 
-                                options = []
-                                while len(my_friends_ord) > 0:
-                                    maxscore = len(my_friends_ord)
-                                    amigo = my_friends_ord[int(minscore+(maxscore-minscore)*random.random()**2)].to_user
+            if 'pk' in request.GET:
+                if request.GET['pk'] != "no_pk":
+                    my_dt = Downtime.objects.filter(pk=parse_downtime_id(request.GET['pk']))[0]
+                    output = get_friends_overlapping_downtimes(current_user, my_dt, exclude_friends_list)
+                    if output == "NoMatch":
+                        return HttpResponse("NoMatch")
+                    elif output == "NoFriends":
+                        return HttpResponse("NoFriends")
+                    json_output = create_event_from_friends_overlapping_downtimes(output[0], my_dt, output[1])
+                    if json_output == None:
+                        return HttpResponse("Failure")
+                    return HttpResponse(json_output)
+                else:
+                    start_date = datetime.datetime.utcnow().replace(tzinfo=utc) - timedelta(hours=4)
+                    after_today = current_user.downtime_set.filter(end_time__gte=start_date)
+                    ordered = after_today.order_by('start_time')
+                    if len(ordered) == 0:
+                        return HttpResponse(None)
+                    
+                    # time was not specified
+                    if not is_specified:
+                        # do what we did before
+                        while len(ordered) > 0:
+                            my_dt = ordered[0]
+                            ordered = ordered.exclude(pk=my_dt.pk)
+                            my_friends = current_user.get_friends()
+                            if len(my_friends) == 0:
+                                return HttpResponse("NoFriends")
+                            my_friends_ord = my_friends.order_by('-date_last_seen')
+                            minscore = 0
 
-                                    options = amigo.downtime_set.filter(start_time__gte=my_dt.start_time, 
-                                        start_time__lte=my_dt.end_time) | amigo.downtime_set.filter(end_time__gte=my_dt.start_time,
-                                         end_time__lte=my_dt.end_time) | amigo.downtime_set.filter(start_time__lte=my_dt.start_time,
-                                          end_time__gte=my_dt.end_time)
+                            options = []
+                            while len(my_friends_ord) > 0:
+                                maxscore = len(my_friends_ord)
+                                amigo = my_friends_ord[int(minscore+(maxscore-minscore)*random.random()**2)].to_user
 
-                                    options = options.exclude(start_time=my_dt.end_time)
-                                    options = options.exclude(end_time=my_dt.start_time)
+                                options = amigo.downtime_set.filter(start_time__gte=my_dt.start_time, 
+                                    start_time__lte=my_dt.end_time) | amigo.downtime_set.filter(end_time__gte=my_dt.start_time,
+                                     end_time__lte=my_dt.end_time) | amigo.downtime_set.filter(start_time__lte=my_dt.start_time,
+                                      end_time__gte=my_dt.end_time)
 
-                                    ### what was originall below
-                                    my_friends_ord = my_friends_ord.exclude(to_user = amigo)
-                                    if len(my_friends_ord) == 0 and len(options) == 0:
-                                        if len(ordered) == 0:
-                                            return HttpResponse("NoMatch")
-                                        break
-                                    #for index in indices: #### FIX FIX FIX BSBSBSBSB
-                                    #    options = options.exclude(start_time=exclude_list[index].start_time) 
-                                    all_options = []
+                                options = options.exclude(start_time=my_dt.end_time)
+                                options = options.exclude(end_time=my_dt.start_time)
 
-                                    if len(options) > 0:
-                                        ## these are the indices where the amigo is in the exclude friends list
-                                        indices = [i for i, x in enumerate(exclude_friends_list) if x == amigo]
+                                ### what was originally below
+                                my_friends_ord = my_friends_ord.exclude(to_user = amigo)
+                                if len(my_friends_ord) == 0 and len(options) == 0:
+                                    if len(ordered) == 0:
+                                        return HttpResponse("NoMatch")
+                                    break
+                                all_options = []
 
-                                        for option in options:
-                                            real_time = max(option.start_time, start_date)
-                                            all_options.append([real_time, option.end_time])
-                                        for index in indices:
-                                            for option in all_options:
-                                                if (option[0]>=exclude_list[index].start_time and option[0] <=exclude_list[index].end_time) or (option[1]>=exclude_list[index].start_time and option[1]<=exclude_list[index].end_time) or (option[0]<=exclude_list[index].start_time and option[1]>=exclude_list[index].end_time):
-                                                    if not option[0] == exclude_list[index].end_time and not option[1] == exclude_list[index].start_time:
-                                                        all_options.remove(option)
-                                            
-                                                        exclusions = get_exclusions(option, [exclude_list[index].start_time, exclude_list[index].end_time])
-                                                        if exclusions:
-                                                            for exclusion in exclusions:
-                                                                all_options.append(exclusion)
+                                if len(options) > 0:
+                                    ## these are the indices where the amigo is in the exclude friends list
+                                    indices = [i for i, x in enumerate(exclude_friends_list) if x == amigo]
 
-                                        #for option in options.order_by('start_time'):
-                                        all_options.sort()
-                                    
-                                    if len(all_options) > 0:
-                                        #option = all_options.order_by('start_time')[0]
-                                        overlap = None
-                                        i = 0
-                                        while overlap == None:
-                                            option = all_options[i]
-                                            overlap = get_overlap(my_dt, option)
-                                            i = i + 1
-                                            if i >= len(all_options):
-                                                break
+                                    for option in options:
+                                        real_time = max(option.start_time, start_date)
+                                        all_options.append([real_time, option.end_time])
+                                    for index in indices:
+                                        for option in all_options:
+                                            if (option[0]>=exclude_list[index].start_time and option[0] <=exclude_list[index].end_time) or (option[1]>=exclude_list[index].start_time and option[1]<=exclude_list[index].end_time) or (option[0]<=exclude_list[index].start_time and option[1]>=exclude_list[index].end_time):
+                                                if not option[0] == exclude_list[index].end_time and not option[1] == exclude_list[index].start_time:
+                                                    all_options.remove(option)
+                                        
+                                                    exclusions = get_exclusions(option, [exclude_list[index].start_time, exclude_list[index].end_time])
+                                                    if exclusions:
+                                                        for exclusion in exclusions:
+                                                            all_options.append(exclusion)
 
-                                        if overlap == None:
+                                    all_options.sort()
+                                
+                                if len(all_options) > 0:
+                                    overlap = None
+                                    i = 0
+                                    while overlap == None:
+                                        option = all_options[i]
+                                        overlap = get_overlap(my_dt, option)
+                                        i = i + 1
+                                        if i >= len(all_options):
                                             break
 
-                                        newb = Event.objects.get_or_create(start_time=overlap[0],end_time=overlap[1])[0]
-                                        newb.add_user(my_dt.owner)
-                                        single.append(newb)
-
-                                        single.append(amigo.user)
-
-                                        json_output = serializers.serialize('json',single)
-
-                                        return HttpResponse(json_output)
-                            return HttpResponse("NoMatch")
-                        # we have specified a time 
-                        else:
-                            earliest_unacceptable = None
-                            earliest_amigo = None
-
-                            while len(ordered) > 0:
-                                my_dt = ordered[0]
-                                ordered = ordered.exclude(pk=my_dt.pk)
-                                options = []
-                               
-                                my_friends = current_user.get_friends()
-                                if len(my_friends) == 0:
-                                    return HttpResponse("NoFriends")
-                                my_friends_ord = my_friends.order_by('-date_last_seen')
-                                minscore = 0
-
-
-                                while len(my_friends_ord) > 0:
-                                    maxscore = len(my_friends_ord)
-                                    amigo = my_friends_ord[int(minscore+(maxscore-minscore)*random.random()**2)].to_user
-                                    options = amigo.downtime_set.filter(start_time__gte=my_dt.start_time, 
-                                        start_time__lte=my_dt.end_time) | amigo.downtime_set.filter(end_time__gte=my_dt.start_time,
-                                         end_time__lte=my_dt.end_time) | amigo.downtime_set.filter(start_time__lte=my_dt.start_time,
-                                          end_time__gte=my_dt.end_time)
-
-                                    options = options.exclude(start_time=my_dt.end_time)
-                                    options = options.exclude(end_time=my_dt.start_time)
-
-                                    my_friends_ord = my_friends_ord.exclude(to_user = amigo)
-                                    if len(my_friends_ord) == 0 and len(options) == 0:
-                                        if len(ordered) == 0:
-
-                                            if earliest_unacceptable == None:
-                                                return HttpResponse("NoMatch")
-                                            else:
-                                                overlap = earliest_unacceptable
-                                                amigo = earliest_amigo
-                                                newb = Event.objects.get_or_create(start_time=overlap[0],end_time=overlap[1])[0]
-                                                newb.add_user(my_dt.owner)
-
-                                                single.append(newb)
-                                                single.append(amigo.user)
-                                                json_output = serializers.serialize('json',single)
-                                                if json_output == None:
-                                                    return HttpResponse("Failure")
-                                                return HttpResponse(json_output)
+                                    if overlap == None:
                                         break
 
-                                    if len(options) > 0:
-                                        ## these are the indices where the amigo is in the exclude friends list
-                                        indices = [i for i, x in enumerate(exclude_friends_list) if x == amigo]
+                                    newb = Event.objects.get_or_create(start_time=overlap[0],end_time=overlap[1])[0]
+                                    newb.add_user(my_dt.owner)
+                                    single.append(newb)
 
-                                        all_options = []
-                                        for option in options:
-                                            real_time = max(option.start_time, start_date)
-                                            all_options.append([real_time, option.end_time])
-                                        for index in indices:
-                                            for option in all_options:
-                                                if (option[0]>=exclude_list[index].start_time and option[0] <=exclude_list[index].end_time) or (option[1]>=exclude_list[index].start_time and option[1]<=exclude_list[index].end_time) or (option[0]<=exclude_list[index].start_time and option[1]>=exclude_list[index].end_time):
-                                                    if not option[0] == exclude_list[index].end_time and not option[1] == exclude_list[index].start_time:
-                                                        all_options.remove(option)
+                                    single.append(amigo.user)
 
-                                                        exclusions = get_exclusions(option, [exclude_list[index].start_time, exclude_list[index].end_time])
-                                                        if exclusions:
-                                                            for exclusion in exclusions:
-                                                                all_options.append(exclusion)
+                                    json_output = serializers.serialize('json',single)
 
-                                        #for option in options.order_by('start_time'):
-                                        all_options.sort()
+                                    return HttpResponse(json_output)
+                        return HttpResponse("NoMatch")
+                    # we have specified a time 
+                    else:
+                        earliest_unacceptable = None
+                        earliest_amigo = None
 
+                        while len(ordered) > 0:
+                            my_dt = ordered[0]
+                            ordered = ordered.exclude(pk=my_dt.pk)
+                            options = []
+                           
+                            my_friends = current_user.get_friends()
+                            if len(my_friends) == 0:
+                                return HttpResponse("NoFriends")
+                            my_friends_ord = my_friends.order_by('-date_last_seen')
+                            minscore = 0
+
+
+                            while len(my_friends_ord) > 0:
+                                maxscore = len(my_friends_ord)
+                                amigo = my_friends_ord[int(minscore+(maxscore-minscore)*random.random()**2)].to_user
+                                options = amigo.downtime_set.filter(start_time__gte=my_dt.start_time, 
+                                    start_time__lte=my_dt.end_time) | amigo.downtime_set.filter(end_time__gte=my_dt.start_time,
+                                     end_time__lte=my_dt.end_time) | amigo.downtime_set.filter(start_time__lte=my_dt.start_time,
+                                      end_time__gte=my_dt.end_time)
+
+                                options = options.exclude(start_time=my_dt.end_time)
+                                options = options.exclude(end_time=my_dt.start_time)
+
+                                my_friends_ord = my_friends_ord.exclude(to_user = amigo)
+                                if len(my_friends_ord) == 0 and len(options) == 0:
+                                    if len(ordered) == 0:
+
+                                        if earliest_unacceptable == None:
+                                            return HttpResponse("NoMatch")
+                                        else:
+                                            overlap = earliest_unacceptable
+                                            amigo = earliest_amigo
+                                            newb = Event.objects.get_or_create(start_time=overlap[0],end_time=overlap[1])[0]
+                                            newb.add_user(my_dt.owner)
+
+                                            single.append(newb)
+                                            single.append(amigo.user)
+                                            json_output = serializers.serialize('json',single)
+                                            if json_output == None:
+                                                return HttpResponse("Failure")
+                                            return HttpResponse(json_output)
+                                    break
+
+                                if len(options) > 0:
+                                    ## these are the indices where the amigo is in the exclude friends list
+                                    indices = [i for i, x in enumerate(exclude_friends_list) if x == amigo]
+
+                                    all_options = []
+                                    for option in options:
+                                        real_time = max(option.start_time, start_date)
+                                        all_options.append([real_time, option.end_time])
+                                    for index in indices:
                                         for option in all_options:
-                                            overlap = get_overlap(my_dt, option)
-                                            if overlap != None:
-                                                if overlap[1]-overlap[0] < delta:
-                                                    if earliest_unacceptable == None:
-                                                        earliest_unacceptable = overlap
-                                                        earliest_amigo = amigo
-                                                    elif overlap[0] < earliest_unacceptable[0]:
-                                                        earliest_unacceptable = overlap
-                                                        earliest_amigo = amigo
+                                            if (option[0]>=exclude_list[index].start_time and option[0] <=exclude_list[index].end_time) or (option[1]>=exclude_list[index].start_time and option[1]<=exclude_list[index].end_time) or (option[0]<=exclude_list[index].start_time and option[1]>=exclude_list[index].end_time):
+                                                if not option[0] == exclude_list[index].end_time and not option[1] == exclude_list[index].start_time:
+                                                    all_options.remove(option)
 
-                                                # if it is long enough
-                                                else:
-                                                    overlap[1] = overlap[0] + delta
-                                                    newb = Event.objects.get_or_create(start_time=overlap[0],end_time=overlap[1])[0]
-                                                    newb.add_user(my_dt.owner)
-                                                    single.append(newb)
+                                                    exclusions = get_exclusions(option, [exclude_list[index].start_time, exclude_list[index].end_time])
+                                                    if exclusions:
+                                                        for exclusion in exclusions:
+                                                            all_options.append(exclusion)
 
-                                                    single.append(amigo.user)
+                                    all_options.sort()
 
-                                                    json_output = serializers.serialize('json',single)
+                                    for option in all_options:
+                                        overlap = get_overlap(my_dt, option)
+                                        if overlap != None:
+                                            if overlap[1]-overlap[0] < delta:
+                                                if earliest_unacceptable == None:
+                                                    earliest_unacceptable = overlap
+                                                    earliest_amigo = amigo
+                                                elif overlap[0] < earliest_unacceptable[0]:
+                                                    earliest_unacceptable = overlap
+                                                    earliest_amigo = amigo
 
-                                                    return HttpResponse(json_output)
+                                            # if it is long enough
+                                            else:
+                                                overlap[1] = overlap[0] + delta
+                                                newb = Event.objects.get_or_create(start_time=overlap[0],end_time=overlap[1])[0]
+                                                newb.add_user(my_dt.owner)
+                                                single.append(newb)
 
-                            if earliest_unacceptable == None:
-                                return HttpResponse("NoMatch")
-                            else:
-                                overlap = earliest_unacceptable
-                                amigo = earliest_amigo
-                                newb = Event.objects.get_or_create(start_time=overlap[0],end_time=overlap[1])[0]
-                                newb.add_user(my_dt.owner)
+                                                single.append(amigo.user)
 
-                                single.append(newb)
-                                single.append(amigo.user)
-                                json_output = serializers.serialize('json',single)
-                                if json_output == None:
-                                    return HttpResponse("Failure")
-                                return HttpResponse(json_output)
-        else:
-            return HttpResponse("You messup!!?!?!?")
-    except Exception as e:
-        print e
+                                                json_output = serializers.serialize('json',single)
+
+                                                return HttpResponse(json_output)
+
+                        if earliest_unacceptable == None:
+                            return HttpResponse("NoMatch")
+                        else:
+                            overlap = earliest_unacceptable
+                            amigo = earliest_amigo
+                            newb = Event.objects.get_or_create(start_time=overlap[0],end_time=overlap[1])[0]
+                            newb.add_user(my_dt.owner)
+
+                            single.append(newb)
+                            single.append(amigo.user)
+                            json_output = serializers.serialize('json',single)
+                            if json_output == None:
+                                return HttpResponse("Failure")
+                            return HttpResponse(json_output)
+    else:
+        return HttpResponse("Failure")
+
 
 ## one is the thing you are cutting up, two is the time chunk you want to exclude
 def get_exclusions(one, two):
@@ -1528,7 +1469,6 @@ def create_event_from_friends_overlapping_downtimes(options, my_dt, amigo):
     return json_me
 
 def get_friends_overlapping_downtimes(current_user, my_dt, excluded_amigos):
-    #return HttpResponse("Hellow!")
     my_friends = current_user.get_friends()
     if len(my_friends) == 0:
         return "NoFriends"
@@ -1714,36 +1654,21 @@ def display_friend_requests(request):
         if request.method == 'GET':
 
             current_uduser = request.user.updoguser
-            one="""<<<<<<< HEAD
-            if not current_uduser.new_friend_requests:
-
-======="""
             current_uduser.new_friend_requests = False
             requests = Friendship.objects.filter(to_user=current_uduser, is_new=True)
             rl = len(requests)
             request_list = []
             
             if rl == 0:
-#>>>>>>> 59c8e6b668bb15e373e38b1b4370d76eec955c8c
                 return HttpResponse("No new notifications")
 
             for i in xrange(0,rl):
                 request_list.append(requests[i].from_user.user)
                 requests[i].save()
 
-            two="""<<<<<<< HEAD
-                for i in xrange(0,rl):
-                    request_list.append(requests[i].from_user.user)
-                    requests[i].is_new = False
-                    requests[i].save()
-                requests_out = serializers.serialize('json', request_list)
-                return HttpResponse(requests_out)
-======="""
             requests_out = serializers.serialize('json', request_list)
 
             return HttpResponse(requests_out)
-#>>>>>>> 59c8e6b668bb15e373e38b1b4370d76eec955c8c
-
     return HttpResponse("Failure")
 
 @login_required
@@ -1766,64 +1691,48 @@ def get_num_new_friend_requests(request):
 
 @login_required
 def get_notifications(request):
-    try:
-        if request.is_ajax():
-            if request.method == 'GET':
 
-                current_uduser = request.user.updoguser
-                event_notifications = EventNotification.objects.filter(to_user=current_uduser)
-                event_notifications = event_notifications.order_by('-date')
-                from_users = []
-                events = []
+    if request.is_ajax():
+        if request.method == 'GET':
 
-                if event_notifications:
-                    el = len(event_notifications)
+            current_uduser = request.user.updoguser
+            event_notifications = EventNotification.objects.filter(to_user=current_uduser)
+            event_notifications = event_notifications.order_by('-date')
+            from_users = []
+            events = []
 
-                    if el > 0:
-                      for i in xrange(0,el):
-                        if event_notifications[i].is_seen == False:
-                            event_notifications[i].is_seen = True
-                            event_notifications[i].save()
-                        else:
-                            expdate = event_notifications[i].date + datetime.timedelta(days=1)
-                            if event_notifications[i].is_reply == True and expdate < datetime.datetime.utcnow().replace(tzinfo=utc):
-                                print expdate
-                                print datetime.datetime.utcnow().replace(tzinfo=utc)
-                                #event_notifications[i].delete()
+            if event_notifications:
+                el = len(event_notifications)
 
-                        from_users.append(event_notifications[i].from_user.user)
-                        events.append(event_notifications[i].event)
+                if el > 0:
+                  for i in xrange(0,el):
+                    if event_notifications[i].is_seen == False:
+                        event_notifications[i].is_seen = True
+                        event_notifications[i].save()
+                    else:
+                        expdate = event_notifications[i].date + datetime.timedelta(days=1)
 
-                    event_notifications = serializers.serialize('json', event_notifications)
-                    from_users = serializers.serialize('json', from_users)
-                    events = serializers.serialize('json', events)
-                    json_stuff = simplejson.dumps([event_notifications, from_users, events])
-                    return HttpResponse(json_stuff, content_type="application/json")
+                    from_users.append(event_notifications[i].from_user.user)
+                    events.append(event_notifications[i].event)
 
-                return HttpResponse("No Notifications")
+                event_notifications = serializers.serialize('json', event_notifications)
+                from_users = serializers.serialize('json', from_users)
+                events = serializers.serialize('json', events)
+                json_stuff = simplejson.dumps([event_notifications, from_users, events])
+                return HttpResponse(json_stuff, content_type="application/json")
 
-                #### questionable
-                    #return HttpResponse(json_stuff, content_type="application/json")
-                #else:
-                    #return HttpResponse("No Notifications")
-
-    except Exception as e:
-        print e
+            return HttpResponse("No Notifications")
                     
     return HttpResponse("Failure")
 
 @login_required
 def remove_reply_notification(request):
-    try:
-        if request.is_ajax():
-            if request.method == 'POST':
-                if "notification_pk" in request.POST:
-                    ev_notey = EventNotification.objects.filter(pk=request.POST['notification_pk'])[0]
-                    ev_notey.delete()
-                    return HttpResponse("success")
-
-    except Exception as e:
-        print e
+    if request.is_ajax():
+        if request.method == 'POST':
+            if "notification_pk" in request.POST:
+                ev_notey = EventNotification.objects.filter(pk=request.POST['notification_pk'])[0]
+                ev_notey.delete()
+                return HttpResponse("success")
 
     return HttpResponse("Bob Saget")
 
@@ -1850,33 +1759,31 @@ def get_num_new_notifications(request):
 def send_event_notifications(request):
     if request.is_ajax():
         if request.method == 'POST':
-            try:
-                current_uduser = request.user.updoguser
-                if 'event' in request.POST:
-                    event = Event.objects.filter(pk=request.POST['event'])[0]
-                    if 'to_users' in request.POST:
-                        to_users = json.loads(request.POST['to_users'])
+            current_uduser = request.user.updoguser
+            if 'event' in request.POST:
+                event = Event.objects.filter(pk=request.POST['event'])[0]
+                if 'to_users' in request.POST:
+                    to_users = json.loads(request.POST['to_users'])
 
-                        if 'data_type' in request.POST:
-                            invite_list_pks = []
-                            if request.POST['data_type'] == 'pk':
-                                for key in to_users:
-                                    recipient = UpDogUser.objects.filter(pk=key)[0]
-                                    event_notification = EventNotification.objects.get_or_create(to_user=recipient, from_user=current_uduser, event=event)[0]
-                                    event_notification.save()
-                                    invite_list_pks.append(key) ### FRANKLYN
+                    if 'data_type' in request.POST:
+                        invite_list_pks = []
+                        if request.POST['data_type'] == 'pk':
+                            for key in to_users:
+                                recipient = UpDogUser.objects.filter(pk=key)[0]
+                                event_notification = EventNotification.objects.get_or_create(to_user=recipient, from_user=current_uduser, event=event)[0]
+                                event_notification.save()
+                                invite_list_pks.append(key)
 
-                            elif request.POST['data_type'] == 'username':
+                        elif request.POST['data_type'] == 'username':
 
-                                for username in to_users:
+                            for username in to_users:
 
-                                    recipient = UpDogUser.objects.filter(user__username=username)[0]
-                                    event_notification = EventNotification.objects.get_or_create(to_user=recipient, from_user=current_uduser, event=event)[0]
-                                    event_notification.save()
-                                    invite_list_pks.append(recipient.pk) ###FRANKLYN
-                    return HttpResponse(json.dumps(invite_list_pks))
-            except Exception as e:
-                print e
+                                recipient = UpDogUser.objects.filter(user__username=username)[0]
+                                event_notification = EventNotification.objects.get_or_create(to_user=recipient, from_user=current_uduser, event=event)[0]
+                                event_notification.save()
+                                invite_list_pks.append(recipient.pk)
+                return HttpResponse(json.dumps(invite_list_pks))
+
 
 
     return HttpResponse("Failure")
@@ -1884,43 +1791,40 @@ def send_event_notifications(request):
 @login_required
 @csrf_exempt
 def respond_to_event_notification(request):
-    try:
-        if request.is_ajax():
-            if request.method == 'POST':
 
-                current_uduser = request.user.updoguser
+    if request.is_ajax():
+        if request.method == 'POST':
 
-                if 'notification' in request.POST:
-                    notification = EventNotification.objects.filter(pk=request.POST['notification'])[0]
+            current_uduser = request.user.updoguser
 
-                    if 'response' in request.POST:
-                        response = request.POST['response']
+            if 'notification' in request.POST:
+                notification = EventNotification.objects.filter(pk=request.POST['notification'])[0]
+
+                if 'response' in request.POST:
+                    response = request.POST['response']
 
 
-                        if response == 'accept':
-                            try:
-                                current_uduser.update_last_seen(notification.from_user, datetime.datetime.utcnow().replace(tzinfo=utc))
+                    if response == 'accept':
+                        current_uduser.update_last_seen(notification.from_user, datetime.datetime.utcnow().replace(tzinfo=utc))
 
-                            except Exception as e:
-                                print e
 
-                            ## adds the to user as an owner of the event
-                            if current_uduser not in notification.event.owners.all():
-                                notification.event.add_user(current_uduser)
-                                notification.event.save()
 
-                            ## creates a reply notification for the from user
-                            reply_notification = EventNotification(to_user=notification.from_user, from_user=current_uduser, event=notification.event, is_reply=True)
-                            reply_notification.save()
-                            ## delete the event notification
-                            notification.delete()
-                            return HttpResponse(serializers.serialize('json', [notification.event]))
+                        ## adds the to user as an owner of the event
+                        if current_uduser not in notification.event.owners.all():
+                            notification.event.add_user(current_uduser)
+                            notification.event.save()
 
+                        ## creates a reply notification for the from user
+                        reply_notification = EventNotification(to_user=notification.from_user, from_user=current_uduser, event=notification.event, is_reply=True)
+                        reply_notification.save()
+                        ## delete the event notification
                         notification.delete()
-                        return HttpResponse("Success")
+                        return HttpResponse(serializers.serialize('json', [notification.event]))
 
-    except Exception as e:
-        print e
+                    notification.delete()
+                    return HttpResponse("Success")
+
+
 
     return HttpResponse("Failure")
 
@@ -1935,11 +1839,6 @@ def get_hour(time):
     # the index of the space in time
     space_index = int(time.find(' '))
 
-    # error messages to help with future potential bugs
-    if col_index == -1:
-        print "In get_minute method: time is in incorrect format"
-    if space_index == -1:
-        print "In get_minute method: time is in incorrect format"
     # the hour of the start date
     hour = int(time[:col_index])
     
@@ -1964,12 +1863,6 @@ def get_hour(time):
 def get_minute(time):
     col_index = int(time.find(':'))
     space_index = int(time.find(' '))
-
-    # error messages to help with future potential bugs
-    if col_index == -1:
-        print "In get_minute method: time is in incorrect format"
-    if space_index == -1:
-        print "In get_minute method: time is in incorrect format"
 
     return int(time[col_index+1:space_index])
 
@@ -2029,42 +1922,40 @@ def get_event_owners(request):
         if request.method == 'GET':
             if 'pks' in request.GET:
                 if 'types' in request.GET:
-                    try:
-                        list_of_owners = []
-                        pks = json.loads(request.GET['pks'])
-                        types = json.loads(request.GET['types'])
+                    list_of_owners = []
+                    pks = json.loads(request.GET['pks'])
+                    types = json.loads(request.GET['types'])
 
-                        unused_ints = []
-                        i = 0
-                        for pk in pks:
-                            unused_ints.append(i)
-                            is_event = types[i]
-                            # if this is an event
-                            if is_event == True:
-                                event = Event.objects.filter(pk=pk)[0]
+                    unused_ints = []
+                    i = 0
+                    for pk in pks:
+                        unused_ints.append(i)
+                        is_event = types[i]
+                        # if this is an event
+                        if is_event == True:
+                            event = Event.objects.filter(pk=pk)[0]
 
-                                event_owners = []
-                                owners =  event.owners.all()
-                                owners = owners.exclude(pk=request.user.updoguser.pk)
-                                list_of_owners.append(request.user)
-                                for owner in owners:
-                                    list_of_owners.append(owner.user)
+                            event_owners = []
+                            owners =  event.owners.all()
+                            owners = owners.exclude(pk=request.user.updoguser.pk)
+                            list_of_owners.append(request.user)
+                            for owner in owners:
+                                list_of_owners.append(owner.user)
 
-                            # else this is a downtime
-                            else:
+                        # else this is a downtime
+                        else:
 
-                                downtime = Downtime.objects.filter(pk=pk)
-                                list_of_owners.append(downtime[0].owner.user)
-
-
-                            i = i + 1
-                        json_stuff = serializers.serialize('json', list_of_owners)
+                            downtime = Downtime.objects.filter(pk=pk)
+                            list_of_owners.append(downtime[0].owner.user)
 
 
-                        #return HttpResponse(json_stuff, content_type ="application/json")
-                        return HttpResponse(json_stuff)
-                    except Exception as e:
-                        print e
+                        i = i + 1
+                    json_stuff = serializers.serialize('json', list_of_owners)
+
+
+                    #return HttpResponse(json_stuff, content_type ="application/json")
+                    return HttpResponse(json_stuff)
+
     else:
         return HttpResponse("Failure.")
 
@@ -2113,11 +2004,9 @@ def who_is_invited(request):
 def get_from_user(request):
     if request.is_ajax():
         if 'pk' in request.GET:
-            try:
-                eventNotey = EventNotification.objects.filter(pk=request.GET['pk'])[0]
-                return HttpResponse(serializers.serialize('json', [eventNotey.from_user.user, eventNotey.event]))
-            except Exception as e:
-                print e
+            eventNotey = EventNotification.objects.filter(pk=request.GET['pk'])[0]
+            return HttpResponse(serializers.serialize('json', [eventNotey.from_user.user, eventNotey.event]))
+
     else:
         return HttpResponse("Fail!")
 
@@ -2178,16 +2067,8 @@ def get_time(time):
     # should never get here
     else: return -1
 
-
-    print "am_pm is:"
-    print am_pm
-
-
     # the hour of the start date
     hour = int(time[:col_index])
-    
-    print "hour = "
-    print hour
 
     if hour > 12:
         return -1
@@ -2203,9 +2084,5 @@ def get_time(time):
     minute = int(time[time_regex_end_index-2:time_regex_end_index])
     if minute > 59:
         return -1
-
-    print "minute = "
-    print minute
-
     return [hour, minute]
 

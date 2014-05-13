@@ -6,11 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Bootstrap -->
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
-
   <link href="{% static 'css/fullcalendar.css' %}" rel="stylesheet">
   <link href="{% static 'css/fullcalendar.print.css' %}" rel="stylesheet" media="print">
   <link href="{% static 'css/datepicker.css' %}" rel="stylesheet">
-
   <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
   <link href="{% static 'css/jquery-ui-1.10.4.custom.css' %}" rel="stylesheet">
   <link href="{% static 'css/bootstrap-timepicker.css' %}" rel="stylesheet">
@@ -43,7 +41,7 @@
 <body>
 
   <script>
- $.fn.modal.Constructor.prototype.enforceFocus = function () {};
+  $.fn.modal.Constructor.prototype.enforceFocus = function () {};
   $(document).ready(function() {
 
     if ($( '.navbar-header' ).is( ':visible' )) {
@@ -427,8 +425,6 @@ function check_for_notifications() {
 
   }
 
-
-
   if (n > 1) {
     $(".notif_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"><span class="badge">' + n + '</span></span><b class="caret"></b></div>');
   }
@@ -438,7 +434,6 @@ function check_for_notifications() {
   else {
     $(".notif_text").html('<div style = "pointer-events:none"><span class="glyphicon glyphicon-envelope"></span><b class="caret"></b></div>');
   }
-
 
 }
 
@@ -478,7 +473,6 @@ var myVar = setInterval(function() {check_for_notifications()}, 30000);
   }
 }
 </style>
-
 
 <script>
 
@@ -554,7 +548,6 @@ function make_events(data, color, owner, hover, is_event) {
 
             if (is_event) {
 
-
               single_owners = ["{{username}}"];
               index = index + 1;
               if (index >= my_data.length) {
@@ -604,8 +597,6 @@ function make_events(data, color, owner, hover, is_event) {
 
 
       single.is_event = is_event; // true for events, false for downtimes
-      
-
       
       time_delta = data[i].fields.repeating_time_delta;
       single.repeating_time_delta = time_delta;
@@ -689,7 +680,6 @@ function make_events(data, color, owner, hover, is_event) {
       }
     }
 
-
     function who_is_invited(event_id) {
       var mydata;
       $.ajax({
@@ -721,10 +711,6 @@ function make_events(data, color, owner, hover, is_event) {
       return [false];
     }
   }
-
-  </script>
-
-  <script>
 
   function get_friends(user) {
     $.ajax({
@@ -833,46 +819,45 @@ $(function() {
           var dlength = mydata.length;
           var userhtml = "";
 
-              // go get me!
-              if (window.suggest_list != undefined) {
+          if (window.suggest_list != undefined) {
 
-                users = [];
-                for (var i = 0; i < dlength; i++) {
-                  if ($.inArray(mydata[i].fields.username, window.suggest_list) == -1) {
-                    users.push(mydata[i]);
-                  }
-                }
+            users = [];
+            for (var i = 0; i < dlength; i++) {
+              if ($.inArray(mydata[i].fields.username, window.suggest_list) == -1) {
+                users.push(mydata[i]);
               }
-              else {
-
-                window.suggest_list = [];
-                users = mydata;
-              }
-
-              if (users.length != 0) {
-                for (var i = 0; i < users.length; i++) {
-                  userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + '<br>' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
-                }
-              }
-              else {
-                userhtml = "No results.";
-
-              }
-              $(".suggest-output").html(userhtml);
-
             }
-          });
+          }
+          else {
+
+            window.suggest_list = [];
+            users = mydata;
+          }
+
+          if (users.length != 0) {
+            for (var i = 0; i < users.length; i++) {
+              userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + '<br>' + users[i].fields.last_name + '<div style="float:right"><button type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
+            }
+          }
+          else {
+            userhtml = "No results.";
+
+          }
+          $(".suggest-output").html(userhtml);
+
+        }
+      });
 }
 return false;
 });
 });
 
 function add_suggest(user_pk, user_firstname, user_lastname, username) {
-  // delete sonia from above in search
+  // delete user from above in search
   $("#sug_" + user_pk).remove();
 
   $("#suggest-search").val("Search for friends to meet up with...");
-    // add sonia below
+    // add user below
     addedhtml = "";    
     addedhtml = addedhtml + '<div id="sugged_' + user_pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + username + '-social.jpg" alt="profpic" width="50" height="50"> ' + user_firstname + ' ' + user_lastname + '<div style="float:right" id="anotherundesirablebutton_' + user_pk + '"><button class="btn btn-default" type="button" onclick="remove_suggest(\'' + user_pk + '\', \'' + user_firstname + '\', \'' + user_lastname+  '\', \'' + username + '\' )">Remove</button></div></a></div>';
 
@@ -988,74 +973,72 @@ function cancel_suggest() {
         bootbox.dialog({
           message: "Invite " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " to hangout on " + date_string + " from " + time_string + "?", 
           title: "Send Invite?",
-             //bootbox.confirm("Hangout with " + alldata[index].fields.first_name + " " + alldata[index].fields.last_name + " on " + date_string + " from " + time_string + "?", function (request) {
-                ///////if (request) {
-                  onEscape: function () {
-                    clean_up_suggest(0);
+          onEscape: function () {
+            clean_up_suggest(0);
+          },
+          buttons: {
+            ReSuggest: {
+              label: "Re-suggest",
+              callback: function() {
+                $.ajax({
+                  type: "GET",
+                  url: "/calendar/suggest/",
+                  data: {
+                    'suggest_list': JSON.stringify(window.suggest_list),
+                    'hours': parseInt(hour), 'minutes': parseInt(minute),
+                    'exclude': JSON.stringify(window.exclude_list),
+                    'exclude_friends': JSON.stringify(window.exclude_friend_list),
+                    'pk': fixed_pk,
                   },
-                  buttons: {
-                    ReSuggest: {
-                      label: "Re-suggest",
-                      callback: function() {
-                        $.ajax({
-                          type: "GET",
-                          url: "/calendar/suggest/",
-                          data: {
-                            'suggest_list': JSON.stringify(window.suggest_list),
-                            'hours': parseInt(hour), 'minutes': parseInt(minute),
-                            'exclude': JSON.stringify(window.exclude_list),
-                            'exclude_friends': JSON.stringify(window.exclude_friend_list),
-                            'pk': fixed_pk,
-                          },
-                          success: function(data) {
-                            suggest_function(data, hour, minute, fixed_pk);
-                          }
-                        });
-
-                      }
-                    },
-                    Cancel: {
-                      label: "Cancel",
-                      callback: function() {
-                        clean_up_suggest(0);
-                      }
-
-                    },
-                    Invite: {
-                      label: "Invite!",
-                      callback: function() {
-                        $.ajax({
-                          type: "POST",
-                          url: "/calendar/send_event_notifications/",
-                          data: {
-                            "event": mydata[0].pk,
-                            "to_users": JSON.stringify(friends),
-                            "data_type": "username",
-                          },
-                          success: function(data) {
-                          }
-                        });
-
-                        var unconf = make_events(mydata, blue, '{{ username }}', false, true);
-                        $.ajax({
-                          type: "POST",
-                          url: "/calendar/change_event/",
-                          data: {"pk": unconf[0].id, "day_delta": 0, "minute_delta": 0, "resize": false,},
-                          success: function(data) {
-                            var parsed = JSON.parse(data);
-                            resolve_event_downtime_conflicts(parsed);
-                          }
-
-                        });
-
-                        clean_up_suggest(1);
-                        $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
-
-                      }
-
-                    },
+                  success: function(data) {
+                    suggest_function(data, hour, minute, fixed_pk);
                   }
-                }); 
+                });
+
+              }
+            },
+            Cancel: {
+              label: "Cancel",
+              callback: function() {
+                clean_up_suggest(0);
+              }
+
+            },
+            Invite: {
+              label: "Invite!",
+              callback: function() {
+                $.ajax({
+                  type: "POST",
+                  url: "/calendar/send_event_notifications/",
+                  data: {
+                    "event": mydata[0].pk,
+                    "to_users": JSON.stringify(friends),
+                    "data_type": "username",
+                  },
+                  success: function(data) {
+                  }
+                });
+
+                var unconf = make_events(mydata, blue, '{{ username }}', false, true);
+                $.ajax({
+                  type: "POST",
+                  url: "/calendar/change_event/",
+                  data: {"pk": unconf[0].id, "day_delta": 0, "minute_delta": 0, "resize": false,},
+                  success: function(data) {
+                    var parsed = JSON.parse(data);
+                    resolve_event_downtime_conflicts(parsed);
+                  }
+
+                });
+
+                clean_up_suggest(1);
+                $("#calendar").fullCalendar('renderEvent', unconf[0], stick=true);
+
+              }
+
+            },
+          }
+        }); 
 }
 }
 }
@@ -1140,10 +1123,6 @@ function multi_suggest_function(data, hour, minute) {
                             
                           }
                         });
-
-
-
-
                       }
                     },
                     Cancel: {
@@ -1190,8 +1169,6 @@ function multi_suggest_function(data, hour, minute) {
                   },
                 }
                 );
-
-
 }
 }
 }
@@ -1200,8 +1177,6 @@ function multi_suggest_function(data, hour, minute) {
 function send_suggest() {
   var hour = $("#suggest-hour").val();
   var minute = $("#suggest-minute").val();
-
-
 
   if (!(hour.match(/^([0-9])([0-9]?)$/)) && (hour != "")) {
     bootbox.alert("Input hour must be an integer.");
@@ -1257,34 +1232,25 @@ function send_suggest() {
 
 body .modal.fade.suggest-modal {
   width: 100%;
-  /*max-width: 450px;
-  margin-left: 30%;*/
 }
 body .modal.fade.how-to-modal {
   max-width: 100%;
-  /*max-width: 450px;
-  margin-left: 30%;*/
 }
 body .modal-footer {
   width: 100%;
-  /*width: 100%;*/
 }
 
 div#scroll-able-3 {
   height: 60px;
-  /*overflow: scroll;*/
-
 }
 
 div#scroll-able-help {
   height: 260px;
   width: 100%;
   overflow: scroll;
-
 }
 
 </style>
-
 
 <div class="modal fade how-to-modal" tabindex="-1" role="dialog" aria-labelledby="helpmodal" aria-hidden="true">
   <div class="modal-dialog">
@@ -1377,38 +1343,33 @@ suggest_search_function = function() {
         var dlength = mydata.length;
         var userhtml = "";
 
-              // go get me!
-              if (window.suggest_list != undefined) {
-                console.log("suggest_list" + window.suggest_list[0]);
-
-                console.log("initialize");
-                users = [];
-                for (var i = 0; i < dlength; i++) {
-                  if ($.inArray(mydata[i].fields.username, window.suggest_list) == -1) {
-                    users.push(mydata[i]);
-                  }
-                }
-              }
-              else {
-
-                console.log("suggest list is undef");
-                window.suggest_list = [];
-                users = mydata;
-              }
-
-              if (users.length != 0) {
-                for (var i = 0; i < users.length; i++) {
-                  userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button class="btn btn-default" type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
-                }
-              }
-              else {
-                userhtml = "No results.";
-
-              }
-              $(".suggest-output").html(userhtml);
-
+        if (window.suggest_list != undefined) {
+          users = [];
+          for (var i = 0; i < dlength; i++) {
+            if ($.inArray(mydata[i].fields.username, window.suggest_list) == -1) {
+              users.push(mydata[i]);
             }
-          });
+          }
+        }
+        else {
+
+          window.suggest_list = [];
+          users = mydata;
+        }
+
+        if (users.length != 0) {
+          for (var i = 0; i < users.length; i++) {
+            userhtml = userhtml + '<div id="sug_' + users[i].pk + '"><a class="list-group-item"><img class="img-rounded" src="http://updog-assets.s3.amazonaws.com/media/profile_pictures/' + users[i].fields.username + '-social.jpg" alt="profpic" width="50" height="50"> ' + users[i].fields.first_name + ' ' + users[i].fields.last_name + '<div style="float:right"><button class="btn btn-default" type="button" onclick="add_suggest(\'' + users[i].pk + '\', \'' + users[i].fields.first_name + '\', \'' + users[i].fields.last_name+ '\', \'' + users[i].fields.username+ '\' )">Add</button></div></a></div>';
+          }
+        }
+        else {
+          userhtml = "No results.";
+
+        }
+        $(".suggest-output").html(userhtml);
+
+      }
+    });
 }
 return false;
 }
@@ -1434,10 +1395,5 @@ $('#suggest-search').keypress(function(e){
     {% endif %}
 
   </div>
-
-
-
 </footer>
-
-
 </html>
