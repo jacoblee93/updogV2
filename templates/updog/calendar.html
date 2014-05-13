@@ -276,10 +276,8 @@ function erase_events(user_pk, username) {
   existing_events = $("#calendar").fullCalendar('clientEvents');
 
   for (var i = 0; i < existing_events.length; i++) {
-  if (existing_events[i].owners[0] != '{{username}}') {
-    if (existing_events[i].owners != '{{username}}') {
+  if (existing_events[i].owners[0] == username || existing_events[i].owners == username) {
     $('#calendar').fullCalendar('removeEvents', existing_events[i].id);
-    }
   }
 }
   $('#calendar').fullCalendar('rerenderEvents');
@@ -1154,8 +1152,11 @@ cancel_delete_repeating_events.onclick = function() {
           var suggest = document.createElement("input");
           suggest.className = "btn btn-primary";
           suggest.setAttribute('type', "submit");
-          suggest.setAttribute('value', "Suggest a Friend");
+
+          suggest.setAttribute('value', "Suggest Available Friend");
+
           suggest.setAttribute('style', 'float:right');
+
           suggest.onclick = function() {
 
                   $.ajax({
@@ -2693,7 +2694,6 @@ function showTimePicker11() {
   $('#timepicker11').timepicker('showWidget');
 
   //$('#timepicker10').timepicker('modal');
-<<<<<<< HEAD
 
 }*/
 

@@ -84,7 +84,7 @@ div#scroll-able-nots {
 div#scroll-able-nots1 {
   max-height: 300px;
   overflow: scroll;
-  width: 380px;
+  width: 480px;
 
 }
 </style>
@@ -1426,7 +1426,13 @@ $('#suggest-search').keypress(function(e){
 
 <footer>
   <div class="container">
-   <p>&copy; UpDog 2014: What's Up With You?</p>
+
+    {% if user.is_authenticated %}
+
+    <p>Drag to create blocks of free time, double-click to create events. Click suggest to schedule meetings. Find your friends using the search box.</p>
+
+    {% endif %}
+
   </div>
 
 
