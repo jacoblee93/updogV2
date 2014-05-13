@@ -10,9 +10,9 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-TEMPLATE_DEBUG = True
+TEMPLATE_DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -42,7 +42,7 @@ DATABASE_PATH = os.path.join(PROJECT_PATH, 'updog.db')
 #MEDIA_ROOT = os.path.join(PROJECT_PATH, 'media')
 MEDIA_ROOT = 'media'
 
-if DEBUG:
+if not DEBUG:
     AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
     #STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     S3_URL = 'http://%s.s3.amazonaws.com/' % AWS_STORAGE_BUCKET_NAME
