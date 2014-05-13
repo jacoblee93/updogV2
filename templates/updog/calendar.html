@@ -897,6 +897,26 @@ submit.appendChild(textsubmit);
 
           }
 
+
+
+//***comebackhere
+
+$.ajax({
+          type: "POST",
+          url: "/calendar/change_event/",
+          data: {"pk": event.id, 
+          "day_delta": 0,
+          "minute_delta": 0,
+          "resize": "false",
+        },
+        success: function(data) {
+          var parsed = JSON.parse(data);
+          resolve_event_downtime_conflicts(parsed);
+        }
+      });
+
+
+
         }
       }
       handle_repeating_events_change(event);
@@ -1136,7 +1156,7 @@ cancel_delete_repeating_events.onclick = function() {
             {
               autoOpen: false,
               width: 500,
-              height: 300,
+              height: 225,
               modal: true,
               show: {effect: "slideDown", duration: 500},
               open: function() {
@@ -1308,11 +1328,11 @@ if (event.title != "{{username}} is free") {
   activity.value = event.title.substring(nameLength + 15, event.title.length);
 }
 
-$dialog.empty().append('<h4>Edit Downtime</h4><hr>Preferred Activity: ');
+$dialog.empty().append('<h4>Downtime Preferences</h4><hr>Preferred Activity: ');
 //$dialog.append(activity_text);
 $dialog.append(activity);
 
-$dialog.append('<br/><br>From When: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp')
+/*$dialog.append('<br/><br>From When: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp')
 $dialog.append(startDate);
 $dialog.append(" ");
 $dialog.append(startTime);
@@ -1321,10 +1341,10 @@ $dialog.append("<br>To When: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&
 $dialog.append(endDate);
 $dialog.append(" ");
 
-$dialog.append(endTime);
+$dialog.append(endTime);*/
 $dialog.append('<hr>');
 
-$(startDate).datepicker(datePickerOptions);
+/*$(startDate).datepicker(datePickerOptions);
                   $(endDate).datepicker(datePickerOptions);
 
                   $(startDate).datepicker().on('changeDate', function(ev){
@@ -1332,7 +1352,7 @@ $(startDate).datepicker(datePickerOptions);
                   });
                   $(endDate).datepicker().on('changeDate', function(ev){
                     $(this).datepicker('hide');
-                  });
+                  });*/
 
       var cancel = document.createElement("button");
         // this makes the Cancel button look nice
